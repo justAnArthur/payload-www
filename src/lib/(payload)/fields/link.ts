@@ -77,6 +77,7 @@ export const link: LinkType = ({ appearances, disableLabel = false, overrides = 
       label: 'Document to link to',
       relationTo: ['pages', 'posts'],
       required: true,
+      localized: true,
     },
     {
       name: 'url',
@@ -86,6 +87,7 @@ export const link: LinkType = ({ appearances, disableLabel = false, overrides = 
       },
       label: 'Custom URL',
       required: true,
+      localized: true,
     },
   ]
 
@@ -110,6 +112,7 @@ export const link: LinkType = ({ appearances, disableLabel = false, overrides = 
           },
           label: 'Label',
           required: true,
+          localized: true,
         },
       ],
     })

@@ -3,10 +3,7 @@ import type { CollectionConfig } from 'payload'
 import { authenticated } from '@/lib/(payload)/access/authenticated'
 import { authenticatedOrPublished } from '@/lib/(payload)/access/authenticatedOrPublished'
 import { Archive } from '../../blocks/ArchiveBlock/config'
-import { CallToAction } from '../../blocks/CallToAction/config'
 import { Content } from '../../blocks/Content/config'
-import { FormBlock } from '../../blocks/Form/config'
-import { MediaBlock } from '../../blocks/MediaBlock/config'
 import { hero } from '@/heros/config'
 import { slugField } from '@/lib/(payload)/fields/slug'
 import { populatePublishedAt } from '@/lib/(payload)/hooks/populatePublishedAt'
@@ -39,15 +36,12 @@ export const Pages: CollectionConfig<'pages'> = {
   admin: {
     defaultColumns: ['title', 'slug', 'updatedAt'],
     livePreview: {
-      url: ({ data, req }) => {
-        const path = generatePreviewPath({
+      url: ({ data, req }) =>
+        generatePreviewPath({
           slug: typeof data?.slug === 'string' ? data.slug : '',
           collection: 'pages',
           req,
-        })
-
-        return path
-      },
+        }),
     },
     preview: (data, { req }) =>
       generatePreviewPath({
@@ -62,6 +56,7 @@ export const Pages: CollectionConfig<'pages'> = {
       name: 'title',
       type: 'text',
       required: true,
+      localized: true,
     },
     {
       type: 'tabs',
@@ -75,7 +70,7 @@ export const Pages: CollectionConfig<'pages'> = {
             {
               name: 'layout',
               type: 'blocks',
-              blocks: [CallToAction, Content, MediaBlock, Archive, FormBlock],
+              blocks: [Content, Archive],
               required: true,
               admin: {
                 initCollapsed: true,
@@ -110,6 +105,7 @@ export const Pages: CollectionConfig<'pages'> = {
               descriptionPath: 'meta.description',
             }),
           ],
+          localized: true,
         },
       ],
     },

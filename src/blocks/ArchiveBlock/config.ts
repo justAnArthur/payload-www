@@ -14,6 +14,7 @@ export const Archive: Block = {
     {
       name: 'introContent',
       type: 'richText',
+      label: 'Intro Content',
       editor: lexicalEditor({
         features: ({ rootFeatures }) => {
           return [
@@ -24,7 +25,7 @@ export const Archive: Block = {
           ]
         },
       }),
-      label: 'Intro Content',
+      localized: true
     },
     {
       name: 'populateBy',
@@ -55,16 +56,19 @@ export const Archive: Block = {
           value: 'posts',
         },
       ],
+      localized: true,
     },
     {
       name: 'categories',
       type: 'relationship',
       admin: {
-        condition: (_, siblingData) => siblingData.populateBy === 'collection',
+        condition: (_, siblingData) =>
+          siblingData.populateBy === 'collection' && siblingData.relationTo === 'posts',
       },
       hasMany: true,
       label: 'Categories To Show',
       relationTo: 'categories',
+      localized: true,
     },
     {
       name: 'limit',
@@ -85,6 +89,7 @@ export const Archive: Block = {
       hasMany: true,
       label: 'Selection',
       relationTo: ['posts'],
+      localized: true,
     },
   ],
   labels: {
