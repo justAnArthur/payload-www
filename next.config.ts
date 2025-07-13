@@ -3,6 +3,7 @@ import type { NextConfig } from 'next'
 import type { RemotePattern } from 'next/dist/shared/lib/image-config'
 import createNextIntlPlugin from 'next-intl/plugin'
 import redirects from './redirects.js'
+import { webpack } from 'next/dist/compiled/webpack/webpack'
 
 const NEXT_PUBLIC_SERVER_URL = process.env.VERCEL_PROJECT_PRODUCTION_URL
   ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`

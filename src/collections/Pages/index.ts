@@ -15,7 +15,7 @@ import {
   MetaTitleField,
   OverviewField,
   PreviewField,
-} from '@payloadcms/plugin-seo/fields'
+} from '@payload-starter/seo/fields'
 
 export const Pages: CollectionConfig<'pages'> = {
   slug: 'pages',
@@ -63,7 +63,7 @@ export const Pages: CollectionConfig<'pages'> = {
         {
           fields: [
             {
-              name: 'content',
+              name: 'blocks',
               type: 'blocks',
               blocks: [Content, Archive],
               required: true,
@@ -84,13 +84,15 @@ export const Pages: CollectionConfig<'pages'> = {
               imagePath: 'meta.image',
             }),
             MetaTitleField({
-              hasGenerateFn: true,
+              hasGenerateAi: true,
             }),
             MetaImageField({
               relationTo: 'media',
             }),
 
-            MetaDescriptionField({}),
+            MetaDescriptionField({
+              hasGenerateAi: true,
+            }),
             PreviewField({
               // if the `generateUrl` function is configured
               hasGenerateFn: true,

@@ -1,22 +1,10 @@
 import { nestedDocsPlugin } from '@payloadcms/plugin-nested-docs'
 import { redirectsPlugin } from '@payloadcms/plugin-redirects'
-import { seoPlugin } from '@payloadcms/plugin-seo'
 import { Plugin } from 'payload'
 import { revalidateRedirects } from '@/lib/(payload)/hooks/revalidateRedirects'
-import { GenerateTitle, GenerateURL } from '@payloadcms/plugin-seo/types'
-
-import { Page, Post } from '@/payload-types'
 import { getServerSideURL } from '@/lib/utils/getURL'
-
-const generateTitle: GenerateTitle<Post | Page> = ({ doc }) => {
-  return doc?.title ? `${doc.title} | Payload Website Template` : 'Payload Website Template'
-}
-
-const generateURL: GenerateURL<Post | Page> = ({ doc }) => {
-  const url = getServerSideURL()
-
-  return doc?.slug ? `${url}/${doc.slug}` : url
-}
+import { openAIResolver, translator } from '@payload-starter/translator'
+import { seoPlugin as seo } from '@payload-starter/seo'
 
 export const plugins: Plugin[] = [
   redirectsPlugin({
@@ -45,8 +33,26 @@ export const plugins: Plugin[] = [
     collections: ['categories'],
     generateURL: (docs) => docs.reduce((url, doc) => `${url}/${doc.slug}`, ''),
   }),
-  seoPlugin({
-    generateTitle,
-    generateURL,
+  seo({
+    generateTitleAi: ({ doc, req }) =>
+      `Generate meta SEO title for webpage with next title: "${doc?.title}" in language=${req.locale}`,
+    generateDescriptionAi: ({ doc, req }) =>
+      `Generate meta SEO description for webpage with next title "${doc?.title}" in language=${req.locale}`,
+    generateURL: ({ doc }) => {
+      const url = getServerSideURL()
+
+      return doc?.slug ? `${url}/${doc.slug}` : url
+    },
+    openaiApiKey: process.env.OPENAI_KEY,
+  }),
+  translator({
+    collections: ['posts', 'pages'],
+    globals: [],
+    resolvers: [
+      // copyResolver(),
+      openAIResolver({
+        apiKey: process.env.OPENAI_KEY!,
+      }),
+    ],
   }),
 ]

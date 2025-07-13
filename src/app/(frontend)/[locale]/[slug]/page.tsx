@@ -12,24 +12,23 @@ import PageClient from './page.client'
 import { LivePreviewListener } from '@/components/LivePreviewListener'
 import { LocaleParamParams } from '@/app/(frontend)/[locale]/layout'
 import { Locale } from '@/lib/i18n/locales'
+import { setRequestLocale } from 'next-intl/server'
 
 type Args = {
   params: Promise<{ slug?: string }>
 } & LocaleParamParams
 
 export default async function Page({ params: paramsPromise }: Args) {
-  const { isEnabled: draft } = await draftMode()
   const { slug = 'home', locale } = await paramsPromise
+  setRequestLocale(locale)
+
+  const { isEnabled: draft } = await draftMode()
+
+  const page = await queryPageBySlug({ slug, locale })
+
   const url = '/' + slug
 
-  const page = await queryPageBySlug({
-    slug,
-    locale,
-  })
-
   if (!page) return <PayloadRedirects url={url} />
-
-  const { hero, layout } = page
 
   return (
     <article className="pt-16 pb-24">
@@ -38,7 +37,7 @@ export default async function Page({ params: paramsPromise }: Args) {
 
       {draft && <LivePreviewListener />}
 
-      <RenderBlocks blocks={layout} />
+      <RenderBlocks blocks={page.blocks} />
     </article>
   )
 }
@@ -46,10 +45,7 @@ export default async function Page({ params: paramsPromise }: Args) {
 export async function generateMetadata({ params: paramsPromise }: Args): Promise<Metadata> {
   const { slug = 'home', locale } = await paramsPromise
 
-  const page = await queryPageBySlug({
-    slug,
-    locale,
-  })
+  const page = await queryPageBySlug({ slug, locale })
 
   return generateMeta({ doc: page })
 }

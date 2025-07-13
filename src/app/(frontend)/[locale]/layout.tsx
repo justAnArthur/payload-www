@@ -16,6 +16,7 @@ import { hasLocale } from 'next-intl'
 import { routing } from '@/lib/i18n/routing'
 import { notFound } from 'next/navigation'
 import '../globals.css'
+import { setRequestLocale } from 'next-intl/server'
 
 export type LocaleParamParams = {
   params: Promise<{ locale: Locale }>
@@ -29,6 +30,8 @@ export default async function RootLayout({
   const { locale } = await paramsPromise
 
   if (!hasLocale(routing.locales, locale)) notFound()
+
+  setRequestLocale(locale)
 
   return (
     <html

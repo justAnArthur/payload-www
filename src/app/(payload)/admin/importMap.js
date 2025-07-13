@@ -9,12 +9,13 @@ import { UnderlineFeatureClient as UnderlineFeatureClient_e70f5e05f09f93e00b997e
 import { BoldFeatureClient as BoldFeatureClient_e70f5e05f09f93e00b997edb1ef0c864 } from '@payloadcms/richtext-lexical/client'
 import { ItalicFeatureClient as ItalicFeatureClient_e70f5e05f09f93e00b997edb1ef0c864 } from '@payloadcms/richtext-lexical/client'
 import { LinkFeatureClient as LinkFeatureClient_e70f5e05f09f93e00b997edb1ef0c864 } from '@payloadcms/richtext-lexical/client'
-import { OverviewComponent as OverviewComponent_a8a977ebc872c5d5ea7ee689724c0860 } from '@payloadcms/plugin-seo/client'
-import { MetaTitleComponent as MetaTitleComponent_a8a977ebc872c5d5ea7ee689724c0860 } from '@payloadcms/plugin-seo/client'
-import { MetaImageComponent as MetaImageComponent_a8a977ebc872c5d5ea7ee689724c0860 } from '@payloadcms/plugin-seo/client'
-import { MetaDescriptionComponent as MetaDescriptionComponent_a8a977ebc872c5d5ea7ee689724c0860 } from '@payloadcms/plugin-seo/client'
-import { PreviewComponent as PreviewComponent_a8a977ebc872c5d5ea7ee689724c0860 } from '@payloadcms/plugin-seo/client'
+import { OverviewComponent as OverviewComponent_5e1e61060ea660fb8ccfe67619cbd977 } from '@payload-starter/seo/fields-components'
+import { MetaTitleComponent as MetaTitleComponent_5e1e61060ea660fb8ccfe67619cbd977 } from '@payload-starter/seo/fields-components'
+import { MetaImageComponent as MetaImageComponent_5e1e61060ea660fb8ccfe67619cbd977 } from '@payload-starter/seo/fields-components'
+import { MetaDescriptionComponent as MetaDescriptionComponent_5e1e61060ea660fb8ccfe67619cbd977 } from '@payload-starter/seo/fields-components'
+import { PreviewComponent as PreviewComponent_5e1e61060ea660fb8ccfe67619cbd977 } from '@payload-starter/seo/fields-components'
 import { SlugComponent as SlugComponent_0a5f02191b8d338d6ccf41dfafe9b9be } from '@/lib/(payload)/fields/slug/SlugComponent'
+import { CustomButtonWithTranslator as CustomButtonWithTranslator_6dd113688e291eba880534af86f4cf55 } from '@payload-starter/translator/client'
 import { HorizontalRuleFeatureClient as HorizontalRuleFeatureClient_e70f5e05f09f93e00b997edb1ef0c864 } from '@payloadcms/richtext-lexical/client'
 import { BlocksFeatureClient as BlocksFeatureClient_e70f5e05f09f93e00b997edb1ef0c864 } from '@payloadcms/richtext-lexical/client'
 import { RowLabel as RowLabel_17c6ef4bfe47bfa29d923fb5718170b7 } from '@/globals/Header/RowLabel'
@@ -34,12 +35,13 @@ export const importMap = {
   "@payloadcms/richtext-lexical/client#BoldFeatureClient": BoldFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
   "@payloadcms/richtext-lexical/client#ItalicFeatureClient": ItalicFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
   "@payloadcms/richtext-lexical/client#LinkFeatureClient": LinkFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
-  "@payloadcms/plugin-seo/client#OverviewComponent": OverviewComponent_a8a977ebc872c5d5ea7ee689724c0860,
-  "@payloadcms/plugin-seo/client#MetaTitleComponent": MetaTitleComponent_a8a977ebc872c5d5ea7ee689724c0860,
-  "@payloadcms/plugin-seo/client#MetaImageComponent": MetaImageComponent_a8a977ebc872c5d5ea7ee689724c0860,
-  "@payloadcms/plugin-seo/client#MetaDescriptionComponent": MetaDescriptionComponent_a8a977ebc872c5d5ea7ee689724c0860,
-  "@payloadcms/plugin-seo/client#PreviewComponent": PreviewComponent_a8a977ebc872c5d5ea7ee689724c0860,
+  "@payload-starter/seo/fields-components#OverviewComponent": OverviewComponent_5e1e61060ea660fb8ccfe67619cbd977,
+  "@payload-starter/seo/fields-components#MetaTitleComponent": MetaTitleComponent_5e1e61060ea660fb8ccfe67619cbd977,
+  "@payload-starter/seo/fields-components#MetaImageComponent": MetaImageComponent_5e1e61060ea660fb8ccfe67619cbd977,
+  "@payload-starter/seo/fields-components#MetaDescriptionComponent": MetaDescriptionComponent_5e1e61060ea660fb8ccfe67619cbd977,
+  "@payload-starter/seo/fields-components#PreviewComponent": PreviewComponent_5e1e61060ea660fb8ccfe67619cbd977,
   "@/lib/(payload)/fields/slug/SlugComponent#SlugComponent": SlugComponent_0a5f02191b8d338d6ccf41dfafe9b9be,
+  "@payload-starter/translator/client#CustomButtonWithTranslator": CustomButtonWithTranslator_6dd113688e291eba880534af86f4cf55,
   "@payloadcms/richtext-lexical/client#HorizontalRuleFeatureClient": HorizontalRuleFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
   "@payloadcms/richtext-lexical/client#BlocksFeatureClient": BlocksFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
   "@/globals/Header/RowLabel#RowLabel": RowLabel_17c6ef4bfe47bfa29d923fb5718170b7,

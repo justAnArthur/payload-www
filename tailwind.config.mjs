@@ -4,10 +4,11 @@ import typography from '@tailwindcss/typography'
 /** @type {import('tailwindcss').Config} */
 const config = {
   content: [
-    './pages/**/*.{ts,tsx}',
-    './components/**/*.{ts,tsx}',
-    './app/**/*.{ts,tsx}',
-    './src/**/*.{ts,tsx}',
+    './src/app/**/*.{ts,tsx}',
+    './src/collections/**/*.{ts,tsx}',
+    './src/components/**/*.{ts,tsx}',
+    './src/globals/**/*.{ts,tsx}',
+    './src/lib/**/*.{ts,tsx}',
   ],
   darkMode: ['selector', '[data-theme="dark"]'],
   plugins: [tailwindcssAnimate, typography],
