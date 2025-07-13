@@ -1,0 +1,3 @@
+[submodule "src/plugins/translator"]
+	path = src/plugins/translator
+	url = git@github.com:justAnArthur/payload-starter_translator.git
