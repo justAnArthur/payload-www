@@ -1,19 +1,19 @@
 import { postgresAdapter } from '@payloadcms/db-postgres'
 import sharp from 'sharp'
 import path from 'path'
-import { buildConfig, PayloadRequest } from 'payload'
+import { buildConfig, Locale, PayloadRequest } from 'payload'
 import { fileURLToPath } from 'url'
 
 import { Categories } from './collections/Categories'
 import { Media } from './collections/Media'
 import { Pages } from './collections/Pages'
 import { Users } from './collections/Users'
-import { Footer } from './Footer/config'
-import { Header } from './Header/config'
-import { plugins } from './plugins'
+import { Footer } from '@/globals/Footer/config'
+import { Header } from '@/globals/Header/config'
+import { plugins } from './payload-plugins'
 import { defaultLexical } from '@/lib/(payload)/fields/defaultLexical'
-import { getServerSideURL } from './utilities/getURL'
-import { Messages } from '@/Messages/config'
+import { getServerSideURL } from '@/lib/utils/getURL'
+import { Messages } from '@/globals/Messages/config'
 import { defaultLocale, locales } from '@/lib/i18n/locales'
 import { Posts } from '@/collections/Posts'
 
@@ -62,7 +62,13 @@ export default buildConfig({
   globals: [Header, Footer, Messages],
   localization: {
     defaultLocale,
-    locales: locales as unknown as string[],
+    locales: locales.map(
+      (locale) =>
+        ({
+          label: new Intl.DisplayNames(['en'], { type: 'language' }).of(locale),
+          code: locale,
+        }) as Locale,
+    ),
   },
   plugins,
 

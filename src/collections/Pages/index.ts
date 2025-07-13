@@ -2,12 +2,11 @@ import type { CollectionConfig } from 'payload'
 
 import { authenticated } from '@/lib/(payload)/access/authenticated'
 import { authenticatedOrPublished } from '@/lib/(payload)/access/authenticatedOrPublished'
-import { Archive } from '../../blocks/ArchiveBlock/config'
-import { Content } from '../../blocks/Content/config'
-import { hero } from '@/heros/config'
+import { Archive } from '@/components/blocks/ArchiveBlock/config'
+import { Content } from '@/components/blocks/Content/config'
 import { slugField } from '@/lib/(payload)/fields/slug'
 import { populatePublishedAt } from '@/lib/(payload)/hooks/populatePublishedAt'
-import { generatePreviewPath } from '../../utilities/generatePreviewPath'
+import { generatePreviewPath } from '@/lib/utils/generatePreviewPath'
 import { revalidateDelete, revalidatePage } from './hooks/revalidatePage'
 
 import {
@@ -62,13 +61,9 @@ export const Pages: CollectionConfig<'pages'> = {
       type: 'tabs',
       tabs: [
         {
-          fields: [hero],
-          label: 'Hero',
-        },
-        {
           fields: [
             {
-              name: 'layout',
+              name: 'content',
               type: 'blocks',
               blocks: [Content, Archive],
               required: true,

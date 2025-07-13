@@ -1,16 +1,16 @@
 import type { Metadata } from 'next'
-import { cn } from '@/utilities/ui'
+import { cn } from '@/lib/utils/ui'
 import { GeistMono } from 'geist/font/mono'
 import { GeistSans } from 'geist/font/sans'
 import { AdminBar } from '@/components/AdminBar'
-import { Footer } from '@/Footer/Component'
-import { Header } from '@/Header/Component'
-import { Providers } from '@/providers'
-import { InitTheme } from '@/providers/Theme/InitTheme'
-import { mergeOpenGraph } from '@/utilities/mergeOpenGraph'
+import { Footer } from '@/globals/Footer/Component'
+import { Header } from '@/globals/Header/Component'
+import { Providers } from '@/app/(frontend)/_providers'
+import { InitTheme } from '@/app/(frontend)/_providers/Theme/InitTheme'
+import { mergeOpenGraph } from '@/lib/utils/mergeOpenGraph'
 import { draftMode } from 'next/headers'
-import { getServerSideURL } from '@/utilities/getURL'
-import { Locale } from '@/lib/i18n/locales'
+import { getServerSideURL } from '@/lib/utils/getURL'
+import { Locale, locales } from '@/lib/i18n/locales'
 import { ReactNode } from 'react'
 import { hasLocale } from 'next-intl'
 import { routing } from '@/lib/i18n/routing'
@@ -65,4 +65,8 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     creator: '@payloadcms',
   },
+}
+
+export async function generateStaticParams() {
+  return locales.map((locale) => ({ locale }))
 }

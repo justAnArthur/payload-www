@@ -1,7 +1,7 @@
 import { getRequestConfig } from 'next-intl/server'
 import { hasLocale } from 'next-intl'
 import { routing } from './routing'
-import { getCachedGlobal } from '@/utilities/getGlobals'
+import { getCachedGlobal } from '@/lib/utils/getGlobals'
 
 export default getRequestConfig(async ({ requestLocale }) => {
   const requested = await requestLocale
@@ -9,5 +9,5 @@ export default getRequestConfig(async ({ requestLocale }) => {
 
   const { messages } = await getCachedGlobal('messages', locale, 1)()
 
-  return { locale, messages: messages as Record<string, any> }
+  return { locale, messages: (messages || {}) as Record<string, any> }
 })

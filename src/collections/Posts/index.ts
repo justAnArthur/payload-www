@@ -11,9 +11,9 @@ import {
 
 import { authenticated } from '@/lib/(payload)/access/authenticated'
 import { authenticatedOrPublished } from '@/lib/(payload)/access/authenticatedOrPublished'
-import { Banner } from '../../blocks/Banner/config'
-import { MediaBlock } from '../../blocks/MediaBlock/config'
-import { generatePreviewPath } from '../../utilities/generatePreviewPath'
+import { Banner } from '@/components/blocks/Banner/config'
+import { MediaBlock } from '@/components/blocks/MediaBlock/config'
+import { generatePreviewPath } from '@/lib/utils/generatePreviewPath'
 import { revalidateDelete, revalidatePost } from './hooks/revalidatePost'
 
 import {

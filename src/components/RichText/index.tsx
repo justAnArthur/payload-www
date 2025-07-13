@@ -1,4 +1,4 @@
-import { MediaBlock } from '@/blocks/MediaBlock/Component'
+import { MediaBlock } from '@/components/blocks/MediaBlock/Component'
 import {
   DefaultNodeTypes,
   type DefaultTypedEditorState,
@@ -15,8 +15,8 @@ import type {
   BannerBlock as BannerBlockProps,
   MediaBlock as MediaBlockProps,
 } from '@/payload-types'
-import { BannerBlock } from '@/blocks/Banner/Component'
-import { cn } from '@/utilities/ui'
+import { BannerBlock } from '@/components/blocks/Banner/Component'
+import { cn } from '@/lib/utils/ui'
 
 type NodeTypes = DefaultNodeTypes | SerializedBlockNode<MediaBlockProps | BannerBlockProps>
 

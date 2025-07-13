@@ -3,7 +3,7 @@ import type { ArrayField, Field } from 'payload'
 import type { LinkAppearances } from './link'
 import { link } from './link'
 
-import deepMerge from '@/utilities/deepMerge'
+import deepMerge from '@/lib/utils/deepMerge'
 
 type LinkGroupType = (options?: {
   appearances?: LinkAppearances[] | false
