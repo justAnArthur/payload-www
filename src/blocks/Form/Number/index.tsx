@@ -7,6 +7,7 @@ import React from 'react'
 
 import { Error } from '../Error'
 import { Width } from '../Width'
+
 export const Number: React.FC<
   TextField & {
     errors: Partial<FieldErrorsImpl>

@@ -1,9 +1,9 @@
 import { MediaBlock } from '@/blocks/MediaBlock/Component'
 import {
   DefaultNodeTypes,
+  type DefaultTypedEditorState,
   SerializedBlockNode,
   SerializedLinkNode,
-  type DefaultTypedEditorState,
 } from '@payloadcms/richtext-lexical'
 import {
   JSXConvertersFunction,

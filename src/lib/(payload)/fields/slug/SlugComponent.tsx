@@ -2,7 +2,7 @@
 import React, { useCallback, useEffect } from 'react'
 import { TextFieldClientProps } from 'payload'
 
-import { useField, Button, TextInput, FieldLabel, useFormFields, useForm } from '@payloadcms/ui'
+import { Button, FieldLabel, TextInput, useField, useForm, useFormFields } from '@payloadcms/ui'
 
 import { formatSlug } from './formatSlug'
 import './index.scss'
