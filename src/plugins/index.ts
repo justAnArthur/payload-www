@@ -3,8 +3,8 @@ import { redirectsPlugin } from '@payloadcms/plugin-redirects'
 import { Plugin } from 'payload'
 import { revalidateRedirects } from '@/lib/(payload)/hooks/revalidateRedirects'
 import { getServerSideURL } from '@/lib/utils/getURL'
-import { openAIResolver, translator } from '@payload-starter/translator'
-import { seoPlugin as seo } from '@payload-starter/seo'
+import { openAIResolver, translator } from '@justanarthur/payload-plugin-translator'
+import { seoPlugin as seo } from '@justanarthur/payload-plugin-seo'
 
 export const plugins: Plugin[] = [
   redirectsPlugin({

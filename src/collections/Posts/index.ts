@@ -22,7 +22,7 @@ import {
   MetaTitleField,
   OverviewField,
   PreviewField,
-} from '@payload-starter/seo/fields'
+} from '@justanarthur/payload-plugin-seo/fields'
 import { slugField } from '@/lib/(payload)/fields/slug'
 
 export const Posts: CollectionConfig<'posts'> = {

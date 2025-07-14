@@ -15,7 +15,7 @@ import {
   MetaTitleField,
   OverviewField,
   PreviewField,
-} from '@payload-starter/seo/fields'
+} from '@justanarthur/payload-plugin-seo/fields'
 
 export const Pages: CollectionConfig<'pages'> = {
   slug: 'pages',
