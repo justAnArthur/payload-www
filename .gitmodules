@@ -1,3 +1,6 @@
 [submodule "src/plugins/translator"]
 	path = src/plugins/translator
 	url = git@github.com:justAnArthur/payload-starter_translator.git
+[submodule "src/plugins/seo"]
+	path = src/plugins/seo
+	url = git@github.com:justAnArthur/payload-starter_seo.git
