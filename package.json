@@ -23,7 +23,6 @@
   },
   "dependencies": {
     "@payload-starter/seo": "workspace:*",
-    "@payload-starter/translator": "workspace:*",
     "@payloadcms/admin-bar": "3.47.0",
     "@payloadcms/db-postgres": "3.47.0",
     "@payloadcms/live-preview-react": "3.47.0",
