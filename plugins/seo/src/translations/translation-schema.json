@@ -10,87 +10,96 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "missing": {
-          "type": "string"
-        },
-        "almostThere": {
-          "type": "string"
-        },
-        "autoGenerate": {
-          "type": "string"
-        },
-        "generateAi": {
-          "type": "string"
-        },
-        "bestPractices": {
-          "type": "string"
-        },
-        "characterCount": {
-          "type": "string"
-        },
-        "charactersLeftOver": {
-          "type": "string"
-        },
-        "charactersToGo": {
-          "type": "string"
-        },
-        "charactersTooMany": {
-          "type": "string"
-        },
-        "checksPassing": {
-          "type": "string"
-        },
-        "good": {
-          "type": "string"
-        },
-        "imageAutoGenerationTip": {
-          "type": "string"
-        },
-        "lengthTipDescription": {
-          "type": "string"
-        },
-        "lengthTipTitle": {
-          "type": "string"
-        },
-        "noImage": {
-          "type": "string"
-        },
-        "preview": {
-          "type": "string"
-        },
-        "previewDescription": {
-          "type": "string"
-        },
-        "tooLong": {
-          "type": "string"
-        },
-        "tooShort": {
-          "type": "string"
-        }
+        "$schema": { "type": "string" },
+        "metaGroupLabel": { "type": "string" },
+        "metaGroupDescription": { "type": "string" },
+        "tabContent": { "type": "string" },
+        "tabSocial": { "type": "string" },
+        "tabAdvanced": { "type": "string" },
+        "tabPreview": { "type": "string" },
+        "metaTitleLabel": { "type": "string" },
+        "metaTitleDescription": { "type": "string" },
+        "metaDescriptionLabel": { "type": "string" },
+        "metaDescriptionDescription": { "type": "string" },
+        "metaKeywordsLabel": { "type": "string" },
+        "metaKeywordsDescription": { "type": "string" },
+        "metaImageLabel": { "type": "string" },
+        "metaImageDescription": { "type": "string" },
+        "metaImageUrlDescription": { "type": "string" },
+        "socialLabel": { "type": "string" },
+        "socialDescription": { "type": "string" },
+        "ogTitleLabel": { "type": "string" },
+        "ogTitleDescription": { "type": "string" },
+        "ogDescriptionLabel": { "type": "string" },
+        "ogDescriptionDescription": { "type": "string" },
+        "ogImageLabel": { "type": "string" },
+        "ogImageUrlDescription": { "type": "string" },
+        "ogTypeLabel": { "type": "string" },
+        "ogTypeDescription": { "type": "string" },
+        "ogUrlLabel": { "type": "string" },
+        "ogUrlDescription": { "type": "string" },
+        "ogSiteNameLabel": { "type": "string" },
+        "ogLocaleLabel": { "type": "string" },
+        "ogLocaleDescription": { "type": "string" },
+        "twitterCardLabel": { "type": "string" },
+        "twitterTitleLabel": { "type": "string" },
+        "twitterTitleDescription": { "type": "string" },
+        "twitterDescriptionLabel": { "type": "string" },
+        "twitterImageLabel": { "type": "string" },
+        "twitterSiteLabel": { "type": "string" },
+        "twitterSiteDescription": { "type": "string" },
+        "twitterCreatorLabel": { "type": "string" },
+        "twitterCreatorDescription": { "type": "string" },
+        "advancedLabel": { "type": "string" },
+        "advancedDescription": { "type": "string" },
+        "canonicalUrlLabel": { "type": "string" },
+        "canonicalUrlDescription": { "type": "string" },
+        "robotsLabel": { "type": "string" },
+        "robotsDescription": { "type": "string" },
+        "noindexLabel": { "type": "string" },
+        "noindexDescription": { "type": "string" },
+        "authorLabel": { "type": "string" },
+        "publishedAtLabel": { "type": "string" },
+        "modifiedAtLabel": { "type": "string" },
+        "autoGenerate": { "type": "string" },
+        "generateAi": { "type": "string" },
+        "generating": { "type": "string" },
+        "generateError": { "type": "string" },
+        "checksPassing": { "type": "string" },
+        "preview": { "type": "string" },
+        "previewDescription": { "type": "string" },
+        "previewSerp": { "type": "string" },
+        "previewOg": { "type": "string" },
+        "previewTwitter": { "type": "string" },
+        "previewTitlePlaceholder": { "type": "string" },
+        "previewDescriptionPlaceholder": { "type": "string" },
+        "almostThere": { "type": "string" },
+        "bestPractices": { "type": "string" },
+        "characterCount": { "type": "string" },
+        "charactersLeftOver": { "type": "string" },
+        "charactersToGo": { "type": "string" },
+        "charactersTooMany": { "type": "string" },
+        "good": { "type": "string" },
+        "lengthTipKeywords": { "type": "string" },
+        "lengthTipTitle": { "type": "string" },
+        "lengthTipDescription": { "type": "string" },
+        "missing": { "type": "string" },
+        "noImage": { "type": "string" },
+        "imageAutoGenerationTip": { "type": "string" },
+        "tooLong": { "type": "string" },
+        "tooShort": { "type": "string" }
       },
       "required": [
-        "autoGenerate",
-        "imageAutoGenerationTip",
-        "bestPractices",
-        "lengthTipTitle",
-        "lengthTipDescription",
-        "good",
-        "tooLong",
-        "tooShort",
-        "almostThere",
-        "characterCount",
-        "charactersToGo",
-        "charactersLeftOver",
-        "charactersTooMany",
-        "noImage",
-        "checksPassing",
-        "preview",
-        "previewDescription",
-        "missing"
+        "metaGroupLabel",
+        "tabContent",
+        "tabSocial",
+        "tabAdvanced",
+        "tabPreview",
+        "metaTitleLabel",
+        "metaDescriptionLabel",
+        "autoGenerate"
       ]
     }
   },
-  "required": [
-    "plugin-seo"
-  ]
+  "required": ["plugin-seo"]
 }

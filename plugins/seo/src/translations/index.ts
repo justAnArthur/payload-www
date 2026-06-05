@@ -31,5 +31,4 @@ export const translations = {
 }
 
 export type PluginSEOTranslations = GenericTranslationsObject
-
 export type PluginSEOTranslationKeys = NestedKeysStripped<PluginSEOTranslations>

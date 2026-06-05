@@ -1,51 +1,55 @@
 {
   "name": "@justanarthur/payload-plugin-seo",
-  "version": "0.0.0",
-  "private": false,
-  "type": "module",
   "description": "SEO plugin for Payload CMS — adds meta title, description, image and preview fields.",
+  "version": "0.0.0",
+  "type": "module",
+  "private": false,
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    "./types": {
+      "import": {
+        "types": "./dist/types.d.ts",
+        "default": "./dist/types.js"
+      }
+    },
+    "./client": {
+      "import": {
+        "types": "./dist/client.d.ts",
+        "default": "./dist/client.js"
+      }
+    },
+    "./fields-components": {
+      "import": {
+        "types": "./dist/fields-components.d.ts",
+        "default": "./dist/fields-components.js"
+      }
+    },
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      }
+    },
+    "./fields": {
+      "import": {
+        "types": "./dist/fields.d.ts",
+        "default": "./dist/fields.js"
+      }
+    },
+    "./package.json": "./package.json"
+  },
   "license": "MIT",
   "sideEffects": false,
   "engines": {
     "node": ">=20"
   },
-  "files": [
-    "dist",
-    "README.md"
-  ],
-  "main": "./dist/index.js",
-  "module": "./dist/index.js",
-  "types": "./dist/index.d.ts",
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
-    },
-    "./client": {
-      "types": "./dist/exports/client.d.ts",
-      "import": "./dist/exports/client.js"
-    },
-    "./fields": {
-      "types": "./dist/exports/fields.d.ts",
-      "import": "./dist/exports/fields.js"
-    },
-    "./fields-components": {
-      "types": "./dist/exports/fields-components.d.ts",
-      "import": "./dist/exports/fields-components.js"
-    },
-    "./types": {
-      "types": "./dist/exports/types.d.ts",
-      "import": "./dist/exports/types.js"
-    },
-    "./package.json": "./package.json"
-  },
   "scripts": {
-    "build": "bun run build.ts",
-    "build:bundle": "bun run build.ts",
-    "build:types": "tsc --emitDeclarationOnly --outDir dist",
-    "clean": "bun run build.ts --clean",
-    "lint": "eslint src",
-    "lint:fix": "eslint --fix --ext .ts,.tsx src",
+    "build": "bunup",
     "prepublishOnly": "bun run clean && bun run build"
   },
   "dependencies": {
@@ -56,6 +60,7 @@
     "@payloadcms/ui": "3.85.0",
     "@types/react": "19.2.14",
     "@types/react-dom": "19.2.3",
+    "bunup": "^0.16.32",
     "openai": "^4.52.0",
     "payload": "3.85.0",
     "react": "19.2.6",

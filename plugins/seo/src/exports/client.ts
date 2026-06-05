@@ -1,5 +1,13 @@
-export { MetaDescriptionComponent } from '../fields/MetaDescription/MetaDescriptionComponent'
-export { MetaImageComponent } from '../fields/MetaImage/MetaImageComponent'
-export { MetaTitleComponent } from '../fields/MetaTitle/MetaTitleComponent'
-export { OverviewComponent } from '../fields/Overview/OverviewComponent'
-export { PreviewComponent } from '../fields/Preview/PreviewComponent'
+import  { GenerateButton } from '../fields/GenerateButton'
+import { MetaPreview } from '../fields/MetaPreview'
+import { DescriptionFieldComponent } from '../fields/DescriptionFieldComponent'
+import { TitleFieldComponent } from '../fields/TitleFieldComponent'
+
+export default {
+  GenerateButton,
+  MetaPreview,
+  DescriptionFieldComponent,
+  TitleFieldComponent
+}
+
+export { GenerateButton, MetaPreview, DescriptionFieldComponent, TitleFieldComponent }

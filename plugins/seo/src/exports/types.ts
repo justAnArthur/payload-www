@@ -1,8 +1,7 @@
 export type {
-  GenerateDescription,
-  GenerateImage,
-  GenerateTitle,
-  GenerateURL,
-  Meta,
+  FieldsOverride,
+  GenerateSEO,
+  PartialDocumentInfoContext,
+  SEOMeta,
   SEOPluginConfig,
 } from '../types'
