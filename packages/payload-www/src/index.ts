@@ -1,34 +1,35 @@
 /**
- * @justanarthur/payload-www — shared Payload CMS website template.
+ * @justanarthur/payload-www — root public surface.
  *
- * Public API surface (no default exports; everything is named):
+ * The lib is organised into four domain groups:
  *
- *   createWWWConfig({ fields, blocks, components, hooks, i18n, seo, ... })
- *     → returns a configured object with:
- *         withWWWConfig, createPagesCollection, createHeaderGlobal,
- *         createFooterGlobal, createLayoutExports, createCollectionPageExports,
- *         RenderBlocks, LivePreviewListener, getFromImportMap,
- *         generateImportName, renderCollectionModule,
- *         buildArticleLd, buildBreadcrumbsLd, buildOrganizationLd,
- *         buildHreflangAlternates, queryDocBySlug, queryAllDocs, queryAllLocaleSlugs,
- *         segmentsToStoredSlug, segmentsToUrlPath, storedSlugToSegments, getUrlPath, buildCanonicalUrl,
- *         addCollectionsToSitemap
+ *   core/    domain-agnostic primitives (fields, hooks, access,
+ *            utils, blocks)
+ *   data/    data-layer modules (collections, seed, test)
+ *   render/  rendering modules (components, pages, metadata)
+ *   config/  the composer (createWWWConfig)
  *
- * Hosts call `createWWWConfig` once with their fields/blocks/i18n/SEO
- * configuration and use the returned API. This keeps the lib stateless
- * and lets the demo (and the camasys `www` site) inject host-specific
- * dependencies without forking the lib.
+ * Hosts can import the headline factory via:
+ *
+ *   import { createWWWConfig } from '@justanarthur/payload-www'
+ *   import { createWWWConfig } from '@justanarthur/payload-www/with-www-config'
+ *
+ * For fine-grained access, subpath imports are also available:
+ *
+ *   @justanarthur/payload-www/core/fields
+ *   @justanarthur/payload-www/data/collections
+ *   @justanarthur/payload-www/render/pages
+ *   ...
+ *
+ * The lib's npm exports map (`exports` in package.json) declares the
+ * per-domain subpath entry points. Per-symbol re-exports below make
+ * the root import ergonomic.
  */
-export { createWWWConfig, type WWWConfigOptions, type WWWConfigApi } from './createWWWConfig'
-export { anyone, authenticated, authenticatedOrPublished } from './access'
-export { createRevalidatePageHooks, type RevalidatePageOptions } from './hooks/revalidatePage'
-export { createRevalidateGlobalHook, type RevalidateGlobalOptions } from './hooks/revalidateGlobal'
-export { createTranslateToOtherLocalesHook, type TranslateToOtherLocalesOptions } from './hooks/translateToOtherLocales'
-export { populatePublishedAt } from './hooks/populatePublishedAt'
-export { link, linkGroup, appearanceOptions, type LinkAppearances } from './fields'
-export { getFromImportMap, generateImportName, renderCollectionModule } from './utils'
-export { buildArticleLd, buildBreadcrumbsLd, buildOrganizationLd, buildHreflangAlternates, queryDocBySlug, queryAllDocs, queryAllLocaleSlugs, getUrlPath, segmentsToStoredSlug, segmentsToUrlPath, storedSlugToSegments, buildCanonicalUrl, type BreadcrumbItem } from './metadata'
-export { LivePreviewListener, type LivePreviewListenerProps } from './components'
-export { RenderBlocks, type RenderBlocksProps } from './blocks'
-export { createBaseSeed, type CreateBaseSeedOptions, type CreateBaseSeedResult, type SeedPageInput, type SeedPostInput, type SeedUserInput, type SeedCategoryInput } from './seed'
-export { createTestPayload, type CreateTestPayloadOptions, type CreateTestPayloadResult } from './test'
+import { createWWWConfig } from './config/createWWWConfig'
+
+export { createWWWConfig, type WWWConfigOptions, type WWWConfigApi, type WWWInputConfig } from './config'
+export * from './core'
+export * from './data'
+export * from './render'
+
+export default createWWWConfig

@@ -20,6 +20,44 @@ host can drop in.
 - **Seed** — `createBaseSeed` (idempotent, locale-aware, validates block slugs)
 - **Test** — `createTestPayload` (skeleton — full SQLite integration blocked by payload@3.85 drizzle pushDevSchema prompts)
 
+## Source layout
+
+```
+src/
+  config/                    # the composer (createWWWConfig)
+    createWWWConfig.ts
+    index.ts
+  core/                       # domain-agnostic primitives
+    access/                  # anyone, authenticated, authenticatedOrPublished
+    fields/                  # link, linkGroup, appearanceOptions
+    hooks/                   # revalidate + i18n hooks
+    utils/                   # import-map helpers
+    blocks/                  # RenderBlocks
+    index.ts
+  data/                       # data-layer modules
+    collections/             # Pages, Header, Footer, previewPath
+      Pages/index.ts
+      globals/Header/config.ts
+      globals/Footer/config.ts
+      previewPath.ts
+      index.ts
+    seed/                    # createBaseSeed
+    test/                    # createTestPayload
+    index.ts
+  render/                     # rendering modules
+    components/              # LivePreviewListener
+    pages/                   # createLayoutExports, createCollectionPageExports
+    metadata/                # JSON-LD + hreflang + slug + queries
+    index.ts
+  exports/                    # bunup subpath shims (flat, one per subpath)
+  index.ts                    # root public re-exports
+```
+
+The four domain groups (core / data / render / config) are the
+"thinking in domains" surface — each groups modules that change
+together. The `exports/` folder is purely a build concern (bunup
+bundles one entry per file there).
+
 ## Quick start
 
 ### Wrap an existing Payload config

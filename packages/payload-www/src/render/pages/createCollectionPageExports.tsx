@@ -6,7 +6,7 @@ import { draftMode } from 'next/headers'
 import type { ImportMap, SanitizedConfig } from 'payload'
 import type { FC, ReactElement } from 'react'
 
-import { renderCollectionModule } from '../utils/renderCollectionModule'
+import { renderCollectionModule } from '../../core/utils/renderCollectionModule'
 import { buildHreflangAlternates } from '../metadata/hreflang'
 import {
   type ArticleLdOptions,
@@ -17,7 +17,7 @@ import {
 } from '../metadata/jsonld'
 import { getUrlPath, segmentsToStoredSlug, storedSlugToSegments } from '../metadata/slug'
 import { getRenderModuleExports, queryAllDocs, queryAllLocaleSlugs, queryDocBySlug } from '../metadata/query'
-import { LivePreviewListener } from '../components/(payload)/LivePreviewListener'
+import { LivePreviewListener } from '../components/index'
 import { handleLocale, type CreateLayoutExportsOptions } from './createLayoutExports'
 
 export type PageExtendProps = { importMap: ImportMap; config: SanitizedConfig; locale: string }

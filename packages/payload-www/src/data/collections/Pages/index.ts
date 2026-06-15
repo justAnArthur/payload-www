@@ -1,9 +1,9 @@
 import type { Block, CollectionConfig, Field } from 'payload'
 
-import { authenticated, authenticatedOrPublished } from '../../access'
-import { populatePublishedAt } from '../../hooks/populatePublishedAt'
-import { createRevalidatePageHooks } from '../../hooks/revalidatePage'
-import { createTranslateToOtherLocalesHook } from '../../hooks/translateToOtherLocales'
+import { authenticated, authenticatedOrPublished } from '../../../core/access'
+import { populatePublishedAt } from '../../../core/hooks/populatePublishedAt'
+import { createRevalidatePageHooks } from '../../../core/hooks/revalidatePage'
+import { createTranslateToOtherLocalesHook } from '../../../core/hooks/translateToOtherLocales'
 import { generatePreviewPath } from '../previewPath'
 
 export const HOME_PAGE_SLUG = ''

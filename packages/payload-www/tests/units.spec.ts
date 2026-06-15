@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
-import { link, linkGroup, appearanceOptions } from '../src/fields'
-import { anyone, authenticated, authenticatedOrPublished } from '../src/access'
+import { link, linkGroup, appearanceOptions } from '../src/core/fields'
+import { anyone, authenticated, authenticatedOrPublished } from '../src/core/access'
 import {
   segmentsToStoredSlug,
   segmentsToUrlPath,
@@ -11,8 +11,8 @@ import {
   buildArticleLd,
   buildBreadcrumbsLd,
   buildOrganizationLd,
-} from '../src/metadata'
-import { generateImportName, getFromImportMap } from '../src/utils'
+} from '../src/render/metadata'
+import { generateImportName, getFromImportMap } from '../src/core/utils'
 import { link as linkFromShim, linkGroup as linkGroupFromShim } from '../src/exports/fields'
 import { anyone as anyoneFromShim } from '../src/exports/access'
 import {

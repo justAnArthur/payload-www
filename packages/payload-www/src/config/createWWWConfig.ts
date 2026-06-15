@@ -1,10 +1,10 @@
 import type { AdminComponent, Block, CollectionConfig, Config, Field, GlobalConfig } from 'payload'
 
-import { createPagesCollection, createHeaderGlobal, createFooterGlobal } from './collections'
-import { createLayoutExports, createCollectionPageExports, addCollectionsToSitemap } from './pages'
-import { RenderBlocks } from './blocks'
-import { LivePreviewListener } from './components'
-import { getFromImportMap, generateImportName, renderCollectionModule } from './utils'
+import { createPagesCollection, createHeaderGlobal, createFooterGlobal } from '../data/collections'
+import { createLayoutExports, createCollectionPageExports, addCollectionsToSitemap } from '../render/pages'
+import { RenderBlocks } from '../core/blocks'
+import { LivePreviewListener } from '../render/components'
+import { getFromImportMap, generateImportName, renderCollectionModule } from '../core/utils'
 
 export type WWWConfigOptions = {
   /**

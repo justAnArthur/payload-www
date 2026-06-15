@@ -11,16 +11,22 @@
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
-    "./blocks": {
+    "./data-seed": {
       "import": {
-        "types": "./dist/blocks.d.ts",
-        "default": "./dist/blocks.js"
+        "types": "./dist/data-seed.d.ts",
+        "default": "./dist/data-seed.js"
       }
     },
-    "./globals": {
+    "./data-test": {
       "import": {
-        "types": "./dist/globals.d.ts",
-        "default": "./dist/globals.js"
+        "types": "./dist/data-test.d.ts",
+        "default": "./dist/data-test.js"
+      }
+    },
+    "./with-www-config": {
+      "import": {
+        "types": "./dist/with-www-config.d.ts",
+        "default": "./dist/with-www-config.js"
       }
     },
     ".": {
@@ -35,10 +41,34 @@
         "default": "./dist/fields.js"
       }
     },
+    "./render-pages": {
+      "import": {
+        "types": "./dist/render-pages.d.ts",
+        "default": "./dist/render-pages.js"
+      }
+    },
+    "./core-access": {
+      "import": {
+        "types": "./dist/core-access.d.ts",
+        "default": "./dist/core-access.js"
+      }
+    },
     "./metadata": {
       "import": {
         "types": "./dist/metadata.d.ts",
         "default": "./dist/metadata.js"
+      }
+    },
+    "./config": {
+      "import": {
+        "types": "./dist/config.d.ts",
+        "default": "./dist/config.js"
+      }
+    },
+    "./data-collections": {
+      "import": {
+        "types": "./dist/data-collections.d.ts",
+        "default": "./dist/data-collections.js"
       }
     },
     "./hooks": {
@@ -47,16 +77,76 @@
         "default": "./dist/hooks.js"
       }
     },
-    "./with-www-config": {
+    "./pages": {
       "import": {
-        "types": "./dist/with-www-config.d.ts",
-        "default": "./dist/with-www-config.js"
+        "types": "./dist/pages.d.ts",
+        "default": "./dist/pages.js"
+      }
+    },
+    "./render-metadata": {
+      "import": {
+        "types": "./dist/render-metadata.d.ts",
+        "default": "./dist/render-metadata.js"
+      }
+    },
+    "./core-fields": {
+      "import": {
+        "types": "./dist/core-fields.d.ts",
+        "default": "./dist/core-fields.js"
+      }
+    },
+    "./core-hooks": {
+      "import": {
+        "types": "./dist/core-hooks.d.ts",
+        "default": "./dist/core-hooks.js"
+      }
+    },
+    "./test": {
+      "import": {
+        "types": "./dist/test.d.ts",
+        "default": "./dist/test.js"
+      }
+    },
+    "./render-components": {
+      "import": {
+        "types": "./dist/render-components.d.ts",
+        "default": "./dist/render-components.js"
+      }
+    },
+    "./access": {
+      "import": {
+        "types": "./dist/access.d.ts",
+        "default": "./dist/access.js"
+      }
+    },
+    "./globals": {
+      "import": {
+        "types": "./dist/globals.d.ts",
+        "default": "./dist/globals.js"
+      }
+    },
+    "./core-utils": {
+      "import": {
+        "types": "./dist/core-utils.d.ts",
+        "default": "./dist/core-utils.js"
+      }
+    },
+    "./blocks": {
+      "import": {
+        "types": "./dist/blocks.d.ts",
+        "default": "./dist/blocks.js"
       }
     },
     "./components": {
       "import": {
         "types": "./dist/components.d.ts",
         "default": "./dist/components.js"
+      }
+    },
+    "./core-blocks": {
+      "import": {
+        "types": "./dist/core-blocks.d.ts",
+        "default": "./dist/core-blocks.js"
       }
     },
     "./collections": {
@@ -75,24 +165,6 @@
       "import": {
         "types": "./dist/seed.d.ts",
         "default": "./dist/seed.js"
-      }
-    },
-    "./pages": {
-      "import": {
-        "types": "./dist/pages.d.ts",
-        "default": "./dist/pages.js"
-      }
-    },
-    "./test": {
-      "import": {
-        "types": "./dist/test.d.ts",
-        "default": "./dist/test.js"
-      }
-    },
-    "./access": {
-      "import": {
-        "types": "./dist/access.d.ts",
-        "default": "./dist/access.js"
       }
     },
     "./package.json": "./package.json"

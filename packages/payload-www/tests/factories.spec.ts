@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest'
 
-import { createWWWConfig } from '../src/createWWWConfig'
-import { createPagesCollection, HOME_PAGE_SLUG, pageSlugNestedDivider, PAGES_SLUG, generatePreviewPath } from '../src/collections'
-import { createHeaderGlobal } from '../src/collections/globals/Header/config'
-import { createFooterGlobal } from '../src/collections/globals/Footer/config'
-import { createLayoutExports } from '../src/pages/createLayoutExports'
-import { addCollectionsToSitemap } from '../src/pages/createCollectionPageExports'
+import { createWWWConfig } from '../src/config/createWWWConfig'
+import { createPagesCollection, HOME_PAGE_SLUG, pageSlugNestedDivider, PAGES_SLUG, generatePreviewPath } from '../src/data/collections'
+import { createHeaderGlobal } from '../src/data/collections/globals/Header/config'
+import { createFooterGlobal } from '../src/data/collections/globals/Footer/config'
+import { createLayoutExports } from '../src/render/pages/createLayoutExports'
+import { addCollectionsToSitemap } from '../src/render/pages/createCollectionPageExports'
 
 const i18n = { defaultLocale: 'en', locales: ['en', 'uk'] as const }
 const footerBlocks = [{ slug: 'cta', fields: [] }] as any

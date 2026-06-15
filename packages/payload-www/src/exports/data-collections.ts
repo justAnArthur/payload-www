@@ -30,4 +30,4 @@ export {
   type CreatePagesCollectionOptions,
   type CreateHeaderGlobalOptions,
   type CreateFooterGlobalOptions,
-}
+} from '../data/collections/index'

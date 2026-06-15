@@ -2,7 +2,7 @@ import type { ImportMap, SanitizedConfig } from 'payload'
 import { getPayload } from 'payload'
 import { cache } from 'react'
 
-import { getFromImportMap } from '../utils/getFromImportMap'
+import { getFromImportMap } from '../../core/utils/getFromImportMap'
 
 export const queryDocBySlug = cache(async function queryDocBySlug({
   collectionSlug,

@@ -3,7 +3,7 @@ import { flattenAllFields, getPayload, inMemoryKVAdapter, type Payload } from 'p
 import path from 'path'
 import { fileURLToPath } from 'url'
 
-import { createWWWConfig } from '../createWWWConfig'
+import { createWWWConfig } from '../../config/createWWWConfig'
 
 export type CreateTestPayloadOptions = {
   /** Default blocks for the Pages collection. */

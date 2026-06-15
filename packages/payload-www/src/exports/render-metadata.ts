@@ -52,4 +52,4 @@ export {
   getRenderModuleExports,
   type ArticleLdOptions,
   type BreadcrumbItem,
-}
+} from '../render/metadata/index'

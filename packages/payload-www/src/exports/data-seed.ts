@@ -1,4 +1,12 @@
 import { createBaseSeed } from '../data/seed/createBaseSeed'
+import type {
+  CreateBaseSeedOptions,
+  CreateBaseSeedResult,
+  SeedPageInput,
+  SeedPostInput,
+  SeedUserInput,
+  SeedCategoryInput,
+} from '../data/seed/createBaseSeed'
 
 export default createBaseSeed
 

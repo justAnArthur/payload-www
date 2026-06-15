@@ -1,8 +1,8 @@
 import type { Block, GlobalConfig } from 'payload'
 
-import { link } from '../../../fields/link'
-import { createRevalidateGlobalHook } from '../../../hooks/revalidateGlobal'
-import { createTranslateToOtherLocalesHook } from '../../../hooks/translateToOtherLocales'
+import { link } from '../../../../core/fields/link'
+import { createRevalidateGlobalHook } from '../../../../core/hooks/revalidateGlobal'
+import { createTranslateToOtherLocalesHook } from '../../../../core/hooks/translateToOtherLocales'
 
 export type CreateHeaderGlobalOptions = {
   renderPath?: string

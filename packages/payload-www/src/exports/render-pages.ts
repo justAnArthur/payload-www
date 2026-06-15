@@ -33,4 +33,4 @@ export {
   type PageExtendProps,
   type JsonLdEntry,
   type JsonLdOutput,
-}
+} from '../render/pages/index'
