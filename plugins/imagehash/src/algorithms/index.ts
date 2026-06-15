@@ -1,7 +1,8 @@
 import { imageToBlurhash, BlurhashOptionsSchema } from './blurhash';
+import { imageToLqipModern, LqipModernOptionsSchema } from './lqip-modern';
 import { imageToThumbhash, ThumbhashOptionsSchema } from './thumbhash';
 import { z } from 'zod';
-import { Equal, ExpectTrue } from '../types';
+import { ExpectTrue } from '../types';
 
 export type Algorithm = (
   data: Buffer,
@@ -15,17 +16,20 @@ export const algorithms: Record<
   readonly [Algorithm, z.AnyZodObject]
 > = {
   blurhash: [imageToBlurhash, BlurhashOptionsSchema] as const,
+  'lqip-modern': [imageToLqipModern, LqipModernOptionsSchema] as const,
   thumbhash: [imageToThumbhash, ThumbhashOptionsSchema] as const,
 };
 
 type Algorithms = typeof algorithms;
+
+type SameShape<X, Y> = [X, Y] extends [Y, X] ? true : false;
 
 type AlgorithmValidity = {
   [Key in keyof Algorithms]: Algorithms[Key] extends readonly [
     infer Algo extends Algorithm,
     infer Schema extends z.AnyZodObject,
   ]
-    ? Equal<ExtractAlgorithmOptions<Algo>, z.infer<Schema>>
+    ? SameShape<ExtractAlgorithmOptions<Algo>, z.infer<Schema>>
     : false;
 };
 
