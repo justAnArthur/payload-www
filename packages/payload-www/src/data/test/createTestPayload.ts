@@ -35,7 +35,7 @@ export type CreateTestPayloadResult = {
  * collections via `configOverrides` if needed.
  */
 export async function createTestPayload(
-  options: CreateTestPayloadOptions = {},
+  options: CreateTestPayloadOptions = {}
 ): Promise<CreateTestPayloadResult> {
   const filename = fileURLToPath(import.meta.url)
   const dirname = path.dirname(filename)
@@ -58,8 +58,8 @@ export async function createTestPayload(
       {
         slug: 'posts',
         access: { read: () => true },
-        fields: [{ name: 'title', type: 'text' }],
-      } as any,
+        fields: [{ name: 'title', type: 'text' }]
+      } as any
     ],
     globals: [],
     db: sqliteAdapter({
@@ -67,44 +67,44 @@ export async function createTestPayload(
       // payload 3.85 dev-mode pushDevSchema() fails on fresh sqlite
       // because the migrations table doesn't exist yet. Disable and
       // run our own migrate() after init.
-      push: false,
+      push: false
     }) as any,
     i18n: {
       supportedLanguages: { en: {}, uk: {} },
-      fallbackLanguage: i18n.defaultLocale,
+      fallbackLanguage: i18n.defaultLocale
     } as any,
     secret: 'test-secret-do-not-use-in-prod',
     sharp: (await import('sharp')).default as any,
     editor: {} as any,
     localization: { locales: [...i18n.locales], defaultLocale: i18n.defaultLocale } as any,
     kv: inMemoryKVAdapter(),
-    typescript: { outputFile: './payload-types.ts' },
+    typescript: { outputFile: './payload-types.ts' }
   } as any)
 
   // Diagnostic: find any relationship field that points to a slug that
   // isn't a registered collection. drizzle crashes hard on these.
   const registered = new Set([
     ...(config.collections ?? []).map((c) => c.slug),
-    ...(config.globals ?? []).map((g) => g.slug),
+    ...(config.globals ?? []).map((g) => g.slug)
   ])
-    const findMissing = (fields: unknown[]): string[] => {
-      const out: string[] = []
-      const walk = (f: { relationTo?: unknown; fields?: unknown[] | undefined } | unknown[]) => {
-        if (Array.isArray(f)) {
-          for (const child of f) walk(child as { relationTo?: unknown; fields?: unknown[] | undefined })
-          return
-        }
-        if (f.relationTo) {
-          const rels = Array.isArray(f.relationTo) ? f.relationTo : [f.relationTo]
-          for (const r of rels) {
-            if (typeof r === 'string' && !registered.has(r)) out.push(r)
-          }
-        }
-        if (Array.isArray(f.fields)) walk(f.fields)
+  const findMissing = (fields: unknown[]): string[] => {
+    const out: string[] = []
+    const walk = (f: { relationTo?: unknown; fields?: unknown[] | undefined } | unknown[]) => {
+      if (Array.isArray(f)) {
+        for (const child of f) walk(child as { relationTo?: unknown; fields?: unknown[] | undefined })
+        return
       }
-      for (const f of fields) walk(f as { relationTo?: unknown; fields?: unknown[] | undefined })
-      return out
+      if (f.relationTo) {
+        const rels = Array.isArray(f.relationTo) ? f.relationTo : [f.relationTo]
+        for (const r of rels) {
+          if (typeof r === 'string' && !registered.has(r)) out.push(r)
+        }
+      }
+      if (Array.isArray(f.fields)) walk(f.fields)
     }
+    for (const f of fields) walk(f as { relationTo?: unknown; fields?: unknown[] | undefined })
+    return out
+  }
   for (const c of config.collections ?? []) {
     const missing = findMissing((c.fields as unknown[]) ?? [])
     if (missing.length) console.log('collection', c.slug, 'missing relations:', missing)
@@ -124,7 +124,8 @@ export async function createTestPayload(
     // drizzle also reads `collection.sanitizedIndexes` (set by
     // payload's sanitizer). Provide a safe default so the version-
     // table build doesn't trip on an undefined `indexes`.
-    ;(c as any).sanitizedIndexes = (c as any).sanitizedIndexes ?? []
+    ;
+    (c as any).sanitizedIndexes = (c as any).sanitizedIndexes ?? []
     ;(c as any).polymorphicJoins = (c as any).polymorphicJoins ?? []
     if (options.overridePagesVersions && c.slug === 'pages') {
       ;(c as any).versions = false

@@ -13,15 +13,15 @@ type Args = {
 }
 
 export const updateEntity = ({
-  collectionSlug,
-  data,
-  depth: incomingDepth,
-  globalSlug,
-  id,
-  locale,
-  overrideAccess,
-  req,
-}: Args): Promise<Record<string, unknown> & TypeWithID> => {
+                               collectionSlug,
+                               data,
+                               depth: incomingDepth,
+                               globalSlug,
+                               id,
+                               locale,
+                               overrideAccess,
+                               req
+                             }: Args): Promise<Record<string, unknown> & TypeWithID> => {
   if (!collectionSlug && !globalSlug) throw new APIError('Bad Request', 400)
 
   const isGlobal = !!globalSlug
@@ -32,22 +32,22 @@ export const updateEntity = ({
 
   const promise = isGlobal
     ? req.payload.updateGlobal({
-        data,
-        depth,
-        locale: locale as any,
-        overrideAccess,
-        req,
-        slug: globalSlug as GlobalSlug,
-      })
+      data,
+      depth,
+      locale: locale as any,
+      overrideAccess,
+      req,
+      slug: globalSlug as GlobalSlug
+    })
     : req.payload.update({
-        collection: collectionSlug as CollectionSlug,
-        data,
-        depth,
-        id: id as number | string,
-        locale: locale as any,
-        overrideAccess,
-        req,
-      })
+      collection: collectionSlug as CollectionSlug,
+      data,
+      depth,
+      id: id as number | string,
+      locale: locale as any,
+      overrideAccess,
+      req
+    })
 
   return promise as any
 }

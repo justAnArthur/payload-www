@@ -2,8 +2,8 @@ import {
   createPagesCollection,
   type CreatePagesCollectionOptions,
   HOME_PAGE_SLUG,
-  pageSlugNestedDivider,
   PAGES_SLUG,
+  pageSlugNestedDivider
 } from '../data/collections/Pages/index'
 import { createHeaderGlobal, type CreateHeaderGlobalOptions } from '../data/collections/globals/Header/config'
 import { createFooterGlobal, type CreateFooterGlobalOptions } from '../data/collections/globals/Footer/config'
@@ -16,7 +16,7 @@ export default {
   generatePreviewPath,
   HOME_PAGE_SLUG,
   pageSlugNestedDivider,
-  PAGES_SLUG,
+  PAGES_SLUG
 }
 
 export {
@@ -29,5 +29,5 @@ export {
   PAGES_SLUG,
   type CreatePagesCollectionOptions,
   type CreateHeaderGlobalOptions,
-  type CreateFooterGlobalOptions,
+  type CreateFooterGlobalOptions
 }

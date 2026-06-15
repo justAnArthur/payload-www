@@ -17,14 +17,14 @@ export type ArticleLdOptions = {
 }
 
 export function buildArticleLd({
-  doc,
-  url,
-  locale,
-  siteUrl,
-  type = 'BlogPosting',
-  publisherName,
-  publisherLogo,
-}: ArticleLdOptions): Record<string, unknown> {
+                                 doc,
+                                 url,
+                                 locale,
+                                 siteUrl,
+                                 type = 'BlogPosting',
+                                 publisherName,
+                                 publisherLogo
+                               }: ArticleLdOptions): Record<string, unknown> {
   const name = publisherName ?? new URL(siteUrl).hostname
 
   const ld: Record<string, unknown> = {
@@ -35,7 +35,7 @@ export function buildArticleLd({
     description: doc.meta?.description ?? doc.description ?? '',
     inLanguage: locale,
     url,
-    dateModified: doc.updatedAt ? new Date(doc.updatedAt).toISOString() : undefined,
+    dateModified: doc.updatedAt ? new Date(doc.updatedAt).toISOString() : undefined
   }
 
   const datePublished = (doc as any).publishedAt ?? doc.createdAt
@@ -58,9 +58,9 @@ export function buildArticleLd({
 export type BreadcrumbItem = { label: string; url: string }
 
 export function buildBreadcrumbsLd({
-  items,
-  currentUrl,
-}: {
+                                     items,
+                                     currentUrl
+                                   }: {
   items: BreadcrumbItem[]
   currentUrl: string
 }): Record<string, unknown> {
@@ -71,17 +71,17 @@ export function buildBreadcrumbsLd({
       '@type': 'ListItem',
       position: index + 1,
       name: item.label,
-      item: index === items.length - 1 ? currentUrl : item.url,
-    })),
+      item: index === items.length - 1 ? currentUrl : item.url
+    }))
   }
 }
 
 export function buildOrganizationLd({
-  siteUrl,
-  name,
-  logo,
-  sameAs,
-}: {
+                                      siteUrl,
+                                      name,
+                                      logo,
+                                      sameAs
+                                    }: {
   siteUrl: string
   name?: string
   logo?: string
@@ -94,7 +94,7 @@ export function buildOrganizationLd({
     url: siteUrl,
     ...(name && { name }),
     ...(logo && { logo: { '@type': 'ImageObject', url: logo } }),
-    ...(sameAs && sameAs.length > 0 && { sameAs }),
+    ...(sameAs && sameAs.length > 0 && { sameAs })
   }
   return org
 }

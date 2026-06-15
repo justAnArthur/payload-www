@@ -1,24 +1,21 @@
 import { describe, expect, it } from 'vitest'
 
-import { link, linkGroup, appearanceOptions } from '../src/core/fields'
+import { appearanceOptions, link, linkGroup } from '../src/core/fields'
 import { anyone, authenticated, authenticatedOrPublished } from '../src/core/access'
 import {
-  segmentsToStoredSlug,
-  segmentsToUrlPath,
-  storedSlugToSegments,
-  buildCanonicalUrl,
-  getUrlPath,
   buildArticleLd,
   buildBreadcrumbsLd,
+  buildCanonicalUrl,
   buildOrganizationLd,
+  getUrlPath,
+  segmentsToStoredSlug,
+  segmentsToUrlPath,
+  storedSlugToSegments
 } from '../src/render/metadata'
 import { generateImportName, getFromImportMap } from '../src/core/utils'
 import { link as linkFromShim, linkGroup as linkGroupFromShim } from '../src/exports/fields'
 import { anyone as anyoneFromShim } from '../src/exports/access'
-import {
-  segmentsToStoredSlug as segFromShim,
-  buildArticleLd as articleFromShim,
-} from '../src/exports/metadata'
+import { buildArticleLd as articleFromShim, segmentsToStoredSlug as segFromShim } from '../src/exports/metadata'
 import { getFromImportMap as gimFromShim } from '../src/exports/utils'
 
 describe('fields/link', () => {
@@ -96,7 +93,7 @@ describe('access', () => {
 
   it('authenticatedOrPublished returns _status filter for anonymous', () => {
     expect(authenticatedOrPublished({ req: { user: null } } as never)).toEqual({
-      _status: { equals: 'published' },
+      _status: { equals: 'published' }
     })
   })
 
@@ -135,12 +132,12 @@ describe('metadata/slug', () => {
 
   it('buildCanonicalUrl strips trailing slash from prefix', () => {
     expect(
-      buildCanonicalUrl({ siteUrl: 'https://x.com', locale: 'en', urlPrefix: '/posts/', urlPath: '/foo' }),
+      buildCanonicalUrl({ siteUrl: 'https://x.com', locale: 'en', urlPrefix: '/posts/', urlPath: '/foo' })
     ).toBe('https://x.com/en/posts/foo')
   })
   it('buildCanonicalUrl keeps prefix when no trailing slash', () => {
     expect(
-      buildCanonicalUrl({ siteUrl: 'https://x.com', locale: 'en', urlPrefix: '', urlPath: '/foo' }),
+      buildCanonicalUrl({ siteUrl: 'https://x.com', locale: 'en', urlPrefix: '', urlPath: '/foo' })
     ).toBe('https://x.com/en/foo')
   })
 
@@ -165,7 +162,7 @@ describe('metadata/jsonld', () => {
       doc: { title: 'Hello', meta: { description: 'world' }, publishedAt: '2024-01-01T00:00:00.000Z' },
       url: 'https://x.com/en/posts/hello',
       locale: 'en',
-      siteUrl: 'https://x.com',
+      siteUrl: 'https://x.com'
     })
     expect(ld['@context']).toBe('https://schema.org')
     expect(ld['@type']).toBe('BlogPosting')
@@ -180,9 +177,9 @@ describe('metadata/jsonld', () => {
       items: [
         { label: 'Home', url: 'https://x.com/' },
         { label: 'Posts', url: 'https://x.com/posts' },
-        { label: 'Hello', url: 'https://x.com/posts/hello' },
+        { label: 'Hello', url: 'https://x.com/posts/hello' }
       ],
-      currentUrl: 'https://x.com/posts/hello',
+      currentUrl: 'https://x.com/posts/hello'
     })
     expect(ld['@type']).toBe('BreadcrumbList')
     expect((ld as any).itemListElement.length).toBe(3)

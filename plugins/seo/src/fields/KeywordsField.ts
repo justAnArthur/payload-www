@@ -14,8 +14,8 @@ export const KeywordsField = (options: KeywordsFieldOptions = {}): TextField => 
     type: 'text',
     label: 'Keywords',
     admin: {
-      description: 'Comma-separated keywords (legacy meta tag, still useful for some crawlers).',
+      description: 'Comma-separated keywords (legacy meta tag, still useful for some crawlers).'
     },
-    localized: options.localized,
+    localized: options.localized
   } as unknown as TextField
 }

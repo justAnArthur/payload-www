@@ -94,6 +94,6 @@ export const en: GenericTranslationsObject = {
     noImage: 'No image',
     imageAutoGenerationTip: 'Auto-generation will retrieve the selected hero image.',
     tooLong: 'Too long',
-    tooShort: 'Too short',
-  },
+    tooShort: 'Too short'
+  }
 }

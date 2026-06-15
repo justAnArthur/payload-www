@@ -4,8 +4,8 @@ import type { TranslateResolver } from '../../../resolvers/types'
 import { useTranslator } from '../../providers/Translator/context'
 
 export const ResolverButton = ({
-  resolver: { key: resolverKey },
-}: {
+                                 resolver: { key: resolverKey }
+                               }: {
   resolver: TranslateResolver
 }) => {
   const { openTranslator } = useTranslator()

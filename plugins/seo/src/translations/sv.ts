@@ -24,6 +24,6 @@ export const sv: GenericTranslationsObject = {
     previewDescription:
       'Exakta resultatlistningar kan variera baserat på innehåll och sökrelevans.',
     tooLong: 'För lång',
-    tooShort: 'För kort',
-  },
+    tooShort: 'För kort'
+  }
 }

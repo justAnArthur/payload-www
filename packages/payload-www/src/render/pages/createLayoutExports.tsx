@@ -26,7 +26,7 @@ export type CreateLayoutExportsOptions = {
 
 export function createLayoutExports(
   { config: configPromise, importMap }: { config: Promise<SanitizedConfig>; importMap: ImportMap },
-  options: CreateLayoutExportsOptions,
+  options: CreateLayoutExportsOptions
 ) {
   return {
     default: (() => {
@@ -53,9 +53,9 @@ export function createLayoutExports(
         return (
           <Html lang={locale}>
             <body>
-              <Header locale={locale} />
-              {children}
-              <Footer locale={locale} />
+            <Header locale={locale}/>
+            {children}
+            <Footer locale={locale}/>
             </body>
           </Html>
         )
@@ -65,13 +65,13 @@ export function createLayoutExports(
       Layout.Header = Header
       Layout.Footer = Footer
       return Layout
-    })(),
+    })()
   }
 }
 
 export async function handleLocale(
   paramsPromise: Promise<{ locale: string }>,
-  options: Pick<CreateLayoutExportsOptions, 'hasLocale' | 'routing' | 'setRequestLocale'>,
+  options: Pick<CreateLayoutExportsOptions, 'hasLocale' | 'routing' | 'setRequestLocale'>
 ): Promise<string> {
   const { locale } = await paramsPromise
   if (!options.hasLocale(options.routing.locales, locale)) {

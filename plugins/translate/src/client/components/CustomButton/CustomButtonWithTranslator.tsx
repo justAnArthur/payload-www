@@ -18,16 +18,16 @@ export const CustomButtonWithTranslator = ({ type }: { type: 'publish' | 'save' 
 
   const resolvers = (config.admin?.custom?.translator?.resolvers as TranslateResolver[]) ?? []
 
-  if (!id && !globalSlug) return <DefaultButton />
+  if (!id && !globalSlug) return <DefaultButton/>
 
   return (
     <TranslatorProvider>
       <div className={'translator__custom-save-button'}>
-        <TranslatorModal />
+        <TranslatorModal/>
         {resolvers.map((resolver) => (
-          <ResolverButton key={resolver.key} resolver={resolver} />
+          <ResolverButton key={resolver.key} resolver={resolver}/>
         ))}
-        {<DefaultButton />}
+        {<DefaultButton/>}
       </div>
     </TranslatorProvider>
   )

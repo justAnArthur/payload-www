@@ -24,13 +24,13 @@ export type RenderBlocksProps = {
  * `console.warn` is logged (in dev).
  */
 export const RenderBlocks: FC<RenderBlocksProps> = ({
-  blocks,
-  blockProps,
-  config,
-  importMap,
-  locale,
-  searchParams,
-}) => {
+                                                      blocks,
+                                                      blockProps,
+                                                      config,
+                                                      importMap,
+                                                      locale,
+                                                      searchParams
+                                                    }) => {
   if (!blocks || !Array.isArray(blocks) || blocks.length === 0) return null
 
   const rendered: React.ReactNode[] = []
@@ -58,7 +58,7 @@ export const RenderBlocks: FC<RenderBlocksProps> = ({
         {...block}
         locale={locale}
         searchParams={searchParams}
-      />,
+      />
     )
   }
 

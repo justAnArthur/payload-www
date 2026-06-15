@@ -4,7 +4,7 @@ import type {
   PayloadRequest,
   SanitizedCollectionConfig,
   SanitizedGlobalConfig,
-  TypeWithID,
+  TypeWithID
 } from 'payload'
 import { APIError } from 'payload'
 
@@ -21,11 +21,11 @@ export type Doc = Record<string, unknown> & TypeWithID
 
 const findConfigBySlug = (
   slug: string,
-  enities: SanitizedCollectionConfig[] | SanitizedGlobalConfig[],
+  enities: SanitizedCollectionConfig[] | SanitizedGlobalConfig[]
 ) => enities.find((entity) => entity.slug === slug)
 
 export const findEntityWithConfig = async (
-  args: Args,
+  args: Args
 ): Promise<{
   config: SanitizedCollectionConfig | SanitizedGlobalConfig
   doc: Doc
@@ -50,25 +50,25 @@ export const findEntityWithConfig = async (
 
   const docPromise = isGlobal
     ? payload.findGlobal({
-        depth: 0,
-        fallbackLocale: undefined,
-        locale: locale as any,
-        overrideAccess,
-        req,
-        slug: args.globalSlug as GlobalSlug,
-      })
+      depth: 0,
+      fallbackLocale: undefined,
+      locale: locale as any,
+      overrideAccess,
+      req,
+      slug: args.globalSlug as GlobalSlug
+    })
     : payload.findByID({
-        collection: collectionSlug as CollectionSlug,
-        depth: 0,
-        fallbackLocale: undefined,
-        id: id as number | string,
-        locale: locale as any,
-        overrideAccess,
-        req,
-      })
+      collection: collectionSlug as CollectionSlug,
+      depth: 0,
+      fallbackLocale: undefined,
+      id: id as number | string,
+      locale: locale as any,
+      overrideAccess,
+      req
+    })
 
   return {
     config: entityConfig,
-    doc: (await docPromise) as any,
+    doc: (await docPromise) as any
   }
 }

@@ -8,6 +8,6 @@ export default defineConfig({
   format: ['esm'],
   clean: true,
   plugins: [
-    exports(),
-  ],
+    exports()
+  ]
 }) as DefineConfigItem

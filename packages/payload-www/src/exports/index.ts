@@ -1,16 +1,18 @@
 import { createWWWConfig } from '../config/createWWWConfig'
 
-export { createWWWConfig, type WWWConfigOptions, type WWWConfigApi, type WWWInputConfig } from '../config/createWWWConfig'
+export {
+  createWWWConfig, type WWWConfigOptions, type WWWConfigApi, type WWWInputConfig
+} from '../config/createWWWConfig'
 
 export { anyone, authenticated, authenticatedOrPublished } from '../core/access/index'
 export {
   createRevalidatePageHooks,
-  type RevalidatePageOptions,
+  type RevalidatePageOptions
 } from '../core/hooks/revalidatePage'
 export { createRevalidateGlobalHook, type RevalidateGlobalOptions } from '../core/hooks/revalidateGlobal'
 export {
   createTranslateToOtherLocalesHook,
-  type TranslateToOtherLocalesOptions,
+  type TranslateToOtherLocalesOptions
 } from '../core/hooks/translateToOtherLocales'
 export { populatePublishedAt } from '../core/hooks/populatePublishedAt'
 
@@ -26,7 +28,7 @@ export {
   buildBreadcrumbsLd,
   buildOrganizationLd,
   type ArticleLdOptions,
-  type BreadcrumbItem,
+  type BreadcrumbItem
 } from '../render/metadata/jsonld'
 export { buildHreflangAlternates } from '../render/metadata/hreflang'
 export {
@@ -34,13 +36,13 @@ export {
   segmentsToStoredSlug,
   segmentsToUrlPath,
   storedSlugToSegments,
-  buildCanonicalUrl,
+  buildCanonicalUrl
 } from '../render/metadata/slug'
 export {
   queryDocBySlug,
   queryAllDocs,
   queryAllLocaleSlugs,
-  getRenderModuleExports,
+  getRenderModuleExports
 } from '../render/metadata/query'
 
 export { LivePreviewListener, type LivePreviewListenerProps } from '../render/components/index'
@@ -53,12 +55,12 @@ export {
   type SeedPageInput,
   type SeedPostInput,
   type SeedUserInput,
-  type SeedCategoryInput,
+  type SeedCategoryInput
 } from '../data/seed/createBaseSeed'
 export {
   createTestPayload,
   type CreateTestPayloadOptions,
-  type CreateTestPayloadResult,
+  type CreateTestPayloadResult
 } from '../data/test/createTestPayload'
 
 export { createLayoutExports, handleLocale, type CreateLayoutExportsOptions } from '../render/pages/createLayoutExports'
@@ -70,12 +72,12 @@ export {
   type CreateCollectionPageExportsDeps,
   type PageExtendProps,
   type JsonLdEntry,
-  type JsonLdOutput,
+  type JsonLdOutput
 } from '../render/pages/createCollectionPageExports'
 
 export {
   createPagesCollection,
-  type CreatePagesCollectionOptions,
+  type CreatePagesCollectionOptions
 } from '../data/collections/Pages/index'
 export { createHeaderGlobal, type CreateHeaderGlobalOptions } from '../data/collections/globals/Header/config'
 export { createFooterGlobal, type CreateFooterGlobalOptions } from '../data/collections/globals/Footer/config'

@@ -24,6 +24,6 @@ export const cs: GenericTranslationsObject = {
     previewDescription:
       'Přesný výsledek se může lišit v závislosti na obsahu a relevanci vyhledávání.',
     tooLong: 'Příliš dlouhé',
-    tooShort: 'Příliš krátké',
-  },
+    tooShort: 'Příliš krátké'
+  }
 }

@@ -1,9 +1,5 @@
+import type { OpenAIMessageExchange, OpenAIPrompt, OpenAIResolverConfig } from '../../resolvers/openAI'
 import { openAIResolver } from '../../resolvers/openAI'
-import type {
-  OpenAIMessageExchange,
-  OpenAIPrompt,
-  OpenAIResolverConfig,
-} from '../../resolvers/openAI'
 
 export default openAIResolver
 

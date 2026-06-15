@@ -1,10 +1,7 @@
 import type { Metadata, MetadataRoute } from 'next'
-// PageProps type from Next — not re-exported as a runtime symbol so we
-// use the structural form. Hosts can pass their own typed PageProps.
-type PageProps<P = unknown> = { params: Promise<P>; searchParams: Promise<Record<string, string | string[] | undefined>> }
 import { draftMode } from 'next/headers'
 import type { ImportMap, SanitizedConfig } from 'payload'
-import type { FC, ReactElement } from 'react'
+import type { ReactElement } from 'react'
 
 import { renderCollectionModule } from '../../core/utils/renderCollectionModule'
 import { buildHreflangAlternates } from '../metadata/hreflang'
@@ -13,12 +10,18 @@ import {
   type BreadcrumbItem,
   buildArticleLd,
   buildBreadcrumbsLd,
-  buildOrganizationLd,
+  buildOrganizationLd
 } from '../metadata/jsonld'
 import { getUrlPath, segmentsToStoredSlug, storedSlugToSegments } from '../metadata/slug'
 import { getRenderModuleExports, queryAllDocs, queryAllLocaleSlugs, queryDocBySlug } from '../metadata/query'
 import { LivePreviewListener } from '../components/index'
-import { handleLocale, type CreateLayoutExportsOptions } from './createLayoutExports'
+import { type CreateLayoutExportsOptions, handleLocale } from './createLayoutExports'
+// PageProps type from Next — not re-exported as a runtime symbol so we
+// use the structural form. Hosts can pass their own typed PageProps.
+type PageProps<P = unknown> = {
+  params: Promise<P>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>
+}
 
 export type PageExtendProps = { importMap: ImportMap; config: SanitizedConfig; locale: string }
 
@@ -101,7 +104,7 @@ export type CreateCollectionPageExportsDeps = CreateLayoutExportsOptions & {
 export function createCollectionPageExports(
   { slug = 'pages', config: configPromise, importMap }: CreateCollectionPageExportsArgs,
   deps: CreateCollectionPageExportsDeps,
-  options: MetadataOptions = {},
+  options: MetadataOptions = {}
 ) {
   const {
     urlPrefix = '',
@@ -112,7 +115,7 @@ export function createCollectionPageExports(
     metaOverride,
     jsonLd: jsonLdOption = true,
     changefreq = 'weekly',
-    priority = 0.5,
+    priority = 0.5
   } = options
 
   const siteUrl = deps.getServerSideURL()
@@ -122,14 +125,14 @@ export function createCollectionPageExports(
       configPromise,
       draftMode(),
       handleLocale(props.params, deps),
-      jsonLdOption !== undefined ? generateJsonLd(props) : Promise.resolve<JsonLdOutput[]>([]),
+      jsonLdOption !== undefined ? generateJsonLd(props) : Promise.resolve<JsonLdOutput[]>([])
     ])
 
     const render = renderCollectionModule(config.collections, slug, importMap, {
       ...props,
       config,
       locale,
-      searchParams: props.searchParams,
+      searchParams: props.searchParams
     })
 
     return (
@@ -142,7 +145,7 @@ export function createCollectionPageExports(
           />
         ))}
         {render}
-        {draft && <LivePreviewListener />}
+        {draft && <LivePreviewListener/>}
       </>
     )
   }
@@ -173,7 +176,7 @@ export function createCollectionPageExports(
       slugField,
       locale,
       draft: true,
-      config: configPromise,
+      config: configPromise
     })
 
     if (!doc) return { title: 'Not found', robots: { index: false, follow: false } }
@@ -191,12 +194,12 @@ export function createCollectionPageExports(
       defaultLocale: deps.defaultLocale,
       locales: deps.locales,
       queryAllLocaleSlugs: (s, l) =>
-        queryAllLocaleSlugs({ collectionSlug: slug, slug: s, slugField, locale: l, config: configPromise }),
+        queryAllLocaleSlugs({ collectionSlug: slug, slug: s, slugField, locale: l, config: configPromise })
     })
 
     meta.alternates = {
       canonical,
-      languages: Object.keys(languages).length ? languages : undefined,
+      languages: Object.keys(languages).length ? languages : undefined
     }
 
     return metaOverride ? metaOverride(doc, meta) : meta
@@ -222,7 +225,7 @@ export function createCollectionPageExports(
       slugField,
       locale,
       draft: true,
-      config: configPromise,
+      config: configPromise
     })
 
     if (!doc) return []
@@ -241,7 +244,7 @@ export function createCollectionPageExports(
             url: canonical,
             locale,
             siteUrl,
-            type: entry.schemaType ?? 'BlogPosting',
+            type: entry.schemaType ?? 'BlogPosting'
           }
           if (entry.publisherName !== undefined) articleOpts.publisherName = entry.publisherName
           if (entry.publisherLogo !== undefined) articleOpts.publisherLogo = entry.publisherLogo
@@ -256,7 +259,7 @@ export function createCollectionPageExports(
             url: siteUrl,
             name: entry.name ?? new URL(siteUrl).hostname,
             ...(entry.alternateName ? { alternateName: entry.alternateName } : {}),
-            inLanguage: locale,
+            inLanguage: locale
           }
           break
         }
@@ -265,7 +268,7 @@ export function createCollectionPageExports(
             siteUrl,
             name: entry.name,
             logo: entry.logo,
-            sameAs: entry.sameAs,
+            sameAs: entry.sameAs
           })
           break
         }
@@ -296,7 +299,7 @@ export function createCollectionPageExports(
       collectionSlug: slug,
       slugField,
       locale,
-      config: configPromise,
+      config: configPromise
     })
 
     return docs
@@ -314,7 +317,7 @@ export function createCollectionPageExports(
       collectionSlug: slug,
       slugField,
       locale: deps.defaultLocale,
-      config: configPromise,
+      config: configPromise
     })
 
     const urls: MetadataRoute.Sitemap = []
@@ -339,7 +342,7 @@ export function createCollectionPageExports(
     generateMetadata,
     generateStaticParams,
     generateSitemap,
-    generateJsonLd,
+    generateJsonLd
   }
 }
 
@@ -347,11 +350,12 @@ export function addCollectionsToSitemap(
   exports: Array<{
     default: () => Promise<MetadataRoute.Sitemap>
     generateSitemap: () => Promise<MetadataRoute.Sitemap>
-  }>,
+  }>
 ) {
   async function buildSitemap(): Promise<MetadataRoute.Sitemap> {
     const all = await Promise.all(exports.map((e) => e.generateSitemap()))
     return all.flat()
   }
+
   return { default: buildSitemap, generateSitemap: buildSitemap }
 }

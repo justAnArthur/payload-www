@@ -8,8 +8,8 @@ export const copyResolver = (): TranslateResolver => {
 
       return {
         success: true,
-        translatedTexts: texts,
+        translatedTexts: texts
       }
-    },
+    }
   }
 }

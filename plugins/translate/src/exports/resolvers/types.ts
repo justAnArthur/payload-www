@@ -1,5 +1,5 @@
 export type {
   TranslateResolver,
   TranslateResolverArgs,
-  TranslateResolverResponse,
+  TranslateResolverResponse
 } from '../../resolvers/types'

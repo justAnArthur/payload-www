@@ -17,7 +17,7 @@ const isPublished = (doc: { _status?: string }) => doc._status === 'published'
  * workflow, etc.) — the lib only provides the job-queueing glue.
  */
 export function createTranslateToOtherLocalesHook(
-  options: TranslateToOtherLocalesOptions,
+  options: TranslateToOtherLocalesOptions
 ): CollectionAfterChangeHook | GlobalAfterChangeHook {
   const targets = options.locales.filter((l) => l !== options.defaultLocale)
   const onlyPublished = options.onlyWhenPublished ?? Boolean(options.collection)
@@ -25,7 +25,7 @@ export function createTranslateToOtherLocalesHook(
   return (async (args: any) => {
     const {
       doc,
-      req: { payload, locale, user },
+      req: { payload, locale, user }
     } = args
     if (!locale || locale !== options.defaultLocale) return
     if (!user) return
@@ -39,8 +39,8 @@ export function createTranslateToOtherLocalesHook(
           ...(options.global ? { global: options.global } : {}),
           updatedAt: doc.updatedAt,
           fromLocale: locale,
-          toLocale,
-        },
+          toLocale
+        }
       })
       payload.logger.info(`pushed translation job ${job.id} -> ${toLocale}`)
     }

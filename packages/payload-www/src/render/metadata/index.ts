@@ -3,7 +3,7 @@ export {
   segmentsToUrlPath,
   storedSlugToSegments,
   getUrlPath,
-  buildCanonicalUrl,
+  buildCanonicalUrl
 } from './slug'
 export { buildHreflangAlternates } from './hreflang'
 export {
@@ -11,6 +11,6 @@ export {
   buildBreadcrumbsLd,
   buildOrganizationLd,
   type ArticleLdOptions,
-  type BreadcrumbItem,
+  type BreadcrumbItem
 } from './jsonld'
 export { queryDocBySlug, queryAllDocs, queryAllLocaleSlugs, getRenderModuleExports } from './query'

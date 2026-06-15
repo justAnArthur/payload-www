@@ -20,14 +20,18 @@ type DescriptionFieldComponentProps = {
 } & TextareaFieldClientProps
 
 export const DescriptionFieldComponent: React.FC<DescriptionFieldComponentProps> = ({
-  field: { label, localized, required } = {} as never,
-  maxLength: maxLengthFromProps,
-  minLength: minLengthFromProps,
-  path,
-  readOnly,
-}) => {
+                                                                                      field: {
+                                                                                        label,
+                                                                                        localized,
+                                                                                        required
+                                                                                      } = {} as never,
+                                                                                      maxLength: maxLengthFromProps,
+                                                                                      minLength: minLengthFromProps,
+                                                                                      path,
+                                                                                      readOnly
+                                                                                    }) => {
   const { errorMessage, setValue, showError, value }: FieldType<string> = useField({
-    path,
+    path
   } as Options)
   const minLength = minLengthFromProps ?? minLengthDefault
   const maxLength = maxLengthFromProps ?? maxLengthDefault
@@ -35,7 +39,7 @@ export const DescriptionFieldComponent: React.FC<DescriptionFieldComponentProps>
   return (
     <div style={{ marginBottom: '20px' }}>
       <div className="plugin-seo__field" style={{ marginBottom: '5px' }}>
-        <FieldLabel label={label} localized={localized} path={path} required={required} />
+        <FieldLabel label={label} localized={localized} path={path} required={required}/>
       </div>
       <div style={{ color: '#9A9A9A', marginBottom: '5px' }}>
         {`This should be between ${minLength} and ${maxLength} characters. For help in writing quality meta descriptions, see `}
@@ -59,7 +63,7 @@ export const DescriptionFieldComponent: React.FC<DescriptionFieldComponentProps>
         value={value}
       />
       <div style={{ alignItems: 'center', display: 'flex', width: '100%' }}>
-        <LengthIndicator maxLength={maxLength} minLength={minLength} text={value} />
+        <LengthIndicator maxLength={maxLength} minLength={minLength} text={value}/>
       </div>
     </div>
   )
@@ -82,10 +86,10 @@ export const DescriptionField = (options: DescriptionFieldOptions = {}): Textare
     label: 'Description',
     admin: {
       description: 'Shown under the title in search results. Target 100–150 characters.',
-      components: { Field: DescriptionFieldComponent },
+      components: { Field: DescriptionFieldComponent }
     },
     localized: options.localized,
     maxLength: options.maxLength,
-    minLength: options.minLength,
+    minLength: options.minLength
   } as unknown as TextareaField
 }

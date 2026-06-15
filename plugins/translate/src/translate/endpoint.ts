@@ -22,7 +22,7 @@ export const translateEndpoint: PayloadHandler = async (req) => {
     overrideAccess: false,
     req,
     resolver,
-    update: false,
+    update: false
   })
 
   return Response.json(result)

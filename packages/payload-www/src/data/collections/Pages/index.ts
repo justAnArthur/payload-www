@@ -55,14 +55,14 @@ export type CreatePagesCollectionOptions = {
  */
 export const createPagesCollection = (
   blocks: Block[],
-  options: Omit<CreatePagesCollectionOptions, 'blocks'> = {},
+  options: Omit<CreatePagesCollectionOptions, 'blocks'> = {}
 ): CollectionConfig<'pages'> => {
   const {
     renderPath,
     slugField: slugFields,
     seoFields = [],
     previewPath = (slug) => generatePreviewPath({ slug, collection: 'pages' }),
-    locales,
+    locales
   } = options
 
   const baseFields: Field[] = [
@@ -70,7 +70,7 @@ export const createPagesCollection = (
       name: 'title',
       type: 'text',
       required: true,
-      localized: true,
+      localized: true
     },
     {
       type: 'tabs',
@@ -82,29 +82,29 @@ export const createPagesCollection = (
               type: 'blocks',
               blocks,
               required: true,
-              admin: { initCollapsed: true },
-            },
+              admin: { initCollapsed: true }
+            }
           ],
-          label: 'Content',
+          label: 'Content'
         },
         ...(seoFields.length > 0
           ? [
-              {
-                name: 'meta',
-                label: 'SEO',
-                fields: seoFields,
-                localized: true,
-              },
-            ]
-          : []),
-      ],
+            {
+              name: 'meta',
+              label: 'SEO',
+              fields: seoFields,
+              localized: true
+            }
+          ]
+          : [])
+      ]
     },
     {
       name: 'publishedAt',
       type: 'date',
-      admin: { position: 'sidebar' },
+      admin: { position: 'sidebar' }
     },
-    ...(slugFields ?? []),
+    ...(slugFields ?? [])
   ]
 
   const { afterChange: revalidateAfterChange, afterDelete: revalidateAfterDelete } =
@@ -112,11 +112,11 @@ export const createPagesCollection = (
 
   const translateHook = locales
     ? createTranslateToOtherLocalesHook({
-        defaultLocale: locales.defaultLocale,
-        locales: locales.all,
-        collection: 'pages',
-        onlyWhenPublished: true,
-      })
+      defaultLocale: locales.defaultLocale,
+      locales: locales.all,
+      collection: 'pages',
+      onlyWhenPublished: true
+    })
     : null
 
   return {
@@ -126,16 +126,16 @@ export const createPagesCollection = (
       create: authenticated,
       delete: authenticated,
       read: authenticatedOrPublished,
-      update: authenticated,
+      update: authenticated
     },
     defaultPopulate: { title: true, slug: true },
     admin: {
       defaultColumns: ['title', 'slug', 'updatedAt'],
       livePreview: {
-        url: ({ data, req }) => previewPath(typeof data?.slug === 'string' ? data.slug : ''),
+        url: ({ data, req }) => previewPath(typeof data?.slug === 'string' ? data.slug : '')
       },
       preview: (data, { req }) => previewPath(typeof data?.slug === 'string' ? data.slug : ''),
-      useAsTitle: 'title',
+      useAsTitle: 'title'
     },
     fields: baseFields,
     hooks: {
@@ -143,11 +143,11 @@ export const createPagesCollection = (
         ? [revalidateAfterChange, translateHook]
         : [revalidateAfterChange],
       beforeChange: [populatePublishedAt],
-      afterDelete: [revalidateAfterDelete],
+      afterDelete: [revalidateAfterDelete]
     } as CollectionConfig['hooks'],
     versions: {
       drafts: { autosave: { interval: 1000 }, schedulePublish: true },
-      maxPerDoc: 50,
-    },
+      maxPerDoc: 50
+    }
   } as CollectionConfig<'pages'>
 }

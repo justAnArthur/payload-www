@@ -4,11 +4,11 @@ import { exports } from 'bunup/plugins'
 export default defineConfig({
   entry: [
     'src/exports/*',
-    'src/exports/resolvers/*',
+    'src/exports/resolvers/*'
   ],
   format: ['esm'],
   clean: true,
   plugins: [
-    exports(),
-  ],
+    exports()
+  ]
 }) as DefineConfigItem

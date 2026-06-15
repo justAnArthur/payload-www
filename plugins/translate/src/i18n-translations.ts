@@ -27,8 +27,8 @@ export const translations = {
       resolver_openai_modalTitle: 'Choose the locale to translate from',
       resolver_openai_submitButtonLabelEmpty: 'Translate only empty fields',
       resolver_openai_submitButtonLabelFull: 'Translate all',
-      resolver_openai_successMessage: 'Successfully translated. Press "Save" to apply the changes.',
-    },
+      resolver_openai_successMessage: 'Successfully translated. Press "Save" to apply the changes.'
+    }
   },
   uk: {
     'plugin-translator': {
@@ -62,8 +62,8 @@ export const translations = {
       resolver_openai_submitButtonLabelEmpty: 'Перекласти лише порожні поля',
       resolver_openai_submitButtonLabelFull: 'Перекласти все',
       resolver_openai_successMessage:
-        'Успішно перекладено. Натисніть "Зберегти", щоб застосувати зміни.',
-    },
+        'Успішно перекладено. Натисніть "Зберегти", щоб застосувати зміни.'
+    }
   },
   zh: {
     'plugin-translator': {
@@ -93,7 +93,7 @@ export const translations = {
       resolver_openai_modalTitle: '选择要翻译的语言',
       resolver_openai_submitButtonLabelEmpty: '仅翻译空字段',
       resolver_openai_submitButtonLabelFull: '翻译全部',
-      resolver_openai_successMessage: '翻译成功。按下“保存”以应用更改。',
-    },
-  },
+      resolver_openai_successMessage: '翻译成功。按下“保存”以应用更改。'
+    }
+  }
 }

@@ -15,7 +15,7 @@ export const LengthIndicator: React.FC<{
 
   const [labelStyle, setLabelStyle] = useState({
     backgroundColor: '',
-    color: '',
+    color: ''
   })
 
   const [label, setLabel] = useState('')
@@ -31,7 +31,7 @@ export const LengthIndicator: React.FC<{
       setLabel(t('plugin-seo:missing'))
       setLabelStyle({
         backgroundColor: 'red',
-        color: 'white',
+        color: 'white'
       })
       setBarWidth(0)
     } else {
@@ -44,13 +44,13 @@ export const LengthIndicator: React.FC<{
           setLabel(t('plugin-seo:almostThere'))
           setLabelStyle({
             backgroundColor: 'orange',
-            color: 'white',
+            color: 'white'
           })
         } else {
           setLabel(t('plugin-seo:tooShort'))
           setLabelStyle({
             backgroundColor: 'orangered',
-            color: 'white',
+            color: 'white'
           })
         }
 
@@ -61,7 +61,7 @@ export const LengthIndicator: React.FC<{
         setLabel(t('plugin-seo:good'))
         setLabelStyle({
           backgroundColor: 'green',
-          color: 'white',
+          color: 'white'
         })
         setBarWidth(progress)
       }
@@ -70,7 +70,7 @@ export const LengthIndicator: React.FC<{
         setLabel(t('plugin-seo:tooLong'))
         setLabelStyle({
           backgroundColor: 'red',
-          color: 'white',
+          color: 'white'
         })
         setBarWidth(1)
       }
@@ -88,16 +88,16 @@ export const LengthIndicator: React.FC<{
       style={{
         alignItems: 'center',
         display: 'flex',
-        width: '100%',
+        width: '100%'
       }}
     >
-      <Pill backgroundColor={labelStyle.backgroundColor} color={labelStyle.color} label={label} />
+      <Pill backgroundColor={labelStyle.backgroundColor} color={labelStyle.color} label={label}/>
       <div
         style={{
           flexShrink: 0,
           lineHeight: 1,
           marginRight: '10px',
-          whiteSpace: 'nowrap',
+          whiteSpace: 'nowrap'
         }}
       >
         <small>
@@ -120,7 +120,7 @@ export const LengthIndicator: React.FC<{
           backgroundColor: '#F3F3F3',
           height: '2px',
           position: 'relative',
-          width: '100%',
+          width: '100%'
         }}
       >
         <div
@@ -130,7 +130,7 @@ export const LengthIndicator: React.FC<{
             left: 0,
             position: 'absolute',
             top: 0,
-            width: `${barWidth * 100}%`,
+            width: `${barWidth * 100}%`
           }}
         />
       </div>

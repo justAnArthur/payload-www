@@ -21,12 +21,12 @@ type TitleFieldComponentProps = {
  * length indicator and a Google "best practices" hint.
  */
 export const TitleFieldComponent: React.FC<TitleFieldComponentProps> = ({
-  field: { label, required } = {} as never,
-  maxLength: maxLengthFromProps,
-  minLength: minLengthFromProps,
-  path,
-  readOnly,
-}) => {
+                                                                          field: { label, required } = {} as never,
+                                                                          maxLength: maxLengthFromProps,
+                                                                          minLength: minLengthFromProps,
+                                                                          path,
+                                                                          readOnly
+                                                                        }) => {
   const field: FieldType<string> = useField({ path } as Options)
   const { errorMessage, setValue, showError, value } = field
   const minLength = minLengthFromProps ?? minLengthDefault
@@ -35,7 +35,7 @@ export const TitleFieldComponent: React.FC<TitleFieldComponentProps> = ({
   return (
     <div style={{ marginBottom: '20px' }}>
       <div className="plugin-seo__field" style={{ marginBottom: '5px' }}>
-        <FieldLabel label={label} path={path} required={required} />
+        <FieldLabel label={label} path={path} required={required}/>
       </div>
       <div style={{ color: '#9A9A9A', marginBottom: '5px' }}>
         {`This should be between ${minLength} and ${maxLength} characters. For help in writing quality meta titles, see `}
@@ -59,7 +59,7 @@ export const TitleFieldComponent: React.FC<TitleFieldComponentProps> = ({
         value={value}
       />
       <div style={{ alignItems: 'center', display: 'flex', width: '100%' }}>
-        <LengthIndicator maxLength={maxLength} minLength={minLength} text={value} />
+        <LengthIndicator maxLength={maxLength} minLength={minLength} text={value}/>
       </div>
     </div>
   )

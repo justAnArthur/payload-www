@@ -10,13 +10,13 @@ export const Content = () => {
     localesOptions,
     resolverT,
     setLocaleToTranslateFrom,
-    submit,
+    submit
   } = useTranslator()
 
   const { i18n } = useTranslation()
 
   const localeToTranslateFrom = localesOptions.find(
-    (each) => each.code === localeCodeToTranslateFrom,
+    (each) => each.code === localeCodeToTranslateFrom
   )
 
   return (
@@ -24,7 +24,7 @@ export const Content = () => {
       <h2>{resolverT('modalTitle')}</h2>
       {localeToTranslateFrom && (
         <Popup
-          button={<LocaleLabel locale={localeToTranslateFrom} />}
+          button={<LocaleLabel locale={localeToTranslateFrom}/>}
           horizontalAlign="center"
           render={({ close }) => (
             <PopupList.ButtonGroup>

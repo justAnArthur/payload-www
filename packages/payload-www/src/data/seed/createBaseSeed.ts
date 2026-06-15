@@ -61,11 +61,11 @@ const simpleRichText = (text: string) => ({
         direction: 'ltr',
         textFormat: 0,
         children: [
-          { mode: 'normal', text, type: 'text', style: '', detail: 0, format: 0, version: 1 },
-        ],
-      },
-    ],
-  },
+          { mode: 'normal', text, type: 'text', style: '', detail: 0, format: 0, version: 1 }
+        ]
+      }
+    ]
+  }
 })
 
 /**
@@ -85,7 +85,7 @@ const simpleRichText = (text: string) => ({
  */
 export async function createBaseSeed(
   payload: Payload,
-  options: CreateBaseSeedOptions = {},
+  options: CreateBaseSeedOptions = {}
 ): Promise<CreateBaseSeedResult> {
   const localization = payload.config.localization
   const defaultLocale =
@@ -134,7 +134,9 @@ export async function createBaseSeed(
     return undefined
   }
   const layoutField = findBlocksField(pagesCollection.config.fields as unknown[])
-  const validBlockSlugs = new Set(((layoutField as { blocks?: Array<{ slug: string }> } | undefined)?.blocks ?? []).map((b) => b.slug))
+  const validBlockSlugs = new Set(((layoutField as {
+    blocks?: Array<{ slug: string }>
+  } | undefined)?.blocks ?? []).map((b) => b.slug))
 
   for (const page of options.pages ?? []) {
     for (const block of page.blocks ?? []) {
@@ -144,7 +146,7 @@ export async function createBaseSeed(
       }
       if (!validBlockSlugs.has(slug)) {
         throw new Error(
-          `createBaseSeed: page "${page.slug}" references unknown block slug "${slug}". Allowed: ${[...validBlockSlugs].join(', ')}`,
+          `createBaseSeed: page "${page.slug}" references unknown block slug "${slug}". Allowed: ${[...validBlockSlugs].join(', ')}`
         )
       }
     }
@@ -157,7 +159,7 @@ export async function createBaseSeed(
       collection: 'users',
       where: { email: { equals: user.email } },
       limit: 1,
-      overrideAccess: true,
+      overrideAccess: true
     })
     let id: string | number
     if (existing.docs.length > 0) {
@@ -166,7 +168,7 @@ export async function createBaseSeed(
       const created = await payload.create({
         collection: 'users',
         data: { email: user.email, password: user.password ?? 'test', name: user.name ?? '' },
-        overrideAccess: true,
+        overrideAccess: true
       })
       id = created.id
     }
@@ -179,7 +181,7 @@ export async function createBaseSeed(
       collection: 'categories',
       where: { title: { equals: cat.title } },
       limit: 1,
-      overrideAccess: true,
+      overrideAccess: true
     })
     let id: string | number
     if (existing.docs.length > 0) {
@@ -188,7 +190,7 @@ export async function createBaseSeed(
       const created = await payload.create({
         collection: 'categories',
         data: { title: cat.title, slug },
-        overrideAccess: true,
+        overrideAccess: true
       })
       id = created.id
     }
@@ -200,14 +202,14 @@ export async function createBaseSeed(
       collection: 'pages',
       where: { slug: { equals: page.slug } },
       limit: 1,
-      overrideAccess: true,
+      overrideAccess: true
     })
 
     const data: Record<string, unknown> = {
       slug: page.slug,
       title: { ...page.title },
       blocks: page.blocks ?? [],
-      publishedAt: page.publishedAt ?? new Date().toISOString(),
+      publishedAt: page.publishedAt ?? new Date().toISOString()
     }
     if (page.meta) data.meta = { ...page.meta }
 
@@ -217,7 +219,7 @@ export async function createBaseSeed(
         collection: 'pages',
         data,
         overrideAccess: true,
-        draft: page.status === 'draft',
+        draft: page.status === 'draft'
       })
       id = created.id
     } else {
@@ -227,7 +229,7 @@ export async function createBaseSeed(
         id,
         data,
         overrideAccess: true,
-        draft: page.status === 'draft',
+        draft: page.status === 'draft'
       })
     }
     for (const locale of locales) result.pages.push({ id, slug: page.slug, locale })
@@ -238,14 +240,14 @@ export async function createBaseSeed(
       collection: 'posts',
       where: { slug: { equals: post.slug } },
       limit: 1,
-      overrideAccess: true,
+      overrideAccess: true
     })
     const data: Record<string, unknown> = {
       slug: post.slug,
       title: { ...post.title },
       content: post.content ?? simpleRichText('Hello world'),
       publishedAt: post.publishedAt ?? new Date().toISOString(),
-      authors: result.users.length > 0 ? [result.users[0].id] : [],
+      authors: result.users.length > 0 ? [result.users[0].id] : []
     }
     let id: string | number
     if (existing.docs.length === 0) {
@@ -253,7 +255,7 @@ export async function createBaseSeed(
         collection: 'posts',
         data,
         overrideAccess: true,
-        draft: post.status === 'draft',
+        draft: post.status === 'draft'
       })
       id = created.id
     } else {
@@ -263,7 +265,7 @@ export async function createBaseSeed(
         id,
         data,
         overrideAccess: true,
-        draft: post.status === 'draft',
+        draft: post.status === 'draft'
       })
     }
     for (const locale of locales) result.posts.push({ id, slug: post.slug, locale })

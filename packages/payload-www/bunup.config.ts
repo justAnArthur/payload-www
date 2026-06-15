@@ -3,12 +3,12 @@ import { exports } from 'bunup/plugins'
 
 export default defineConfig({
   entry: [
-    'src/exports/*',
+    'src/exports/*'
   ],
   format: ['esm'],
   clean: true,
   sourceBase: './src/exports',
   plugins: [
-    exports(),
-  ],
+    exports()
+  ]
 }) as DefineConfigItem

@@ -1,7 +1,5 @@
 import type { TextareaField } from 'payload'
 
-import { DescriptionFieldComponent } from './DescriptionFieldComponent'
-
 export type DescriptionFieldOptions = {
   readonly localized?: boolean
   readonly maxLength?: number
@@ -23,14 +21,14 @@ export const DescriptionField = (options: DescriptionFieldOptions = {}): Textare
         Field: {
           clientProps: {
             maxLength: options.maxLength,
-            minLength: options.minLength,
+            minLength: options.minLength
           },
-          path: '@justanarthur/payload-plugin-seo/client#DescriptionFieldComponent',
-        },
-      },
+          path: '@justanarthur/payload-plugin-seo/client#DescriptionFieldComponent'
+        }
+      }
     },
     localized: options.localized,
     maxLength: options.maxLength,
-    minLength: options.minLength,
+    minLength: options.minLength
   } as unknown as TextareaField
 }

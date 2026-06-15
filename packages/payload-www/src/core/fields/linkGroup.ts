@@ -8,5 +8,5 @@ export const linkGroup = (options: LinkOptions = {}): Field => ({
   name: 'links',
   type: 'array',
   fields: [link(options)],
-  admin: { initCollapsed: true },
+  admin: { initCollapsed: true }
 })

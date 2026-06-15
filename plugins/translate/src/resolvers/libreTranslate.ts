@@ -9,7 +9,7 @@ type LibreResponse = {
 }
 
 const localeToCountryCodeMapper = {
-  ua: 'uk',
+  ua: 'uk'
 }
 
 const mapLocale = (incoming: string) =>
@@ -32,10 +32,10 @@ export type LibreResolverConfig = {
 }
 
 export const libreResolver = ({
-  apiKey,
-  chunkLength = 100,
-  url = 'https://libretranslate.com/translate',
-}: LibreResolverConfig): TranslateResolver => {
+                                apiKey,
+                                chunkLength = 100,
+                                url = 'https://libretranslate.com/translate'
+                              }: LibreResolverConfig): TranslateResolver => {
   return {
     key: 'libre',
     resolve: async (args) => {
@@ -50,12 +50,12 @@ export const libreResolver = ({
               api_key: apiKey,
               q,
               source: mapLocale(localeFrom),
-              target: mapLocale(localeTo),
+              target: mapLocale(localeTo)
             }),
             headers: {
-              'Content-Type': 'application/json',
+              'Content-Type': 'application/json'
             },
-            method: 'POST',
+            method: 'POST'
           }).then(async (res) => {
             const data = await res.json()
 
@@ -63,20 +63,20 @@ export const libreResolver = ({
               req.payload.logger.info({
                 libreResponse: data,
                 message:
-                  'An error occurred when trying to translate the data using LibreTranslate API',
+                  'An error occurred when trying to translate the data using LibreTranslate API'
               })
 
             return {
               data,
-              success: res.ok,
+              success: res.ok
             }
-          }),
-        ),
+          })
+        )
       )
 
       if (responses.some((res) => !res.success)) {
         return {
-          success: false,
+          success: false
         }
       }
 
@@ -84,8 +84,8 @@ export const libreResolver = ({
 
       return {
         success: true,
-        translatedTexts,
+        translatedTexts
       }
-    },
+    }
   }
 }

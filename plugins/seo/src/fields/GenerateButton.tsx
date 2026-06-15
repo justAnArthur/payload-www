@@ -34,18 +34,18 @@ type GenerateButtonProps = {
  * `meta` keys back into the form via `dispatchFields({ type: 'SET' })`.
  */
 export const GenerateButton: React.FC<GenerateButtonProps> = ({
-  hasGenerateAi,
-  hasGenerateFn,
-  pathPrefix = 'meta',
-  fieldPaths = {},
-}) => {
+                                                                hasGenerateAi,
+                                                                hasGenerateFn,
+                                                                pathPrefix = 'meta',
+                                                                fieldPaths = {}
+                                                              }) => {
   const { t } = useTranslation<PluginSEOTranslations, PluginSEOTranslationKeys>()
 
   const {
     config: {
       routes: { api },
-      serverURL,
-    },
+      serverURL
+    }
   } = useConfig()
 
   const locale = useLocale()
@@ -81,11 +81,11 @@ export const GenerateButton: React.FC<GenerateButtonProps> = ({
               : undefined,
             locale: typeof locale === 'object' ? locale?.code : locale,
             title: docInfo.title,
-            versionCount: docInfo.versionCount,
+            versionCount: docInfo.versionCount
           }),
           credentials: 'include',
           headers: { 'Content-Type': 'application/json' },
-          method: 'POST',
+          method: 'POST'
         })
 
         if (!response.ok) {
@@ -120,8 +120,8 @@ export const GenerateButton: React.FC<GenerateButtonProps> = ({
       isLoading,
       locale,
       pathPrefix,
-      serverURL,
-    ],
+      serverURL
+    ]
   )
 
   if (!hasGenerateFn && !hasGenerateAi) {
@@ -135,7 +135,7 @@ export const GenerateButton: React.FC<GenerateButtonProps> = ({
         display: 'flex',
         flexWrap: 'wrap',
         gap: '12px',
-        marginBottom: '16px',
+        marginBottom: '16px'
       }}
     >
       {hasGenerateFn && (

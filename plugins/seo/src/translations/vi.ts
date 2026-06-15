@@ -23,6 +23,6 @@ export const vi: GenericTranslationsObject = {
     preview: 'Xem trước',
     previewDescription: 'Kết quả hiển thị có thể thay đổi tuỳ theo nội dung và công cụ tìm kiếm.',
     tooLong: 'Quá dài',
-    tooShort: 'Quá ngắn',
-  },
+    tooShort: 'Quá ngắn'
+  }
 }

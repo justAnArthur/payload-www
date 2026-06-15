@@ -18,14 +18,14 @@ export const AdvancedField = (options: AdvancedFieldOptions = {}): GroupField =>
     type: 'group',
     label: 'Advanced',
     admin: {
-      description: 'Canonical URL, robots directives, and other low-level meta.',
+      description: 'Canonical URL, robots directives, and other low-level meta.'
     },
     fields: [
       {
         name: 'canonicalUrl',
         type: 'text',
         label: 'Canonical URL',
-        admin: { description: 'Overrides the auto-derived canonical. Use absolute URLs.' },
+        admin: { description: 'Overrides the auto-derived canonical. Use absolute URLs.' }
       } as unknown as TextField,
       {
         name: 'robots',
@@ -33,47 +33,47 @@ export const AdvancedField = (options: AdvancedFieldOptions = {}): GroupField =>
         label: 'Robots',
         admin: {
           description: 'Free-form `meta robots` content, e.g. "index, follow" or "noindex, nofollow".',
-          placeholder: 'index, follow',
-        },
+          placeholder: 'index, follow'
+        }
       } as unknown as TextField,
       ...(includeNoindex
         ? [
-            ({
-              name: 'noindex',
-              type: 'checkbox',
-              label: 'No-index',
-              admin: {
-                description:
-                  'When on, sets `robots` to "noindex, nofollow" and ignores the manual robots field.',
-              },
-            } as unknown as CheckboxField),
-          ]
+          ({
+            name: 'noindex',
+            type: 'checkbox',
+            label: 'No-index',
+            admin: {
+              description:
+                'When on, sets `robots` to "noindex, nofollow" and ignores the manual robots field.'
+            }
+          } as unknown as CheckboxField)
+        ]
         : []),
       ...(includeAuthor
         ? [
-            ({
-              name: 'author',
-              type: 'text',
-              label: 'Author',
-            } as unknown as TextField),
-          ]
+          ({
+            name: 'author',
+            type: 'text',
+            label: 'Author'
+          } as unknown as TextField)
+        ]
         : []),
       ...(includeDates
         ? [
-            ({
-              name: 'publishedAt',
-              type: 'date',
-              label: 'Published at',
-              admin: { date: { pickerAppearance: 'dayOnly' } },
-            } as unknown as DateField),
-            ({
-              name: 'modifiedAt',
-              type: 'date',
-              label: 'Modified at',
-              admin: { date: { pickerAppearance: 'dayOnly' } },
-            } as unknown as DateField),
-          ]
-        : []),
-    ],
+          ({
+            name: 'publishedAt',
+            type: 'date',
+            label: 'Published at',
+            admin: { date: { pickerAppearance: 'dayOnly' } }
+          } as unknown as DateField),
+          ({
+            name: 'modifiedAt',
+            type: 'date',
+            label: 'Modified at',
+            admin: { date: { pickerAppearance: 'dayOnly' } }
+          } as unknown as DateField)
+        ]
+        : [])
+    ]
   } as unknown as GroupField
 }

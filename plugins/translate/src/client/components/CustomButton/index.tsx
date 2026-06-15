@@ -3,8 +3,8 @@ import type { CustomPublishButton, CustomSaveButton } from 'payload'
 export const CustomButton = (type: 'publish' | 'save'): CustomPublishButton | CustomSaveButton => {
   return {
     clientProps: {
-      type,
+      type
     },
-    path: '@justanarthur/payload-plugin-translator/client#CustomButtonWithTranslator',
+    path: '@justanarthur/payload-plugin-translator/client#CustomButtonWithTranslator'
   }
 }

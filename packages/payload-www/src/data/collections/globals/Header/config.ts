@@ -20,13 +20,13 @@ export type CreateHeaderGlobalOptions = {
  * titled group of `linkGroup` items) and `navItem` (a single link).
  */
 export const createHeaderGlobal = (
-  options: CreateHeaderGlobalOptions = {},
+  options: CreateHeaderGlobalOptions = {}
 ): GlobalConfig => {
   const {
     renderPath,
     linkField = (opts) => link({ ...opts, disableLabel: true, appearances: false }),
     linkGroupField,
-    locales,
+    locales
   } = options
 
   const navColumnBlock: Block = {
@@ -36,25 +36,25 @@ export const createHeaderGlobal = (
         name: 'title',
         type: 'text',
         required: true,
-        localized: true,
+        localized: true
       },
       ...(linkGroupField
         ? [linkGroupField({ linkOverrides: { fields: [{ name: 'description', type: 'text', localized: true }] } })]
-        : []),
-    ],
+        : [])
+    ]
   }
 
   const navItemBlock: Block = {
     slug: 'navItem',
-    fields: [linkField({ appearances: false })],
+    fields: [linkField({ appearances: false })]
   }
 
   const translateHook = locales
     ? createTranslateToOtherLocalesHook({
-        defaultLocale: locales.defaultLocale,
-        locales: locales.all,
-        global: 'header',
-      })
+      defaultLocale: locales.defaultLocale,
+      locales: locales.all,
+      global: 'header'
+    })
     : null
 
   return {
@@ -66,13 +66,13 @@ export const createHeaderGlobal = (
         name: 'nav',
         type: 'blocks',
         required: true,
-        blocks: [navColumnBlock, navItemBlock],
-      },
+        blocks: [navColumnBlock, navItemBlock]
+      }
     ],
     hooks: {
       afterChange: translateHook
         ? [createRevalidateGlobalHook('global_header'), translateHook as any]
-        : [createRevalidateGlobalHook('global_header')],
-    },
+        : [createRevalidateGlobalHook('global_header')]
+    }
   }
 }

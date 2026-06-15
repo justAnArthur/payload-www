@@ -24,6 +24,6 @@ export const pl: GenericTranslationsObject = {
     previewDescription:
       'Dokładne wyniki listowania mogą się różnić w zależności od treści i zgodności z kryteriami wyszukiwania.',
     tooLong: 'Zbyt długie',
-    tooShort: 'Zbyt krótkie',
-  },
+    tooShort: 'Zbyt krótkie'
+  }
 }

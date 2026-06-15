@@ -24,6 +24,6 @@ export const fa: GenericTranslationsObject = {
     preview: 'پیش‌نمایش',
     previewDescription: 'فهرست نتایج ممکن است بر اساس محتوا و متناسب با کلمه کلیدی جستجو شده باشند',
     tooLong: 'خیلی طولانی',
-    tooShort: 'خیلی کوتاه',
-  },
+    tooShort: 'خیلی کوتاه'
+  }
 }

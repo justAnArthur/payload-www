@@ -19,7 +19,7 @@ export const Pill: React.FC<{
         lineHeight: 1,
         marginRight: '10px',
         padding: '4px 6px',
-        whiteSpace: 'nowrap',
+        whiteSpace: 'nowrap'
       }}
     >
       <small>{label}</small>

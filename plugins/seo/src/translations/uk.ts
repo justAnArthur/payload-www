@@ -24,6 +24,6 @@ export const uk: GenericTranslationsObject = {
     previewDescription:
       'Реальне відображення може відрізнятися в залежності від вмісту та релевантності пошуку.',
     tooLong: 'Задовгий',
-    tooShort: 'Закороткий',
-  },
+    tooShort: 'Закороткий'
+  }
 }

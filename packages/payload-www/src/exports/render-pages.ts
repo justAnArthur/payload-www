@@ -1,24 +1,20 @@
+import { createLayoutExports, type CreateLayoutExportsOptions, handleLocale } from '../render/pages/createLayoutExports'
 import {
-  createLayoutExports,
-  handleLocale,
-  type CreateLayoutExportsOptions,
-} from '../render/pages/createLayoutExports'
-import {
-  createCollectionPageExports,
   addCollectionsToSitemap,
-  type MetadataOptions,
+  createCollectionPageExports,
   type CreateCollectionPageExportsArgs,
   type CreateCollectionPageExportsDeps,
-  type PageExtendProps,
   type JsonLdEntry,
   type JsonLdOutput,
+  type MetadataOptions,
+  type PageExtendProps
 } from '../render/pages/createCollectionPageExports'
 
 export default {
   createLayoutExports,
   handleLocale,
   createCollectionPageExports,
-  addCollectionsToSitemap,
+  addCollectionsToSitemap
 }
 
 export {
@@ -32,5 +28,5 @@ export {
   type CreateCollectionPageExportsDeps,
   type PageExtendProps,
   type JsonLdEntry,
-  type JsonLdOutput,
+  type JsonLdOutput
 } from '../render/pages/index'

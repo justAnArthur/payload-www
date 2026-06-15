@@ -1,7 +1,5 @@
 import type { TextField } from 'payload'
 
-import { TitleFieldComponent } from './TitleFieldComponent'
-
 export type TitleFieldOptions = {
   readonly localized?: boolean
   readonly maxLength?: number
@@ -23,14 +21,14 @@ export const TitleField = (options: TitleFieldOptions = {}): TextField => {
         Field: {
           clientProps: {
             maxLength: options.maxLength,
-            minLength: options.minLength,
+            minLength: options.minLength
           },
-          path: '@justanarthur/payload-plugin-seo/client#TitleFieldComponent',
-        },
-      },
+          path: '@justanarthur/payload-plugin-seo/client#TitleFieldComponent'
+        }
+      }
     },
     localized: options.localized,
     maxLength: options.maxLength,
-    minLength: options.minLength,
+    minLength: options.minLength
   } as unknown as TextField
 }

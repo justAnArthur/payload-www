@@ -73,7 +73,7 @@ export const MetaField = (options: MetaFieldOptions = {}): GroupField => {
     hasGenerateFn = false,
     interfaceName,
     relationTo,
-    hidePreview = false,
+    hidePreview = false
   } = options
 
   // Build tabs first so we can derive field paths from the actual structure.
@@ -87,42 +87,42 @@ export const MetaField = (options: MetaFieldOptions = {}): GroupField => {
           TitleField() as unknown as Field,
           DescriptionField() as unknown as Field,
           KeywordsField() as unknown as Field,
-          ImageField({ relationTo }) as unknown as Field,
-        ],
+          ImageField({ relationTo }) as unknown as Field
+        ]
       },
       {
         name: 'social',
         label: 'Social',
-        fields: [SocialField({ relationTo }) as unknown as Field],
+        fields: [SocialField({ relationTo }) as unknown as Field]
       },
       {
         name: 'advanced',
         label: 'Advanced',
-        fields: [AdvancedField() as unknown as Field],
+        fields: [AdvancedField() as unknown as Field]
       },
       ...(hidePreview
         ? []
         : [
-            {
-              name: 'preview',
-              label: 'Preview',
-              fields: [
-                {
-                  type: 'ui',
-                  name: '_preview',
-                  admin: {
-                    components: {
-                      Field: {
-                        clientProps: { pathPrefix: 'meta' },
-                        path: '@justanarthur/payload-plugin-seo/client#MetaPreview',
-                      },
-                    },
-                  },
-                } as unknown as UIField,
-              ],
-            },
-          ]),
-    ],
+          {
+            name: 'preview',
+            label: 'Preview',
+            fields: [
+              {
+                type: 'ui',
+                name: '_preview',
+                admin: {
+                  components: {
+                    Field: {
+                      clientProps: { pathPrefix: 'meta' },
+                      path: '@justanarthur/payload-plugin-seo/client#MetaPreview'
+                    }
+                  }
+                }
+              } as unknown as UIField
+            ]
+          }
+        ])
+    ]
   }
 
   // Derive the flat SEOMeta-key → tab-qualified-path mapping from the tabs above.
@@ -140,12 +140,12 @@ export const MetaField = (options: MetaFieldOptions = {}): GroupField => {
             hasGenerateAi,
             hasGenerateFn,
             fieldPaths,
-            pathPrefix: 'meta',
+            pathPrefix: 'meta'
           },
-          path: '@justanarthur/payload-plugin-seo/client#GenerateButton',
-        },
-      },
-    },
+          path: '@justanarthur/payload-plugin-seo/client#GenerateButton'
+        }
+      }
+    }
   }
 
   return {
@@ -153,10 +153,10 @@ export const MetaField = (options: MetaFieldOptions = {}): GroupField => {
     type: 'group',
     label: 'SEO',
     admin: {
-      description: 'Search engine and social share metadata for this entity.',
+      description: 'Search engine and social share metadata for this entity.'
     },
     fields: [generateUi, tabs as unknown as Field],
-    interfaceName,
+    interfaceName
   } as unknown as GroupField
 }
 

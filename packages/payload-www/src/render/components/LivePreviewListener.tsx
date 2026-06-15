@@ -14,5 +14,5 @@ export const LivePreviewListener: FC<LivePreviewListenerProps> = ({ serverURL })
     serverURL ??
     process.env.NEXT_PUBLIC_SERVER_URL ??
     (typeof window !== 'undefined' ? window.location.origin : '')
-  return <PayloadLivePreview refresh={router.refresh} serverURL={url} />
+  return <PayloadLivePreview refresh={router.refresh} serverURL={url}/>
 }

@@ -24,9 +24,9 @@ export const ImageField = (options: ImageFieldOptions = {}): Field => {
       relationTo,
       label: 'Image',
       admin: {
-        description: 'Social share / SERP thumbnail.',
+        description: 'Social share / SERP thumbnail.'
       },
-      localized,
+      localized
     } as unknown as UploadField
   }
 
@@ -35,8 +35,8 @@ export const ImageField = (options: ImageFieldOptions = {}): Field => {
     type: 'text',
     label: 'Image URL',
     admin: {
-      description: 'Public URL of the social share / SERP image.',
+      description: 'Public URL of the social share / SERP image.'
     },
-    localized,
+    localized
   } as unknown as TextField
 }

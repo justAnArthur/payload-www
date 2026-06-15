@@ -27,7 +27,7 @@ export const translations = {
   ru,
   sv,
   tr,
-  uk,
+  uk
 }
 
 export type PluginSEOTranslations = GenericTranslationsObject

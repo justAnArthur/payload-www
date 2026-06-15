@@ -5,5 +5,5 @@ export default createTestPayload
 export {
   createTestPayload,
   type CreateTestPayloadOptions,
-  type CreateTestPayloadResult,
+  type CreateTestPayloadResult
 } from '../data/test/createTestPayload'

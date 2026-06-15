@@ -9,5 +9,5 @@ export {
   type SeedPageInput,
   type SeedPostInput,
   type SeedUserInput,
-  type SeedCategoryInput,
+  type SeedCategoryInput
 } from '../data/seed/createBaseSeed'

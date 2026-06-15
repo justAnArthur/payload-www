@@ -2,13 +2,13 @@ import type { CollectionSlug, PayloadRequest } from 'payload'
 
 const collectionPrefixMap: Partial<Record<CollectionSlug, string>> = {
   posts: '/posts',
-  pages: '',
+  pages: ''
 }
 
 export function generatePreviewPath({
-  collection,
-  slug,
-}: {
+                                      collection,
+                                      slug
+                                    }: {
   collection: CollectionSlug
   slug: string | null | undefined
   req?: PayloadRequest
@@ -17,7 +17,7 @@ export function generatePreviewPath({
   const encodedSlug = encodeURIComponent(slug)
   const params = new URLSearchParams({
     path: `${collectionPrefixMap[collection] ?? ''}/${encodedSlug}`,
-    previewSecret: process.env.PREVIEW_SECRET || '',
+    previewSecret: process.env.PREVIEW_SECRET || ''
   })
   return `/next/preview?${params.toString()}`
 }

@@ -1,7 +1,13 @@
 import { describe, expect, it } from 'vitest'
 
 import { createWWWConfig } from '../src/config/createWWWConfig'
-import { createPagesCollection, HOME_PAGE_SLUG, pageSlugNestedDivider, PAGES_SLUG, generatePreviewPath } from '../src/data/collections'
+import {
+  createPagesCollection,
+  generatePreviewPath,
+  HOME_PAGE_SLUG,
+  PAGES_SLUG,
+  pageSlugNestedDivider
+} from '../src/data/collections'
 import { createHeaderGlobal } from '../src/data/collections/globals/Header/config'
 import { createFooterGlobal } from '../src/data/collections/globals/Footer/config'
 import { createLayoutExports } from '../src/render/pages/createLayoutExports'
@@ -25,7 +31,7 @@ describe('createWWWConfig', () => {
       'LivePreviewListener',
       'getFromImportMap',
       'generateImportName',
-      'renderCollectionModule',
+      'renderCollectionModule'
     ]
     for (const k of expected) {
       expect(Object.keys(api)).toContain(k)
@@ -110,11 +116,11 @@ describe('addCollectionsToSitemap', () => {
   it('combines sitemaps from multiple exports', async () => {
     const a = {
       default: async () => [{ url: 'a' }] as any,
-      generateSitemap: async () => [{ url: 'a' }] as any,
+      generateSitemap: async () => [{ url: 'a' }] as any
     }
     const b = {
       default: async () => [{ url: 'b' }, { url: 'c' }] as any,
-      generateSitemap: async () => [{ url: 'b' }, { url: 'c' }] as any,
+      generateSitemap: async () => [{ url: 'b' }, { url: 'c' }] as any
     }
     const combined = addCollectionsToSitemap([a, b])
     const result = await combined.generateSitemap()
@@ -128,7 +134,10 @@ describe('createLayoutExports', () => {
     const importMap = {} as any
     const result = createLayoutExports(
       { config: configPromise, importMap },
-      { hasLocale: (() => true) as never, setRequestLocale: () => {}, routing: { locales: ['en'] } },
+      {
+        hasLocale: (() => true) as never, setRequestLocale: () => {
+        }, routing: { locales: ['en'] }
+      }
     )
     expect(typeof result.default).toBe('function')
   })

@@ -7,9 +7,9 @@ export const createClient = ({ api, serverURL }: { api: string; serverURL: strin
         body: JSON.stringify(args),
         credentials: 'include',
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/json'
         },
-        method: 'POST',
+        method: 'POST'
       })
 
       if (!response.ok) return { success: false }
@@ -23,6 +23,6 @@ export const createClient = ({ api, serverURL }: { api: string; serverURL: strin
   }
 
   return {
-    translate,
+    translate
   }
 }

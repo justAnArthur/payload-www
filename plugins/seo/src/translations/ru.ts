@@ -24,6 +24,6 @@ export const ru: GenericTranslationsObject = {
     previewDescription:
       'Фактические результаты могут отличаться в зависимости от контента и релевантности поиска.',
     tooLong: 'Слишком длинно',
-    tooShort: 'Слишком коротко',
-  },
+    tooShort: 'Слишком коротко'
+  }
 }

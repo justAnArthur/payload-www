@@ -15,7 +15,7 @@ type GoogleResponse = {
 }
 
 const localeToCountryCodeMapper = {
-  ua: 'uk',
+  ua: 'uk'
 }
 
 const mapLocale = (incoming: string) =>
@@ -33,9 +33,9 @@ export type GoogleResolverConfig = {
 }
 
 export const googleResolver = ({
-  apiKey,
-  chunkLength = 100,
-}: GoogleResolverConfig): TranslateResolver => {
+                                 apiKey,
+                                 chunkLength = 100
+                               }: GoogleResolverConfig): TranslateResolver => {
   return {
     key: 'google',
     resolve: async (args) => {
@@ -49,32 +49,32 @@ export const googleResolver = ({
             body: JSON.stringify({
               q,
               source: mapLocale(localeFrom),
-              target: mapLocale(localeTo),
+              target: mapLocale(localeTo)
             }),
             headers: {
-              'Content-Type': 'application/json',
+              'Content-Type': 'application/json'
             },
-            method: 'POST',
+            method: 'POST'
           }).then(async (res) => {
             const data = await res.json()
 
             if (!res.ok)
               req.payload.logger.info({
                 googleResponse: data,
-                message: 'An error occurred when trying to translate the data using Google API',
+                message: 'An error occurred when trying to translate the data using Google API'
               })
 
             return {
               data,
-              success: res.ok,
+              success: res.ok
             }
-          }),
-        ),
+          })
+        )
       )
 
       if (responses.some((res) => !res.success)) {
         return {
-          success: false,
+          success: false
         }
       }
 
@@ -84,8 +84,8 @@ export const googleResolver = ({
 
       return {
         success: true,
-        translatedTexts,
+        translatedTexts
       }
-    },
+    }
   }
 }

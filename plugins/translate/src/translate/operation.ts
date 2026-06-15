@@ -9,12 +9,12 @@ import { updateEntity } from './updateEntity'
 
 export type TranslateOperationArgs = (
   | {
-      payload: Payload
-    }
+  payload: Payload
+}
   | {
-      req: PayloadRequest
-    }
-) &
+  req: PayloadRequest
+}
+  ) &
   TranslateArgs
 
 export const translateOperation = async (args: TranslateOperationArgs) => {
@@ -22,8 +22,8 @@ export const translateOperation = async (args: TranslateOperationArgs) => {
     'req' in args
       ? args.req
       : ({
-          payload: args.payload,
-        } as PayloadRequest)
+        payload: args.payload
+      } as PayloadRequest)
 
   const { collectionSlug, globalSlug, id, locale, localeFrom, overrideAccess } = args
 
@@ -32,7 +32,7 @@ export const translateOperation = async (args: TranslateOperationArgs) => {
     globalSlug,
     id,
     locale: localeFrom,
-    req,
+    req
   })
 
   const resolver = (
@@ -52,7 +52,7 @@ export const translateOperation = async (args: TranslateOperationArgs) => {
       id,
       locale,
       overrideAccess,
-      req,
+      req
     })
 
     translatedData = doc
@@ -72,14 +72,14 @@ export const translateOperation = async (args: TranslateOperationArgs) => {
     localeFrom: args.localeFrom,
     localeTo: args.locale,
     req,
-    texts: valuesToTranslate.map((each) => each.value),
+    texts: valuesToTranslate.map((each) => each.value)
   })
 
   let result: TranslateResult
 
   if (!resolveResult.success) {
     result = {
-      success: false,
+      success: false
     }
   } else {
     resolveResult.translatedTexts.forEach((translated, index) => {
@@ -97,7 +97,7 @@ export const translateOperation = async (args: TranslateOperationArgs) => {
         id,
         locale,
         overrideAccess,
-        req,
+        req
       })
     }
 

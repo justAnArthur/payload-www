@@ -1,5 +1,5 @@
-import lqipModern from 'lqip-modern';
-import { z } from 'zod';
+import lqipModern from 'lqip-modern'
+import { z } from 'zod'
 
 export const LqipModernOptionsSchema = z
   .object({
@@ -21,17 +21,17 @@ export const LqipModernOptionsSchema = z
     /**
      * Concurrency for array inputs (single input always runs once).
      */
-    concurrency: z.number().optional(),
+    concurrency: z.number().optional()
   })
-  .strict();
+  .strict()
 
 export type LqipModernOptions = z.infer<typeof LqipModernOptionsSchema>;
 
 export const imageToLqipModern = async (
   data: Buffer,
-  options: LqipModernOptions,
+  options: LqipModernOptions
 ) => {
-  const result = await lqipModern(data, options);
+  const result = await lqipModern(data, options)
 
   // lqip-modern doesn't produce a "hash" in the cryptographic sense — it
   // produces a tiny placeholder image. The metadata describes the
@@ -40,6 +40,6 @@ export const imageToLqipModern = async (
   // the blurhash/thumbhash fields.
   return ({
     hash: JSON.stringify(result.metadata),
-    dataUrl: result.metadata.dataURIBase64,
-  });
-};
+    dataUrl: result.metadata.dataURIBase64
+  })
+}

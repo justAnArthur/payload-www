@@ -18,11 +18,11 @@ export function storedSlugToSegments(storedSlug: string, nested?: boolean): stri
 }
 
 export function buildCanonicalUrl<L extends string>({
-  siteUrl,
-  locale,
-  urlPrefix,
-  urlPath,
-}: {
+                                                      siteUrl,
+                                                      locale,
+                                                      urlPrefix,
+                                                      urlPath
+                                                    }: {
   siteUrl: string
   locale: L
   urlPrefix: string

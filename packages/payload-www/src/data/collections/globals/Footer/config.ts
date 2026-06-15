@@ -25,16 +25,16 @@ export type CreateFooterGlobalOptions = {
  * a `socials` array.
  */
 export const createFooterGlobal = (
-  options: CreateFooterGlobalOptions = {},
+  options: CreateFooterGlobalOptions = {}
 ): GlobalConfig => {
   const { renderPath, blocks = [], linkGroupField = linkGroup, locales } = options
 
   const translateHook = locales
     ? createTranslateToOtherLocalesHook({
-        defaultLocale: locales.defaultLocale,
-        locales: locales.all,
-        global: 'footer',
-      })
+      defaultLocale: locales.defaultLocale,
+      locales: locales.all,
+      global: 'footer'
+    })
     : null
 
   return {
@@ -48,7 +48,7 @@ export const createFooterGlobal = (
         blocks,
         localized: true,
         required: true,
-        admin: { description: 'Primarily used to have a CTA block.' },
+        admin: { description: 'Primarily used to have a CTA block.' }
       },
       {
         name: 'nav',
@@ -60,9 +60,9 @@ export const createFooterGlobal = (
           linkGroupField({
             appearances: false,
             overrides: { localized: true } as any,
-            linkOverrides: { localized: true },
-          }),
-        ],
+            linkOverrides: { localized: true }
+          })
+        ]
       },
       {
         name: 'socials',
@@ -72,14 +72,14 @@ export const createFooterGlobal = (
         fields: [
           { name: 'platform', type: 'text', localized: true, required: true },
           { name: 'url', type: 'text', localized: true, required: true },
-          { name: 'icon', type: 'text', localized: false },
-        ],
-      },
+          { name: 'icon', type: 'text', localized: false }
+        ]
+      }
     ],
     hooks: {
       afterChange: translateHook
         ? [createRevalidateGlobalHook('global_footer'), translateHook as any]
-        : [createRevalidateGlobalHook('global_footer')],
-    },
+        : [createRevalidateGlobalHook('global_footer')]
+    }
   }
 }

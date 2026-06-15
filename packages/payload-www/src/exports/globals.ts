@@ -5,9 +5,9 @@ export default { createHeaderGlobal, createFooterGlobal }
 
 export {
   createHeaderGlobal,
-  type CreateHeaderGlobalOptions,
+  type CreateHeaderGlobalOptions
 } from '../data/collections/globals/Header/config'
 export {
   createFooterGlobal,
-  type CreateFooterGlobalOptions,
+  type CreateFooterGlobalOptions
 } from '../data/collections/globals/Footer/config'

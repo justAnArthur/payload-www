@@ -5,13 +5,13 @@ import { cache } from 'react'
 import { getFromImportMap } from '../../core/utils/getFromImportMap'
 
 export const queryDocBySlug = cache(async function queryDocBySlug({
-  collectionSlug,
-  slug,
-  slugField = 'slug',
-  locale,
-  draft = false,
-  config,
-}: {
+                                                                    collectionSlug,
+                                                                    slug,
+                                                                    slugField = 'slug',
+                                                                    locale,
+                                                                    draft = false,
+                                                                    config
+                                                                  }: {
   collectionSlug: string
   slug: string
   slugField?: string
@@ -27,17 +27,17 @@ export const queryDocBySlug = cache(async function queryDocBySlug({
     pagination: false,
     overrideAccess: draft,
     where: { [slugField]: { equals: slug } },
-    locale,
+    locale
   })
   return result.docs?.[0] ?? null
 })
 
 export const queryAllDocs = cache(async function queryAllDocs({
-  collectionSlug,
-  slugField = 'slug',
-  locale,
-  config,
-}: {
+                                                                collectionSlug,
+                                                                slugField = 'slug',
+                                                                locale,
+                                                                config
+                                                              }: {
   collectionSlug: string
   slugField?: string
   locale: string
@@ -51,18 +51,18 @@ export const queryAllDocs = cache(async function queryAllDocs({
     pagination: false,
     overrideAccess: false,
     select: { [slugField]: true },
-    locale,
+    locale
   })
   return result.docs ?? []
 })
 
 export const queryAllLocaleSlugs = cache(async function queryAllLocaleSlugs({
-  collectionSlug,
-  slug,
-  slugField = 'slug',
-  locale,
-  config,
-}: {
+                                                                              collectionSlug,
+                                                                              slug,
+                                                                              slugField = 'slug',
+                                                                              locale,
+                                                                              config
+                                                                            }: {
   collectionSlug: string
   slug: string
   slugField?: string
@@ -78,7 +78,7 @@ export const queryAllLocaleSlugs = cache(async function queryAllLocaleSlugs({
     overrideAccess: false,
     locale: 'all' as any,
     where: { [`${slugField}.${locale}`]: { equals: slug } } as any,
-    select: { [slugField]: true } as any,
+    select: { [slugField]: true } as any
   })
   return (result.docs?.[0] as any)?.[slugField]
 })
@@ -86,7 +86,7 @@ export const queryAllLocaleSlugs = cache(async function queryAllLocaleSlugs({
 export function getRenderModuleExports(
   exportName: string,
   collection: { custom?: Record<string, any> } | undefined,
-  importMap: ImportMap,
+  importMap: ImportMap
 ) {
   const path = collection?.custom?.path as string | undefined
   if (!path) return undefined

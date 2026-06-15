@@ -1,24 +1,19 @@
 import {
-  buildArticleLd,
   type ArticleLdOptions,
   type BreadcrumbItem,
+  buildArticleLd,
   buildBreadcrumbsLd,
-  buildOrganizationLd,
+  buildOrganizationLd
 } from '../render/metadata/jsonld'
 import { buildHreflangAlternates } from '../render/metadata/hreflang'
 import {
+  buildCanonicalUrl,
   getUrlPath,
   segmentsToStoredSlug,
   segmentsToUrlPath,
-  storedSlugToSegments,
-  buildCanonicalUrl,
+  storedSlugToSegments
 } from '../render/metadata/slug'
-import {
-  queryDocBySlug,
-  queryAllDocs,
-  queryAllLocaleSlugs,
-  getRenderModuleExports,
-} from '../render/metadata/query'
+import { getRenderModuleExports, queryAllDocs, queryAllLocaleSlugs, queryDocBySlug } from '../render/metadata/query'
 
 export default {
   buildArticleLd,
@@ -33,7 +28,7 @@ export default {
   segmentsToUrlPath,
   storedSlugToSegments,
   buildCanonicalUrl,
-  getRenderModuleExports,
+  getRenderModuleExports
 }
 
 export {
@@ -51,5 +46,5 @@ export {
   buildCanonicalUrl,
   getRenderModuleExports,
   type ArticleLdOptions,
-  type BreadcrumbItem,
+  type BreadcrumbItem
 } from '../render/metadata/index'

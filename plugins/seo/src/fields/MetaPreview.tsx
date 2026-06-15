@@ -52,7 +52,7 @@ export const MetaPreview: React.FC<PreviewProps> = ({ pathPrefix = 'meta' }) => 
   const { t } = useTranslation<PluginSEOTranslations, PluginSEOTranslationKeys>()
 
   const {
-    config: { serverURL },
+    config: { serverURL }
   } = useConfig()
 
   const locale = useLocale()
@@ -82,7 +82,7 @@ export const MetaPreview: React.FC<PreviewProps> = ({ pathPrefix = 'meta' }) => 
     twitterCard: valueAt(`${socialPath}.twitterCard`),
     twitterDescription: valueAt(`${socialPath}.twitterDescription`),
     twitterImage: valueAt(`${socialPath}.twitterImage`),
-    twitterTitle: valueAt(`${socialPath}.twitterTitle`),
+    twitterTitle: valueAt(`${socialPath}.twitterTitle`)
   }
   const ogTitle: string = titleOf(social.ogTitle) ?? title ?? ''
   const ogDescription: string = titleOf(social.ogDescription) ?? description ?? ''
@@ -97,7 +97,7 @@ export const MetaPreview: React.FC<PreviewProps> = ({ pathPrefix = 'meta' }) => 
   // Advanced sub-group ------------------------------------------------------
   const advanced: AdvancedValues = {
     canonicalUrl: valueAt(`${pathPrefix}.advanced.canonicalUrl`),
-    robots: valueAt(`${pathPrefix}.advanced.robots`),
+    robots: valueAt(`${pathPrefix}.advanced.robots`)
   }
 
   // Auto-derive the canonical URL from the doc when not set explicitly.
@@ -134,7 +134,7 @@ export const MetaPreview: React.FC<PreviewProps> = ({ pathPrefix = 'meta' }) => 
             borderRadius: '6px',
             fontFamily: 'Arial, sans-serif',
             maxWidth: '600px',
-            padding: '16px',
+            padding: '16px'
           }}
         >
           <div style={{ color: '#006621', fontSize: '13px' }}>{canonicalUrl ?? 'https://…'}</div>
@@ -159,14 +159,14 @@ export const MetaPreview: React.FC<PreviewProps> = ({ pathPrefix = 'meta' }) => 
             border: '1px solid var(--theme-elevation-150)',
             borderRadius: '6px',
             maxWidth: '600px',
-            overflow: 'hidden',
+            overflow: 'hidden'
           }}
         >
           {twitterImage ? (
             <div
               style={{
                 background: `url(${JSON.stringify(twitterImage)}) center/cover no-repeat`,
-                height: twitterCard === 'summary_large_image' ? '260px' : '120px',
+                height: twitterCard === 'summary_large_image' ? '260px' : '120px'
               }}
             />
           ) : null}
@@ -194,7 +194,7 @@ export const MetaPreview: React.FC<PreviewProps> = ({ pathPrefix = 'meta' }) => 
               border: '1px solid var(--theme-elevation-150)',
               borderRadius: '4px',
               display: 'inline-block',
-              padding: '4px 8px',
+              padding: '4px 8px'
             }}
           >
             {advanced.robots}

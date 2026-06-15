@@ -9,16 +9,20 @@ host can drop in.
 ## What's inside
 
 - **Collections** — `Pages` (with tabs, hero, blocks, SEO slot, drafts), `Header` + `Footer` globals
-- **Hooks** — `populatePublishedAt`, `createRevalidatePageHooks`, `createRevalidateGlobalHook`, `createTranslateToOtherLocalesHook`
+- **Hooks** — `populatePublishedAt`, `createRevalidatePageHooks`, `createRevalidateGlobalHook`,
+  `createTranslateToOtherLocalesHook`
 - **Access** — `anyone`, `authenticated`, `authenticatedOrPublished`
-- **Fields** — `link`, `linkGroup` (with `disableLabel` / `appearances` / `localized` / `relationTo` / `overrides` options)
-- **Metadata** — `buildArticleLd`, `buildBreadcrumbsLd`, `buildOrganizationLd`, `buildHreflangAlternates`, slug transforms, `queryDocBySlug` / `queryAllDocs` / `queryAllLocaleSlugs`
+- **Fields** — `link`, `linkGroup` (with `disableLabel` / `appearances` / `localized` / `relationTo` / `overrides`
+  options)
+- **Metadata** — `buildArticleLd`, `buildBreadcrumbsLd`, `buildOrganizationLd`, `buildHreflangAlternates`, slug
+  transforms, `queryDocBySlug` / `queryAllDocs` / `queryAllLocaleSlugs`
 - **Pages** — `createLayoutExports`, `createCollectionPageExports`, `addCollectionsToSitemap` (Next.js render factories)
 - **Components** — `LivePreviewListener`, `RenderBlocks`
 - **Utils** — `getFromImportMap`, `generateImportName`, `renderCollectionModule`
 - **Composer** — `createWWWConfig` factory: pass blocks, SEO fields, i18n, and get back the full API
 - **Seed** — `createBaseSeed` (idempotent, locale-aware, validates block slugs)
-- **Test** — `createTestPayload` (skeleton — full SQLite integration blocked by payload@3.85 drizzle pushDevSchema prompts)
+- **Test** — `createTestPayload` (skeleton — full SQLite integration blocked by payload@3.85 drizzle pushDevSchema
+  prompts)
 
 ## Source layout
 
@@ -120,7 +124,15 @@ import { generateMeta } from '@/lib/utils/generateMeta'
 const { default: Page, generateMetadata, generateStaticParams, generateSitemap } =
   createCollectionPageExports(
     { config: configPromise, importMap },
-    { defaultLocale: 'en', locales: ['en', 'sk', 'de'] as const, hasLocale, setRequestLocale, routing, getServerSideURL, generateMeta },
+    {
+      defaultLocale: 'en',
+      locales: ['en', 'sk', 'de'] as const,
+      hasLocale,
+      setRequestLocale,
+      routing,
+      getServerSideURL,
+      generateMeta
+    },
     { nestedSlug: true, homeSlug: '', jsonLd: true },
   )
 
@@ -167,6 +179,7 @@ import {
 ```
 
 Subpath imports are also supported:
+
 - `@justanarthur/payload-www/collections` — collection factories
 - `@justanarthur/payload-www/blocks` — `RenderBlocks` (block rendering)
 - `@justanarthur/payload-www/fields` — `link` / `linkGroup` / `appearanceOptions`
@@ -185,17 +198,17 @@ Subpath imports are also supported:
 
 `createWWWConfig({ ... })`:
 
-| Option | Type | Required | Description |
-|---|---|---|---|
-| `i18n.defaultLocale` | `string` | yes | Source locale for translation jobs |
-| `i18n.locales` | `readonly string[]` | yes | Full locale list (used for hreflang, sitemap, i18n routing) |
-| `blocks` | `Block[]` | yes | Blocks the Pages collection accepts |
-| `seoFields` | `Field[]` | no | Fields rendered in the SEO tab on Pages |
-| `slugField` | `Field[]` | no | Override the default `slugField` (e.g. for nested URL schemes) |
-| `footerBlocks` | `Block[]` | no | Blocks the Footer global's `blocks` field accepts |
-| `pagesRenderPath` | `string` | no | `custom.path` for the Pages collection render module |
-| `headerRenderPath` | `string` | no | `custom.path` for the Header global render module |
-| `footerRenderPath` | `string` | no | `custom.path` for the Footer global render module |
+| Option               | Type                | Required | Description                                                    |
+|----------------------|---------------------|----------|----------------------------------------------------------------|
+| `i18n.defaultLocale` | `string`            | yes      | Source locale for translation jobs                             |
+| `i18n.locales`       | `readonly string[]` | yes      | Full locale list (used for hreflang, sitemap, i18n routing)    |
+| `blocks`             | `Block[]`           | yes      | Blocks the Pages collection accepts                            |
+| `seoFields`          | `Field[]`           | no       | Fields rendered in the SEO tab on Pages                        |
+| `slugField`          | `Field[]`           | no       | Override the default `slugField` (e.g. for nested URL schemes) |
+| `footerBlocks`       | `Block[]`           | no       | Blocks the Footer global's `blocks` field accepts              |
+| `pagesRenderPath`    | `string`            | no       | `custom.path` for the Pages collection render module           |
+| `headerRenderPath`   | `string`            | no       | `custom.path` for the Header global render module              |
+| `footerRenderPath`   | `string`            | no       | `custom.path` for the Footer global render module              |
 
 ## Building
 
@@ -219,8 +232,10 @@ under `src/exports/`, each re-exports from the implementation.
 - **Access** — `anyone`, `authenticated`, `authenticatedOrPublished`
 - **Metadata** — slug transforms, hreflang alternates, JSON-LD builders (article, breadcrumbs, organization)
 - **Utils** — `getFromImportMap`, `generateImportName`
-- **Collections** — `createPagesCollection` (with/without SEO tab, `renderPath`, `versions`), `createHeaderGlobal` (nav blocks), `createFooterGlobal` (blocks/nav/socials)
-- **Pages** — `addCollectionsToSitemap` (combines), `createLayoutExports` (smoke), `generatePreviewPath` (null + URL encoding)
+- **Collections** — `createPagesCollection` (with/without SEO tab, `renderPath`, `versions`), `createHeaderGlobal` (nav
+  blocks), `createFooterGlobal` (blocks/nav/socials)
+- **Pages** — `addCollectionsToSitemap` (combines), `createLayoutExports` (smoke), `generatePreviewPath` (null + URL
+  encoding)
 - **Factory surface** — `createWWWConfig` exposes the full API
 - **Shim parity** — each compiled subpath returns the same function as the source
 
@@ -235,17 +250,17 @@ The lib preserves the structure of the original
 `camasys/frontend/apps/www/payload-www` directory. Files in the lib map
 to the original like this:
 
-| Lib path | Original path |
-|---|---|
-| `src/withWWWConfig.ts` (via `createWWWConfig`) | `payload-www/withWWWConfig.ts` |
-| `src/collections/Pages/index.ts` | `payload-www/collections/Pages/index.ts` |
-| `src/collections/globals/Header/config.ts` | `payload-www/collections/globals/Header/config.ts` |
-| `src/collections/globals/Footer/config.ts` | `payload-www/collections/globals/Footer/config.ts` |
-| `src/utils/{getFromImportMap,generateImportName,renderCollectionModule}.tsx` | `payload-www/utils/...` |
-| `src/metadata/...` | `payload-www/metadata/...` |
-| `src/pages/{createLayoutExports,createCollectionPageExports}.tsx` | `payload-www/pages/...` |
-| `src/components/(payload)/LivePreviewListener.tsx` | `payload-www/components/(payload)/LivePreviewListener.tsx` |
-| `src/blocks/renderBlocks.tsx` | `payload-www/blocks/renderBlocks.tsx` |
+| Lib path                                                                     | Original path                                              |
+|------------------------------------------------------------------------------|------------------------------------------------------------|
+| `src/withWWWConfig.ts` (via `createWWWConfig`)                               | `payload-www/withWWWConfig.ts`                             |
+| `src/collections/Pages/index.ts`                                             | `payload-www/collections/Pages/index.ts`                   |
+| `src/collections/globals/Header/config.ts`                                   | `payload-www/collections/globals/Header/config.ts`         |
+| `src/collections/globals/Footer/config.ts`                                   | `payload-www/collections/globals/Footer/config.ts`         |
+| `src/utils/{getFromImportMap,generateImportName,renderCollectionModule}.tsx` | `payload-www/utils/...`                                    |
+| `src/metadata/...`                                                           | `payload-www/metadata/...`                                 |
+| `src/pages/{createLayoutExports,createCollectionPageExports}.tsx`            | `payload-www/pages/...`                                    |
+| `src/components/(payload)/LivePreviewListener.tsx`                           | `payload-www/components/(payload)/LivePreviewListener.tsx` |
+| `src/blocks/renderBlocks.tsx`                                                | `payload-www/blocks/renderBlocks.tsx`                      |
 
 Differences:
 

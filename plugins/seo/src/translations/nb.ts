@@ -24,6 +24,6 @@ export const nb: GenericTranslationsObject = {
     previewDescription:
       'Eksakte resultatoppføringer kan variere basert på innhold og søke relevans.',
     tooLong: 'For lang',
-    tooShort: 'For kort',
-  },
+    tooShort: 'For kort'
+  }
 }

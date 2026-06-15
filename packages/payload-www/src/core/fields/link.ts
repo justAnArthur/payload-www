@@ -4,7 +4,7 @@ export type LinkAppearances = 'default' | 'outline'
 
 export const appearanceOptions: Record<LinkAppearances, { label: string; value: string }> = {
   default: { label: 'Default', value: 'default' },
-  outline: { label: 'Outline', value: 'outline' },
+  outline: { label: 'Outline', value: 'outline' }
 }
 
 export type LinkOptions = {
@@ -21,7 +21,13 @@ export type LinkOptions = {
 }
 
 export const link = (options: LinkOptions = {}): Field => {
-  const { appearances, disableLabel = false, relationTo = ['pages', 'posts'], localized = false, overrides = {} } = options
+  const {
+    appearances,
+    disableLabel = false,
+    relationTo = ['pages', 'posts'],
+    localized = false,
+    overrides = {}
+  } = options
 
   const result: GroupField = {
     name: 'link',
@@ -38,18 +44,18 @@ export const link = (options: LinkOptions = {}): Field => {
             defaultValue: 'reference',
             options: [
               { label: 'Internal link', value: 'reference' },
-              { label: 'Custom URL', value: 'custom' },
-            ],
+              { label: 'Custom URL', value: 'custom' }
+            ]
           },
           {
             name: 'newTab',
             type: 'checkbox',
             admin: { style: { alignSelf: 'flex-end' }, width: '50%' },
-            label: 'Open in new tab',
-          },
-        ],
-      },
-    ],
+            label: 'Open in new tab'
+          }
+        ]
+      }
+    ]
   }
 
   const linkTypes: Field[] = [
@@ -60,7 +66,7 @@ export const link = (options: LinkOptions = {}): Field => {
       label: 'Document to link to',
       relationTo,
       required: true,
-      localized,
+      localized
     },
     {
       name: 'url',
@@ -68,8 +74,8 @@ export const link = (options: LinkOptions = {}): Field => {
       admin: { condition: (_, siblingData) => siblingData?.type === 'custom' },
       label: 'Custom URL',
       required: true,
-      localized,
-    },
+      localized
+    }
   ]
 
   if (!disableLabel) {
@@ -83,9 +89,9 @@ export const link = (options: LinkOptions = {}): Field => {
           admin: { width: '50%' },
           label: 'Label',
           required: true,
-          localized,
-        },
-      ],
+          localized
+        }
+      ]
     })
   } else {
     result.fields = [...result.fields, ...linkTypes]
@@ -100,7 +106,7 @@ export const link = (options: LinkOptions = {}): Field => {
       type: 'select',
       admin: { description: 'Choose how the link should be rendered.' },
       defaultValue: 'default',
-      options: opts,
+      options: opts
     })
   }
 

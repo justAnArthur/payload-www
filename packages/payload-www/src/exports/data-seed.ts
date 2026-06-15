@@ -1,12 +1,12 @@
-import { createBaseSeed } from '../data/seed/createBaseSeed'
 import type {
   CreateBaseSeedOptions,
   CreateBaseSeedResult,
+  SeedCategoryInput,
   SeedPageInput,
   SeedPostInput,
-  SeedUserInput,
-  SeedCategoryInput,
+  SeedUserInput
 } from '../data/seed/createBaseSeed'
+import { createBaseSeed } from '../data/seed/createBaseSeed'
 
 export default createBaseSeed
 
@@ -17,5 +17,5 @@ export {
   type SeedPageInput,
   type SeedPostInput,
   type SeedUserInput,
-  type SeedCategoryInput,
+  type SeedCategoryInput
 } from '../data/seed/createBaseSeed'

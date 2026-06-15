@@ -11,7 +11,7 @@ export type RevalidateGlobalOptions = {
  * caching stays fresh.
  */
 export function createRevalidateGlobalHook(
-  arg: string | RevalidateGlobalOptions = 'global',
+  arg: string | RevalidateGlobalOptions = 'global'
 ): GlobalAfterChangeHook {
   const tagPrefix = typeof arg === 'string' ? arg : (arg.tagPrefix ?? 'global')
 

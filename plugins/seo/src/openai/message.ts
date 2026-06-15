@@ -14,10 +14,10 @@ let openai: OpenAI
  * model returns are merged into the meta response.
  */
 export const openaiMessage = async ({
-  apiKey,
-  content,
-  req,
-}: {
+                                      apiKey,
+                                      content,
+                                      req
+                                    }: {
   apiKey: string
   content: string
   req: PayloadRequest
@@ -32,17 +32,17 @@ export const openaiMessage = async ({
       'produce a JSON object with SEO meta fields. Return ONLY valid JSON, no commentary.',
       'Include the keys you can confidently fill: title (50-60 chars), description (100-150 chars),',
       'keywords (comma-separated), and any of ogTitle/ogDescription/twitterTitle/twitterDescription',
-      'that are warranted. Use the same language as the source content.',
+      'that are warranted. Use the same language as the source content.'
     ].join(' ')
 
     const response = await openai.chat.completions.create({
       messages: [
         { content: systemPrompt, role: 'system' },
-        { content, role: 'user' },
+        { content, role: 'user' }
       ],
       model: 'gpt-4o-mini',
       response_format: { type: 'json_object' },
-      temperature: 0.4,
+      temperature: 0.4
     })
 
     const text = response.choices[0]?.message?.content ?? '{}'

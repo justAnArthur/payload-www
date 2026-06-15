@@ -1,10 +1,10 @@
 import type { AdminComponent, Block, CollectionConfig, Config, Field, GlobalConfig } from 'payload'
 
-import { createPagesCollection, createHeaderGlobal, createFooterGlobal } from '../data/collections'
-import { createLayoutExports, createCollectionPageExports, addCollectionsToSitemap } from '../render/pages'
+import { createFooterGlobal, createHeaderGlobal, createPagesCollection } from '../data/collections'
+import { addCollectionsToSitemap, createCollectionPageExports, createLayoutExports } from '../render/pages'
 import { RenderBlocks } from '../core/blocks'
 import { LivePreviewListener } from '../render/components'
-import { getFromImportMap, generateImportName, renderCollectionModule } from '../core/utils'
+import { generateImportName, getFromImportMap, renderCollectionModule } from '../core/utils'
 
 export type WWWConfigOptions = {
   /**
@@ -90,21 +90,21 @@ export function createWWWConfig(options: WWWConfigOptions): WWWConfigApi {
 
   const _createPagesCollection = (
     hostBlocks: Block[],
-    overrides: Parameters<typeof createPagesCollection>[1] = {},
+    overrides: Parameters<typeof createPagesCollection>[1] = {}
   ) =>
     createPagesCollection(hostBlocks, {
       ...overrides,
       renderPath: overrides.renderPath ?? options.pagesRenderPath,
       seoFields: overrides.seoFields ?? seoFields,
       slugField: overrides.slugField ?? slugField,
-      locales: overrides.locales ?? localeBag,
+      locales: overrides.locales ?? localeBag
     })
 
   const _createHeaderGlobal = (overrides: Parameters<typeof createHeaderGlobal>[0] = {}) =>
     createHeaderGlobal({
       ...overrides,
       renderPath: overrides.renderPath ?? options.headerRenderPath,
-      locales: overrides.locales ?? localeBag,
+      locales: overrides.locales ?? localeBag
     })
 
   const _createFooterGlobal = (overrides: Parameters<typeof createFooterGlobal>[0] = {}) =>
@@ -112,12 +112,12 @@ export function createWWWConfig(options: WWWConfigOptions): WWWConfigApi {
       ...overrides,
       renderPath: overrides.renderPath ?? options.footerRenderPath,
       blocks: overrides.blocks ?? footerBlocks,
-      locales: overrides.locales ?? localeBag,
+      locales: overrides.locales ?? localeBag
     })
 
   function withWWWConfig(config: WWWInputConfig): Config {
     const defaultCollections: CollectionConfig[] = [
-      _createPagesCollection(blocks) as CollectionConfig,
+      _createPagesCollection(blocks) as CollectionConfig
     ]
     const collections =
       typeof config.collections === 'function'
@@ -126,7 +126,7 @@ export function createWWWConfig(options: WWWConfigOptions): WWWConfigApi {
 
     const defaultGlobals: GlobalConfig[] = [
       _createHeaderGlobal() as GlobalConfig,
-      _createFooterGlobal() as GlobalConfig,
+      _createFooterGlobal() as GlobalConfig
     ]
     const globals =
       typeof config.globals === 'function'
@@ -135,11 +135,16 @@ export function createWWWConfig(options: WWWConfigOptions): WWWConfigApi {
 
     const renderDependencies: Record<string, AdminComponent> = Object.fromEntries(
       [...collections, ...globals, ...blocks]
-        .filter((c) => Boolean((c as { slug?: string })?.slug) && Boolean((c as { custom?: { path?: string } }).custom?.path))
+        .filter((c) => Boolean((c as { slug?: string })?.slug) && Boolean((c as {
+          custom?: { path?: string }
+        }).custom?.path))
         .map((c) => [
           c.slug as string,
-          { path: (c as unknown as { custom: { path: string } }).custom.path, type: 'component' as const } as AdminComponent,
-        ]),
+          {
+            path: (c as unknown as { custom: { path: string } }).custom.path,
+            type: 'component' as const
+          } as AdminComponent
+        ])
     )
 
     return {
@@ -150,9 +155,9 @@ export function createWWWConfig(options: WWWConfigOptions): WWWConfigApi {
         ...(config.admin ?? {}),
         dependencies: {
           ...renderDependencies,
-          ...(config.admin?.dependencies ?? {}),
-        },
-      },
+          ...(config.admin?.dependencies ?? {})
+        }
+      }
     } as Config
   }
 
@@ -168,6 +173,6 @@ export function createWWWConfig(options: WWWConfigOptions): WWWConfigApi {
     LivePreviewListener,
     getFromImportMap,
     generateImportName,
-    renderCollectionModule,
+    renderCollectionModule
   }
 }

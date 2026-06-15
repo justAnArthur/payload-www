@@ -11,16 +11,16 @@ export type TranslateResolverArgs = {
 
 export type TranslateResolverResponse =
   | {
-      success: false
-    }
+  success: false
+}
   | {
-      success: true
-      translatedTexts: string[]
-    }
+  success: true
+  translatedTexts: string[]
+}
 
 export type TranslateResolver = {
   key: string
   resolve: (
-    args: TranslateResolverArgs,
+    args: TranslateResolverArgs
   ) => Promise<TranslateResolverResponse> | TranslateResolverResponse
 }

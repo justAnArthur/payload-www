@@ -6,6 +6,6 @@ export default defineConfig({
     include: ['tests/**/*.int.spec.ts', 'tests/**/*.spec.ts'],
     testTimeout: 60_000,
     hookTimeout: 60_000,
-    pool: 'forks',
-  },
+    pool: 'forks'
+  }
 })

@@ -23,6 +23,6 @@ export const tr: GenericTranslationsObject = {
     preview: 'Önizleme',
     previewDescription: 'Kesin sonuç listeleri içeriğe ve arama alâkasına göre değişebilir.',
     tooLong: 'Çok uzun',
-    tooShort: 'Çok kısa',
-  },
+    tooShort: 'Çok kısa'
+  }
 }

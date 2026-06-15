@@ -24,6 +24,6 @@ export const de: GenericTranslationsObject = {
     previewDescription:
       'Die genauen Ergebnislisten können je nach Inhalt und Suchrelevanz variieren.',
     tooLong: 'Zu lang',
-    tooShort: 'Zu kurz',
-  },
+    tooShort: 'Zu kurz'
+  }
 }

@@ -7,7 +7,7 @@ import {
   useLocale,
   useModal,
   useServerFunctions,
-  useTranslation,
+  useTranslation
 } from '@payloadcms/ui'
 import { reduceFieldsToValues } from 'payload/shared'
 import { type ReactNode, useEffect, useMemo, useState } from 'react'
@@ -41,7 +41,7 @@ export const TranslatorProvider = ({ children }: { children: ReactNode }) => {
       | 'modalTitle'
       | 'submitButtonLabelEmpty'
       | 'submitButtonLabelFull'
-      | 'successMessage',
+      | 'successMessage'
   ) => {
     if (!resolver) return ''
 
@@ -55,8 +55,8 @@ export const TranslatorProvider = ({ children }: { children: ReactNode }) => {
       admin: { custom },
       localization,
       routes: { api },
-      serverURL,
-    },
+      serverURL
+    }
   } = useConfig()
 
   const apiClient = createClient({ api, serverURL })
@@ -82,7 +82,7 @@ export const TranslatorProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     const defaultFromOptions = localesOptions.find(
-      (each) => localization.defaultLocale === each.code,
+      (each) => localization.defaultLocale === each.code
     )
 
     if (defaultFromOptions) setLocaleToTranslateFrom(defaultFromOptions.code)
@@ -102,7 +102,7 @@ export const TranslatorProvider = ({ children }: { children: ReactNode }) => {
       id: id === null ? undefined : id,
       locale: locale.code,
       localeFrom: localeToTranslateFrom,
-      resolver,
+      resolver
     }
 
     const result = await apiClient.translate(args)
@@ -118,20 +118,20 @@ export const TranslatorProvider = ({ children }: { children: ReactNode }) => {
       data: result.translatedData,
       docPermissions: {
         fields: true,
-        update: true,
+        update: true
       },
       docPreferences: await getDocPreferences(),
       globalSlug,
       locale: locale.code,
       operation: 'update',
       renderAllFields: true,
-      schemaPath: collectionSlug || globalSlug || '',
+      schemaPath: collectionSlug || globalSlug || ''
     })
 
     if (state) {
       dispatch({
         state,
-        type: 'REPLACE_STATE',
+        type: 'REPLACE_STATE'
       })
       setModified(true)
       toast.success(resolverT('successMessage'))
@@ -153,7 +153,7 @@ export const TranslatorProvider = ({ children }: { children: ReactNode }) => {
         resolver: resolverConfig,
         resolverT,
         setLocaleToTranslateFrom,
-        submit,
+        submit
       }}
     >
       {children}

@@ -1,0 +1,32 @@
+root = true
+
+[*]
+indent_style = space
+indent_size = 2
+end_of_line = lf
+charset = utf-8
+trim_trailing_whitespace = true
+insert_final_newline = true
+
+[*.md]
+trim_trailing_whitespace = false
+
+[.editorconfig]
+ij_editorconfig_align_group_field_declarations = false
+ij_editorconfig_space_after_colon = false
+ij_editorconfig_space_after_comma = true
+ij_editorconfig_space_before_colon = false
+ij_editorconfig_space_before_comma = false
+ij_editorconfig_spaces_around_assignment_operators = true
+
+[{*.js,*.jsx,*.ts,*.tsx}]
+ij_javascript_spaces_within_object_literal_braces = true
+ij_typescript_spaces_within_object_literal_braces = true
+ij_javascript_spaces_within_imports = true
+ij_typescript_spaces_within_imports = true
+ij_javascript_use_semicolon_after_statement = false
+ij_typescript_use_semicolon_after_statement = false
+ij_javascript_force_semicolon_style = true
+ij_typescript_force_semicolon_style = true
+ij_javascript_enforce_trailing_comma = remove
+ij_typescript_enforce_trailing_comma = remove

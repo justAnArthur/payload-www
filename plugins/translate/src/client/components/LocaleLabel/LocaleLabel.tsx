@@ -15,7 +15,7 @@ export const LocaleLabel = ({ locale }: { locale: Locale }) => {
         {`${getTranslation(locale.label, i18n)}`}
       </span>
       &nbsp;
-      <ChevronIcon className={`${baseClass}__chevron`} />
+      <ChevronIcon className={`${baseClass}__chevron`}/>
     </div>
   )
 }

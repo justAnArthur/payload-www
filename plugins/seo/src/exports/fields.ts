@@ -20,7 +20,7 @@ export default {
   ImageField,
   KeywordsField,
   SocialField,
-  TitleField,
+  TitleField
 }
 
 export { MetaField, AdvancedField, DescriptionField, ImageField, KeywordsField, SocialField, TitleField }

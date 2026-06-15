@@ -1,16 +1,16 @@
 import { buildCanonicalUrl } from './slug'
 
 export async function buildHreflangAlternates<L extends string>({
-  siteUrl,
-  locale,
-  urlPrefix,
-  storedSlug,
-  queryAllLocaleSlugs,
-  nested,
-  homeSlug,
-  defaultLocale,
-  locales,
-}: {
+                                                                  siteUrl,
+                                                                  locale,
+                                                                  urlPrefix,
+                                                                  storedSlug,
+                                                                  queryAllLocaleSlugs,
+                                                                  nested,
+                                                                  homeSlug,
+                                                                  defaultLocale,
+                                                                  locales
+                                                                }: {
   siteUrl: string
   locale: L
   urlPrefix: string
@@ -48,7 +48,7 @@ export async function buildHreflangAlternates<L extends string>({
           ? '/'
           : nested
             ? '/' + allLocaleSlugs[defaultLocale].replaceAll('_', '/')
-            : '/' + allLocaleSlugs[defaultLocale],
+            : '/' + allLocaleSlugs[defaultLocale]
     })
   }
 

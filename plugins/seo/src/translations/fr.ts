@@ -24,6 +24,6 @@ export const fr: GenericTranslationsObject = {
     previewDescription:
       'Les résultats exacts peuvent varier en fonction du contenu et de la pertinence de la recherche.',
     tooLong: 'Trop long',
-    tooShort: 'Trop court',
-  },
+    tooShort: 'Trop court'
+  }
 }

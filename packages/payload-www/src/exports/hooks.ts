@@ -3,14 +3,14 @@ import { createRevalidatePageHooks, type RevalidatePageOptions } from '../core/h
 import { createRevalidateGlobalHook, type RevalidateGlobalOptions } from '../core/hooks/revalidateGlobal'
 import {
   createTranslateToOtherLocalesHook,
-  type TranslateToOtherLocalesOptions,
+  type TranslateToOtherLocalesOptions
 } from '../core/hooks/translateToOtherLocales'
 
 export default {
   createRevalidatePageHooks,
   createRevalidateGlobalHook,
   createTranslateToOtherLocalesHook,
-  populatePublishedAt,
+  populatePublishedAt
 }
 
 export {
@@ -20,5 +20,5 @@ export {
   populatePublishedAt,
   type RevalidatePageOptions,
   type RevalidateGlobalOptions,
-  type TranslateToOtherLocalesOptions,
+  type TranslateToOtherLocalesOptions
 }

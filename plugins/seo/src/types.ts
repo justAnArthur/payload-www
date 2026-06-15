@@ -1,12 +1,5 @@
 import type { DocumentInfoContext } from '@payloadcms/ui'
-import type {
-  CollectionConfig,
-  CollectionSlug,
-  Field,
-  GlobalConfig,
-  GlobalSlug,
-  PayloadRequest,
-} from 'payload'
+import type { CollectionConfig, CollectionSlug, Field, GlobalConfig, GlobalSlug, PayloadRequest } from 'payload'
 
 /**
  * Override the default fields inserted by the SEO plugin via a function that
@@ -96,7 +89,7 @@ export type GenerateSEO<T = any> = (
     globalConfig?: GlobalConfig
     locale?: string
     req: PayloadRequest
-  } & PartialDocumentInfoContext,
+  } & PartialDocumentInfoContext
 ) => Promise<Partial<SEOMeta>> | Partial<SEOMeta>
 
 export type SEOPluginConfig = {

@@ -12,5 +12,5 @@ export {
   type WebSiteJsonLdEntry,
   type OrganizationJsonLdEntry,
   type BreadcrumbsJsonLdEntry,
-  type CustomJsonLdEntry,
+  type CustomJsonLdEntry
 } from './createCollectionPageExports'
