@@ -1,0 +1,148 @@
+{
+  "name": "@justanarthur/payload-www",
+  "description": "Reusable Payload CMS website template — config builder, collections, blocks, fields, access, hooks, metadata (JSON-LD, hreflang), page renderers, and test helpers. Powers the camasys/frontend/apps/www Payload site as an external lib.",
+  "version": "0.0.0",
+  "type": "module",
+  "private": false,
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    "./blocks": {
+      "import": {
+        "types": "./dist/blocks.d.ts",
+        "default": "./dist/blocks.js"
+      }
+    },
+    "./globals": {
+      "import": {
+        "types": "./dist/globals.d.ts",
+        "default": "./dist/globals.js"
+      }
+    },
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      }
+    },
+    "./fields": {
+      "import": {
+        "types": "./dist/fields.d.ts",
+        "default": "./dist/fields.js"
+      }
+    },
+    "./metadata": {
+      "import": {
+        "types": "./dist/metadata.d.ts",
+        "default": "./dist/metadata.js"
+      }
+    },
+    "./hooks": {
+      "import": {
+        "types": "./dist/hooks.d.ts",
+        "default": "./dist/hooks.js"
+      }
+    },
+    "./with-www-config": {
+      "import": {
+        "types": "./dist/with-www-config.d.ts",
+        "default": "./dist/with-www-config.js"
+      }
+    },
+    "./components": {
+      "import": {
+        "types": "./dist/components.d.ts",
+        "default": "./dist/components.js"
+      }
+    },
+    "./collections": {
+      "import": {
+        "types": "./dist/collections.d.ts",
+        "default": "./dist/collections.js"
+      }
+    },
+    "./utils": {
+      "import": {
+        "types": "./dist/utils.d.ts",
+        "default": "./dist/utils.js"
+      }
+    },
+    "./seed": {
+      "import": {
+        "types": "./dist/seed.d.ts",
+        "default": "./dist/seed.js"
+      }
+    },
+    "./pages": {
+      "import": {
+        "types": "./dist/pages.d.ts",
+        "default": "./dist/pages.js"
+      }
+    },
+    "./test": {
+      "import": {
+        "types": "./dist/test.d.ts",
+        "default": "./dist/test.js"
+      }
+    },
+    "./access": {
+      "import": {
+        "types": "./dist/access.d.ts",
+        "default": "./dist/access.js"
+      }
+    },
+    "./package.json": "./package.json"
+  },
+  "license": "MIT",
+  "sideEffects": false,
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "bunup",
+    "clean": "rm -rf dist .tsbuildinfo",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "bun run clean && bun run build"
+  },
+  "dependencies": {
+    "@payloadcms/live-preview-react": "3.85.0",
+    "@payloadcms/richtext-lexical": "3.85.0",
+    "@payloadcms/db-sqlite": "3.85.0",
+    "@payloadcms/next": "3.85.0",
+    "next": "16.2.6"
+  },
+  "devDependencies": {
+    "@payloadcms/live-preview-react": "3.85.0",
+    "@payloadcms/plugin-form-builder": "3.85.0",
+    "@payloadcms/plugin-nested-docs": "3.85.0",
+    "@payloadcms/plugin-redirects": "3.85.0",
+    "@payloadcms/plugin-search": "3.85.0",
+    "@types/node": "22.19.9",
+    "@types/react": "19.2.14",
+    "@types/react-dom": "19.2.3",
+    "bunup": "^0.16.32",
+    "next-intl": "^4.0.0",
+    "payload": "3.85.0",
+    "react": "19.2.6",
+    "react-dom": "19.2.6",
+    "sharp": "0.34.2",
+    "typescript": "5.7.3",
+    "vitest": "4.0.18"
+  },
+  "peerDependencies": {
+    "@payloadcms/live-preview-react": "^3.85.0",
+    "@payloadcms/next": "^3.85.0",
+    "@payloadcms/richtext-lexical": "^3.85.0",
+    "next": "^16.2.6",
+    "next-intl": "^4.0.0",
+    "payload": "^3.85.0",
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6"
+  }
+}
