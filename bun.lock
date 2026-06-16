@@ -9,6 +9,9 @@
       "name": "demo",
       "version": "1.0.0",
       "dependencies": {
+        "@justanarthur/payload-imagehash-plugin": "workspace:*",
+        "@justanarthur/payload-plugin-seo": "workspace:*",
+        "@justanarthur/payload-plugin-translator": "workspace:*",
         "@justanarthur/payload-www": "workspace:*",
         "@payloadcms/admin-bar": "3.85.0",
         "@payloadcms/db-sqlite": "3.85.0",

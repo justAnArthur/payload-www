@@ -20,6 +20,13 @@ export const LIVE_PREVIEW_LISTENER_PATH = '@justanarthur/payload-www/render-comp
 // collection can pass an explicit `linkRelationTo` to the lib.
 export const PAGES_SLUG = 'pages'
 
+// The Posts collection slug. The lib's translator plugin uses
+// `['pages', 'posts']` as its default `collections` list, so hosts
+// that want translation to work register this collection (via
+// `createPostsCollection()`) or pass their own list to the
+// translator plugin.
+export const POSTS_SLUG = 'posts'
+
 // Sitemap tag the Pages collection's revalidation hook invalidates
 // whenever a page is saved. The `createSitemapHandler` route handler
 // reads from this tag so the generated sitemap refreshes after

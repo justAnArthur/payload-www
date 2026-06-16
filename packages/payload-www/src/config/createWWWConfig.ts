@@ -5,6 +5,7 @@ import { imageHashPlugin } from '@justanarthur/payload-imagehash-plugin'
 import { translator } from '@justanarthur/payload-plugin-translator'
 
 import { createPagesCollection } from '../data/collections/Pages/index'
+import { createPostsCollection } from '../data/collections/Posts/index'
 import { createHeaderGlobal } from '../data/collections/globals/Header/config'
 import { createFooterGlobal } from '../data/collections/globals/Footer/config'
 import { createPreviewHandler } from '../render/preview/createPreviewHandler'
@@ -52,6 +53,13 @@ export type WWWConfigOptions = {
    */
   linkRelationTo?: string[]
   /**
+   * Register the lib's Posts collection. Default: `true`. The
+   * translator plugin's default `collections` list is
+   * `['pages', 'posts']`; pass `false` here to opt out and either
+   * define your own posts-like collection or drop the translator.
+   */
+  registerPosts?: boolean
+  /**
    * Final say on the lib's default plugin list. Receives the
    * `[seoPlugin, imageHashPlugin, translator]` array; return the
    * list to apply. Common uses: drop the translator (no AI
@@ -94,13 +102,14 @@ export type WWWInputConfig = Omit<Config, 'collections' | 'globals'> & {
  *   import { createPreviewHandler, createSitemapHandler } from '@justanarthur/payload-www/render-utils'
  */
 export function createWWWConfig(options: WWWConfigOptions): WWWConfigApi {
-  const { locales, blocks, linkRelationTo, defaultPlugins } = options
+  const { locales, blocks, linkRelationTo, registerPosts = true, defaultPlugins } = options
 
   if (locales.length === 0) {
     throw new Error('createWWWConfig: `locales` must contain at least one entry.')
   }
 
   const buildPagesCollection = () => createPagesCollection(blocks) as CollectionConfig
+  const buildPostsCollection = () => createPostsCollection() as CollectionConfig
 
   const buildHeaderGlobal = () => createHeaderGlobal({ linkRelationTo }) as GlobalConfig
 
@@ -111,7 +120,9 @@ export function createWWWConfig(options: WWWConfigOptions): WWWConfigApi {
     // through bunup's dead-code elimination. The `build*` closures
     // above remain exported for host consumers who want to compose
     // by hand.
-    const defaultCollections: CollectionConfig[] = [buildPagesCollection()]
+    const baseDefaults: CollectionConfig[] = [buildPagesCollection()]
+    if (registerPosts) baseDefaults.push(buildPostsCollection())
+    const defaultCollections = baseDefaults
     const collections =
       typeof config.collections === 'function'
         ? config.collections({ defaultCollections })
@@ -182,6 +193,7 @@ export function createWWWConfig(options: WWWConfigOptions): WWWConfigApi {
 // `createCollectionPageExports` from the dedicated
 // `/render-pages` subpath instead.
 export { createPagesCollection } from '../data/collections/Pages/index'
+export { createPostsCollection } from '../data/collections/Posts/index'
 export { createHeaderGlobal } from '../data/collections/globals/Header/config'
 export { createFooterGlobal } from '../data/collections/globals/Footer/config'
 export { createPreviewHandler, type CreatePreviewHandlerOptions } from '../render/preview/createPreviewHandler'

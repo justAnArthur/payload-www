@@ -70,17 +70,35 @@ export const queryAllLocaleSlugs = cache(async function queryAllLocaleSlugs({
   config: Promise<SanitizedConfig>
 }): Promise<Record<string, string> | undefined> {
   const payload = await getPayload({ config })
+  // Resolve the doc by slug in the requested locale. We then read the
+  // same field across all locales — if the slug field is localized
+  // this returns one slug per locale; if not, every locale returns
+  // the same value.
   const result = await payload.find({
     collection: collectionSlug as any,
     draft: false,
     limit: 1,
     pagination: false,
     overrideAccess: false,
-    locale: 'all' as any,
-    where: { [`${slugField}.${locale}`]: { equals: slug } } as any,
+    locale,
+    where: { [slugField]: { equals: slug } },
     select: { [slugField]: true } as any
   })
-  return (result.docs?.[0] as any)?.[slugField]
+  const doc = result.docs?.[0] as any
+  if (!doc) return undefined
+  const fieldValue = doc?.[slugField]
+  if (fieldValue && typeof fieldValue === 'object') {
+    return fieldValue as Record<string, string>
+  }
+  // Non-localized slug — the same value applies to every locale.
+  // Resolve the locale list from the awaited config.
+  const resolved = await config
+  const rawLocales: string[] = Array.isArray((resolved as any)?.localization?.localeCodes)
+    ? (resolved as any).localization.localeCodes
+    : ((resolved as any)?.localization?.locales?.map((l: any) => l.code) ?? [])
+  const out: Record<string, string> = {}
+  for (const l of rawLocales) out[l] = String(fieldValue ?? slug)
+  return out
 })
 
 export function getRenderModuleExports(
