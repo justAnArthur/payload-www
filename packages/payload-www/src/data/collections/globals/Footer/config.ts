@@ -78,7 +78,10 @@ export const createFooterGlobal = (
     ],
     hooks: {
       afterChange: translateHook
-        ? [createRevalidateGlobalHook('global_footer'), translateHook as any]
+        ? [
+          createRevalidateGlobalHook('global_footer'),
+          translateHook as any
+        ]
         : [createRevalidateGlobalHook('global_footer')]
     }
   }

@@ -11,6 +11,18 @@
 // here.
 
 import { createWWWConfig, type WWWConfigApi, type WWWConfigOptions, type WWWInputConfig } from '../config/createWWWConfig'
+// NOTE: `imageHashPlugin` and `translator` are NOT statically imported here.
+// Their workspace package dists chain into `@payloadcms/ui → react-image-crop`
+// CSS and React client components, which both (a) break raw Node ESM
+// (`ERR_UNKNOWN_FILE_EXTENSION` for the CSS) and (b) break Next.js when
+// imported from a server entrypoint like `payload.config.ts`
+// (`MetaField() called from the server but is on the client`). The lib
+// resolves them lazily inside `createWWWConfig#withWWWConfig` via
+// dynamic import. Hosts that want a static reference can import the
+// `imageHashPlugin` / `translator` from their dedicated subpaths
+// (`@justanarthur/payload-www/imagehash` and
+// `@justanarthur/payload-www/translator`) — those shims use a similar
+// lazy pattern and don't pull the plugin chain into a static graph.
 import { anyone, authenticated, authenticatedOrPublished } from '../core/access/index'
 import { createRevalidatePageHooks, type RevalidatePageOptions } from '../render/hooks/revalidatePage'
 import { createRevalidateGlobalHook, type RevalidateGlobalOptions } from '../render/hooks/revalidateGlobal'

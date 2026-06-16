@@ -23,11 +23,13 @@ export type CreatePagesCollectionOptions = {
    */
   renderPath?: string
   /**
-   * The slug field generator. The lib's default returns a single
-   * `slugField` from payload. Hosts with nested URL schemes can
-   * override.
+   * Slug field(s) for the Pages collection. Accepts a flat array of
+   * fields, or a factory returning one. The factory form is the
+   * default pattern in the demo: pass `() => [slugField()]` so the
+   * host can chain options on the field at call time. The lib calls
+   * the factory once at build time and spreads the result.
    */
-  slugField?: Field[]
+  slugField?: Field[] | (() => Field[])
   /**
    * Field factory for the SEO tab. Pass the SEO fields from
    * `@justanarthur/payload-plugin-seo/fields`. The lib doesn't ship
@@ -45,6 +47,13 @@ export type CreatePagesCollectionOptions = {
    * Omit to skip the translation hook.
    */
   locales?: { defaultLocale: string; all: readonly string[] }
+  /**
+   * Host-supplied path composer for page revalidation. Forwarded to
+   * `createRevalidatePageHooks`. Overrides the lib's default
+   * `/${locale}/${slug}` builder when set. The Pages collection
+   * receives this from `createWWWConfig#pagePathBuilder`.
+   */
+  pagePathBuilder?: (slug: string | undefined) => string
 }
 
 /**
@@ -59,11 +68,21 @@ export const createPagesCollection = (
 ): CollectionConfig<'pages'> => {
   const {
     renderPath,
-    slugField: slugFields,
+    slugField: slugFieldOrFactory = null,
     seoFields = [],
     previewPath = (slug) => generatePreviewPath({ slug, collection: 'pages' }),
-    locales
+    locales,
+    pagePathBuilder
   } = options
+
+  // normalize function/array into a local array we can spread. bunup
+  // mangles `...(expr ?? [])` in some shapes on emit, so resolving to
+  // a local first keeps the destructure + spread simple and safe.
+  const slugFieldArr: Field[] = Array.isArray(slugFieldOrFactory)
+    ? slugFieldOrFactory
+    : typeof slugFieldOrFactory === 'function'
+      ? slugFieldOrFactory()
+      : []
 
   const baseFields: Field[] = [
     {
@@ -104,11 +123,26 @@ export const createPagesCollection = (
       type: 'date',
       admin: { position: 'sidebar' }
     },
-    ...(slugFields ?? [])
+    ...slugFieldArr
   ]
 
   const { afterChange: revalidateAfterChange, afterDelete: revalidateAfterDelete } =
-    createRevalidatePageHooks({ homeSlug: HOME_PAGE_SLUG, nestedSlugDivider: pageSlugNestedDivider })
+    createRevalidatePageHooks({
+      homeSlug: HOME_PAGE_SLUG,
+      nestedSlugDivider: pageSlugNestedDivider,
+      ...(pagePathBuilder
+        ? {
+            pathBuilder: (slug, locale) => {
+              // Pages hooks always revalidate a single locale at a time.
+              // The host's `pagePathBuilder` doesn't see the locale —
+              // it's a `(slug) => path` shape. Pass the slug through,
+              // ignore locale.
+              void locale
+              return pagePathBuilder(slug ?? undefined)
+            }
+          }
+        : {})
+    })
 
   const translateHook = locales
     ? createTranslateToOtherLocalesHook({

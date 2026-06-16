@@ -71,7 +71,10 @@ export const createHeaderGlobal = (
     ],
     hooks: {
       afterChange: translateHook
-        ? [createRevalidateGlobalHook('global_header'), translateHook as any]
+        ? [
+          createRevalidateGlobalHook('global_header'),
+          translateHook as any
+        ]
         : [createRevalidateGlobalHook('global_header')]
     }
   }

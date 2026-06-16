@@ -1,6 +1,12 @@
-import type { AdminComponent, Block, CollectionConfig, Config, Field, GlobalConfig } from 'payload'
+import type { AdminComponent, Block, CollectionConfig, Config, Field, GlobalConfig, Plugin } from 'payload'
 
-import { createFooterGlobal, createHeaderGlobal, createPagesCollection } from '../data/collections'
+import { seoPlugin } from '@justanarthur/payload-plugin-seo'
+import { imageHashPlugin } from '@justanarthur/payload-imagehash-plugin'
+import { translator } from '@justanarthur/payload-plugin-translator'
+
+import { createPagesCollection } from '../data/collections/Pages/index'
+import { createHeaderGlobal } from '../data/collections/globals/Header/config'
+import { createFooterGlobal } from '../data/collections/globals/Footer/config'
 // NOTE: render fns (createLayoutExports, createCollectionPageExports,
 // RenderBlocks, LivePreviewListener, renderCollectionModule, ...) are
 // App-Router-only. They are intentionally NOT re-exported from
@@ -11,6 +17,16 @@ import { createFooterGlobal, createHeaderGlobal, createPagesCollection } from '.
 // `next/cache`, `next/navigation` and React into the root barrel and
 // break builds that import `createWWWConfig` from a Node entrypoint
 // such as `payload.config.ts`.
+
+// `seoPlugin`, `imageHashPlugin`, and `translator` are NOT statically
+// imported here. All three plugin dists chain into
+// `@payloadcms/ui/EditUpload`, which inlines a `.css` import for
+// `react-image-crop`. Bundlers (next/webpack) handle that at build
+// time, but plain Node ESM rejects unknown extensions (vitest, the
+// lib's own test suite, raw `node -e ...` smoke tests). We resolve
+// them lazily inside `withWWWConfig` via dynamic import — that's
+// what makes `withWWWConfig` async. Hosts must `await` it from
+// `payload.config.ts`.
 
 export type WWWConfigOptions = {
   /**
@@ -24,15 +40,71 @@ export type WWWConfigOptions = {
    */
   blocks: Block[]
   /**
-   * SEO fields (from `@justanarthur/payload-plugin-seo/fields` or your
-   * own) to render in the SEO tab on the Pages collection.
+   * SEO configuration applied as a default `seoPlugin` from
+   * `@justanarthur/payload-plugin-seo` to the Pages collection.
+   *
+   * Pass `false` to opt out and manage SEO yourself. Pass an object
+   * to customise the default plugin (e.g. `uploadsCollection`).
+   */
+  seo?:
+    | false
+    | {
+        uploadsCollection?: string
+        openaiApiKey?: string
+        interfaceName?: string
+      }
+  /**
+   * Custom SEO fields (override the default plugin's meta field). Use
+   * this only if you have a custom SEO setup and want to bypass the
+   * default `seoPlugin`. The lib drops the legacy `seoFields` option
+   * — use `seo` instead.
    */
   seoFields?: Field[]
   /**
-   * Field factory for `slugField`. Defaults to a single `slugField`
-   * from payload. Hosts with nested URL schemes pass their own.
+   * Slug field(s) for the Pages collection. Accepts a flat array of
+   * fields, or a factory returning one. The factory form is the
+   * pattern the demo uses: pass `() => [slugField()]` so the host can
+   * chain options on the field at call time. The lib calls the
+   * factory once at build time and spreads the result.
    */
-  slugField?: Field[]
+  slugField?: Field[] | (() => Field[])
+  /**
+   * URL composer for page revalidation. Receives the page slug (or
+   * `undefined` for the home page) and the current locale, returns
+   * the public URL path to revalidate. Overrides the lib's default
+   * `/${locale}/${slug}` builder. Pass this when your site doesn't
+   * put the locale in the path (e.g. `slug === 'home' ? '/' : `/${slug}``).
+   */
+  pagePathBuilder?: (slug: string | undefined) => string
+  /**
+   * Override for the link field used by `navItem` blocks in the
+   * Header global. Defaults to the lib's `link` with
+   * `disableLabel: true`. The host that needs different options
+   * (custom relationTo, overrides, ...) passes their own factory.
+   */
+  linkField?: (options?: { appearances?: false | 'default'[] }) => any
+  /**
+   * Override for the link group field used by `navColumn` blocks in
+   * the Header global and inside the Footer's `nav` array. Defaults
+   * to the lib's own `linkGroup` factory.
+   */
+  linkGroupField?: (options?: any) => any
+  /**
+   * `imageHashPlugin` from `@justanarthur/payload-imagehash-plugin`,
+   * applied as a default. Pass `false` to opt out, or an object to
+   * override the algorithm / blurhash visibility.
+   */
+  imageHash?: false | { algorithm?: string; showBlurhashField?: boolean }
+  /**
+   * `translator` from `@justanarthur/payload-plugin-translator`,
+   * applied as a default to the listed collections and globals. Pass
+   * `false` to opt out. The default is `['pages', 'posts']` for
+   * collections and `['header', 'footer']` for globals. Hosts that
+   * need resolvers should pass `translator: false` here and add
+   * their own `translator({ ..., resolvers: [...] })` plugin via
+   * `config.plugins` (or extend the option in a future task).
+   */
+  translator?: false | { collections?: string[]; globals?: string[] }
   /**
    * Blocks the Footer global's `blocks` field accepts. Defaults to
    * an empty list.
@@ -49,7 +121,7 @@ export type WWWConfigOptions = {
 }
 
 export type WWWConfigApi = {
-  withWWWConfig: (config: WWWInputConfig) => Config
+  withWWWConfig: (config: WWWInputConfig) => Promise<Config>
   createPagesCollection: typeof createPagesCollection
   createHeaderGlobal: typeof createHeaderGlobal
   createFooterGlobal: typeof createFooterGlobal
@@ -84,42 +156,76 @@ export type WWWInputConfig = Omit<Config, 'collections' | 'globals'> & {
  * Those modules pull in `next/headers`, `next/cache`, `next/navigation`
  * and React, so they MUST stay out of the root barrel and out of
  * `payload.config.ts`.
+ *
+ * `withWWWConfig` is async because the default `imageHash` and
+ * `translator` plugins are dynamically imported to keep this module's
+ * static import graph free of CSS-chain React UI deps. The demo's
+ * `payload.config.ts` must `await` the result.
  */
 export function createWWWConfig(options: WWWConfigOptions): WWWConfigApi {
-  const { i18n, blocks, seoFields, slugField, footerBlocks } = options
+  const {
+    i18n,
+    blocks,
+    seo,
+    slugField,
+    pagePathBuilder,
+    linkField,
+    linkGroupField,
+    imageHash = { algorithm: 'lqip-modern' },
+    translator: translatorOpt = { collections: ['pages', 'posts'], globals: ['header', 'footer'] },
+    footerBlocks
+  } = options
 
   const localeBag = { defaultLocale: i18n.defaultLocale, all: i18n.locales }
 
-  const _createPagesCollection = (
+  const buildPagesCollection = (
     hostBlocks: Block[],
     overrides: Parameters<typeof createPagesCollection>[1] = {}
   ) =>
     createPagesCollection(hostBlocks, {
       ...overrides,
       renderPath: overrides.renderPath ?? options.pagesRenderPath,
-      seoFields: overrides.seoFields ?? seoFields,
+      // SEO is now applied as a default seoPlugin in withWWWConfig — do not
+      // double-inject via seoFields. Hosts that opt out via `seo: false`
+      // can still pass their own seoFields through `overrides`.
+      seoFields: overrides.seoFields,
       slugField: overrides.slugField ?? slugField,
-      locales: overrides.locales ?? localeBag
+      locales: overrides.locales ?? localeBag,
+      pagePathBuilder: overrides.pagePathBuilder ?? pagePathBuilder
     })
 
-  const _createHeaderGlobal = (overrides: Parameters<typeof createHeaderGlobal>[0] = {}) =>
+  const buildHeaderGlobal = (overrides: Parameters<typeof createHeaderGlobal>[0] = {}) =>
     createHeaderGlobal({
       ...overrides,
       renderPath: overrides.renderPath ?? options.headerRenderPath,
-      locales: overrides.locales ?? localeBag
+      locales: overrides.locales ?? localeBag,
+      linkField: overrides.linkField ?? linkField,
+      linkGroupField: overrides.linkGroupField ?? linkGroupField
     })
 
-  const _createFooterGlobal = (overrides: Parameters<typeof createFooterGlobal>[0] = {}) =>
+  const buildFooterGlobal = (overrides: Parameters<typeof createFooterGlobal>[0] = {}) =>
     createFooterGlobal({
       ...overrides,
       renderPath: overrides.renderPath ?? options.footerRenderPath,
       blocks: overrides.blocks ?? footerBlocks,
-      locales: overrides.locales ?? localeBag
+      locales: overrides.locales ?? localeBag,
+      linkGroupField: overrides.linkGroupField ?? linkGroupField
     })
 
-  function withWWWConfig(config: WWWInputConfig): Config {
+  async function withWWWConfig(config: WWWInputConfig): Promise<Config> {
+    // Direct calls to the imported factories (not via the `build*` closures
+    // above). bunup's dead-code elimination can drop an import whose only
+    // uses are inside a closure that's only invoked through a returned
+    // object — `createPagesCollection(blocks)` here keeps the import alive
+    // in the dist. The `build*` wrappers are still exported for host
+    // consumers below.
     const defaultCollections: CollectionConfig[] = [
-      _createPagesCollection(blocks) as CollectionConfig
+      createPagesCollection(blocks, {
+        renderPath: options.pagesRenderPath,
+        slugField,
+        locales: localeBag,
+        pagePathBuilder
+      }) as CollectionConfig
     ]
     const collections =
       typeof config.collections === 'function'
@@ -127,8 +233,18 @@ export function createWWWConfig(options: WWWConfigOptions): WWWConfigApi {
         : [...defaultCollections, ...(config.collections || [])]
 
     const defaultGlobals: GlobalConfig[] = [
-      _createHeaderGlobal() as GlobalConfig,
-      _createFooterGlobal() as GlobalConfig
+      createHeaderGlobal({
+        renderPath: options.headerRenderPath,
+        locales: localeBag,
+        linkField,
+        linkGroupField
+      }) as GlobalConfig,
+      createFooterGlobal({
+        renderPath: options.footerRenderPath,
+        blocks: footerBlocks,
+        locales: localeBag,
+        linkGroupField
+      }) as GlobalConfig
     ]
     const globals =
       typeof config.globals === 'function'
@@ -149,10 +265,66 @@ export function createWWWConfig(options: WWWConfigOptions): WWWConfigApi {
         ])
     )
 
+    // SEO plugin is applied as a default by the lib so hosts don't have to
+    // import `seoPlugin` from `@justanarthur/payload-plugin-seo` themselves.
+    // Hosts that want their own SEO setup can pass `seo: false` to opt out.
+    const seoPluginConfig: Plugin[] =
+      seo === false
+        ? []
+        : [
+            seoPlugin({
+              collections: ['pages'],
+              uploadsCollection: seo?.uploadsCollection,
+              ...(seo?.openaiApiKey !== undefined ? { openaiApiKey: seo.openaiApiKey } : {}),
+              ...(seo?.interfaceName !== undefined ? { interfaceName: seo.interfaceName } : {})
+            })
+          ]
+
+    // `imageHashPlugin` and `translator` are also default-applied. The
+    // workspace plugins' source is structured so the field factories are
+    // server-safe (`'use client'` is confined to the React component
+    // files), which means static imports here don't pull the CSS / client
+    // chain into the lib's module-init graph.
+    const imageHashPlugins: Plugin[] =
+      imageHash === false
+        ? []
+        : [
+            imageHashPlugin({
+              algorithm: imageHash.algorithm ?? 'lqip-modern',
+              ...(imageHash.showBlurhashField !== undefined
+                ? { showBlurhashField: imageHash.showBlurhashField }
+                : {})
+            })
+          ]
+
+    const translatorPlugins: Plugin[] =
+      translatorOpt === false
+        ? []
+        : [
+            translator({
+              collections: translatorOpt.collections ?? ['pages', 'posts'],
+              globals: translatorOpt.globals ?? ['header', 'footer'],
+              resolvers: []
+            })
+          ]
+
+    // lib defaults first, host plugins appended last so a host can
+    // re-apply any of these (e.g. a second `translator({ ..., resolvers })`
+    // call) to layer on configuration. If a host wants to drop a
+    // default, they opt out via the corresponding `false` option.
+    const existingPlugins = Array.isArray(config.plugins) ? config.plugins : []
+    const mergedPlugins: Plugin[] = [
+      ...seoPluginConfig,
+      ...imageHashPlugins,
+      ...translatorPlugins,
+      ...existingPlugins
+    ]
+
     return {
       ...config,
       collections,
       globals,
+      plugins: mergedPlugins,
       admin: {
         ...(config.admin ?? {}),
         dependencies: {
@@ -165,8 +337,14 @@ export function createWWWConfig(options: WWWConfigOptions): WWWConfigApi {
 
   return {
     withWWWConfig,
-    createPagesCollection: _createPagesCollection,
-    createHeaderGlobal: _createHeaderGlobal,
-    createFooterGlobal: _createFooterGlobal
+    createPagesCollection: buildPagesCollection,
+    createHeaderGlobal: buildHeaderGlobal,
+    createFooterGlobal: buildFooterGlobal
   }
 }
+
+// Re-export the raw collection/global factories as named exports of this
+// module. Hosts that want to compose their own config can import them
+// directly from `@justanarthur/payload-www/server` without going through
+// `createWWWConfig`.
+export { createPagesCollection, createHeaderGlobal, createFooterGlobal }

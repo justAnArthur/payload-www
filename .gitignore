@@ -59,4 +59,5 @@ coverage/
 # Misc
 *.pem
 
-
+/.mavis
+/.opencode

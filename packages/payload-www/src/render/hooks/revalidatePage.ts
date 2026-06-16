@@ -12,6 +12,14 @@ export type RevalidatePageOptions = {
   homeSlug?: string
   nestedSlugDivider?: string
   sitemapTag?: string | null
+  /**
+   * Host-supplied path composer. Receives the page slug and current
+   * locale, returns the public URL path to revalidate. When provided,
+   * overrides the lib's default `/${locale}/${slug}` builder. The
+   * Pages collection's host passes this in via `createWWWConfig`'s
+   * `pagePathBuilder` option.
+   */
+  pathBuilder?: (slug: string | null | undefined, locale: string) => string
 }
 
 /**
@@ -22,8 +30,10 @@ export function createRevalidatePageHooks(options: RevalidatePageOptions = {}) {
   const homeSlug = options.homeSlug ?? ''
   const divider = options.nestedSlugDivider ?? '_'
   const sitemapTag = options.sitemapTag === undefined ? 'pages-sitemap' : options.sitemapTag
+  const hostPathBuilder = options.pathBuilder
 
   const slugToPath = (slug: string | null | undefined, locale: string): string => {
+    if (hostPathBuilder) return hostPathBuilder(slug, locale)
     if (slug === homeSlug) return `/${locale}`
     if (divider && slug && slug.includes(divider)) {
       return `/${locale}/${slug.replaceAll(divider, '/')}`

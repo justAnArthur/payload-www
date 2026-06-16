@@ -24,7 +24,7 @@ export const link = (options: LinkOptions = {}): Field => {
   const {
     appearances,
     disableLabel = false,
-    relationTo = ['pages', 'posts'],
+    relationTo = [],
     localized = false,
     overrides = {}
   } = options

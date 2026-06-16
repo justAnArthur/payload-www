@@ -48,7 +48,7 @@ export async function createTestPayload(
 
   const { withWWWConfig } = createWWWConfig({ i18n, blocks })
 
-  const config = withWWWConfig({
+  const config = await withWWWConfig({
     admin: { user: 'users' },
     blocks: [] as any,
     collections: [

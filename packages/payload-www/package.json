@@ -173,6 +173,18 @@
         "default": "./dist/seed.js"
       }
     },
+    "./imagehash": {
+      "import": {
+        "types": "./dist/imagehash.d.ts",
+        "default": "./dist/imagehash.js"
+      }
+    },
+    "./translator": {
+      "import": {
+        "types": "./dist/translator.d.ts",
+        "default": "./dist/translator.js"
+      }
+    },
     "./package.json": "./package.json"
   },
   "license": "MIT",
@@ -189,6 +201,9 @@
     "prepublishOnly": "bun run clean && bun run build"
   },
   "dependencies": {
+    "@justanarthur/payload-imagehash-plugin": "workspace:*",
+    "@justanarthur/payload-plugin-seo": "workspace:*",
+    "@justanarthur/payload-plugin-translator": "workspace:*",
     "@payloadcms/live-preview-react": "3.85.0",
     "@payloadcms/richtext-lexical": "3.85.0",
     "@payloadcms/db-sqlite": "3.85.0",
@@ -217,6 +232,8 @@
     "@payloadcms/live-preview-react": "^3.85.0",
     "@payloadcms/next": "^3.85.0",
     "@payloadcms/richtext-lexical": "^3.85.0",
+    "@payloadcms/translations": "^3.85.0",
+    "@payloadcms/ui": "^3.85.0",
     "next": "^16.2.6",
     "next-intl": "^4.0.0",
     "payload": "^3.85.0",

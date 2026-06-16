@@ -11,6 +11,7 @@ export default defineConfig({
   external: [
     /node:/,
     /@payloadcms/,
+    /@justanarthur\//,
     /next/,
     /^react$/,
     /^react\//,

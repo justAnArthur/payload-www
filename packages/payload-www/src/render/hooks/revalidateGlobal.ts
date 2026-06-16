@@ -19,16 +19,17 @@ export function createRevalidateGlobalHook(
   arg: string | RevalidateGlobalOptions = 'global'
 ): GlobalAfterChangeHook {
   const tagPrefix = typeof arg === 'string' ? arg : (arg.tagPrefix ?? 'global')
+  const localeSuffix = true
 
   return async ({ doc, req: { payload, context, locale } }) => {
     if (context.disableRevalidate) return doc
     const { revalidateTag } = await import('next/cache')
-    const tag = `${tagPrefix}_${locale}`
+    const tag = localeSuffix ? `${tagPrefix}_${locale}` : tagPrefix
     payload.logger.info(`Revalidating global: ${tag}`)
     try {
       revalidateTag(tag, 'max')
     } catch (error) {
-      payload.logger.error(`Error revalidating global ${tag}: ${String(error)}`)
+      payload.logger.error(`Error revalidating global ${String(error)}`)
     }
     return doc
   }
