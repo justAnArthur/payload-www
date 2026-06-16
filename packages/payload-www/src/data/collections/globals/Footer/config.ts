@@ -1,7 +1,7 @@
 import type { Block, GlobalConfig } from 'payload'
 
 import { linkGroup } from '../../../../core/fields/linkGroup'
-import { createRevalidateGlobalHook } from '../../../../core/hooks/revalidateGlobal'
+import { createRevalidateGlobalHook } from '../../../../render/hooks/revalidateGlobal'
 import { createTranslateToOtherLocalesHook } from '../../../../core/hooks/translateToOtherLocales'
 
 export type CreateFooterGlobalOptions = {

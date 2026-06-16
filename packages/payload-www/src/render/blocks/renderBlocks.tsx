@@ -1,8 +1,8 @@
 import type { FC } from 'react'
 import type { ImportMap, SanitizedConfig } from 'payload'
 
-import { getFromImportMap } from '../utils/getFromImportMap'
-import { generateImportName } from '../utils/generateImportName'
+import { getFromImportMap } from '../../core/utils/getFromImportMap'
+import { generateImportName } from '../../core/utils/generateImportName'
 
 export type RenderBlocksProps = {
   blocks: Array<{ blockType: string } & Record<string, unknown>>

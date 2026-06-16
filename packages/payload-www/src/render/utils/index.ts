@@ -1,0 +1,1 @@
+export { renderCollectionModule } from './renderCollectionModule'

@@ -1,5 +1,10 @@
 import type { GlobalAfterChangeHook } from 'payload'
-import { revalidateTag } from 'next/cache'
+// `next/cache` is App-Router-only and must NOT be eagerly imported at the
+// module top level. Header/Footer globals re-export this factory from
+// `data/collections/globals/*` so `payload.config.ts` (a Node entrypoint)
+// ends up loading this module. We resolve `revalidateTag` lazily inside
+// the hook at request time — the only point the function is called in
+// an App Router context.
 
 export type RevalidateGlobalOptions = {
   tagPrefix?: string
@@ -15,8 +20,9 @@ export function createRevalidateGlobalHook(
 ): GlobalAfterChangeHook {
   const tagPrefix = typeof arg === 'string' ? arg : (arg.tagPrefix ?? 'global')
 
-  return ({ doc, req: { payload, context, locale } }) => {
+  return async ({ doc, req: { payload, context, locale } }) => {
     if (context.disableRevalidate) return doc
+    const { revalidateTag } = await import('next/cache')
     const tag = `${tagPrefix}_${locale}`
     payload.logger.info(`Revalidating global: ${tag}`)
     try {

@@ -11,6 +11,12 @@
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
+    "./server": {
+      "import": {
+        "types": "./dist/server.d.ts",
+        "default": "./dist/server.js"
+      }
+    },
     "./data-seed": {
       "import": {
         "types": "./dist/data-seed.d.ts",

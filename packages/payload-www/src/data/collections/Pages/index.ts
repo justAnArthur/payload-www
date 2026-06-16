@@ -2,7 +2,7 @@ import type { Block, CollectionConfig, Field } from 'payload'
 
 import { authenticated, authenticatedOrPublished } from '../../../core/access'
 import { populatePublishedAt } from '../../../core/hooks/populatePublishedAt'
-import { createRevalidatePageHooks } from '../../../core/hooks/revalidatePage'
+import { createRevalidatePageHooks } from '../../../render/hooks/revalidatePage'
 import { createTranslateToOtherLocalesHook } from '../../../core/hooks/translateToOtherLocales'
 import { generatePreviewPath } from '../previewPath'
 

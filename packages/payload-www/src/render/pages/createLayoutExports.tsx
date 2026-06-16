@@ -2,7 +2,7 @@ import type { FC, ReactNode } from 'react'
 import type { ImportMap, SanitizedConfig } from 'payload'
 import { notFound } from 'next/navigation'
 
-import { renderCollectionModule } from '../../core/utils/renderCollectionModule'
+import { renderCollectionModule } from '../utils/renderCollectionModule'
 
 /**
  * Build a Next.js layout component for the host's Payload site.

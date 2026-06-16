@@ -1,10 +1,16 @@
 import type { AdminComponent, Block, CollectionConfig, Config, Field, GlobalConfig } from 'payload'
 
 import { createFooterGlobal, createHeaderGlobal, createPagesCollection } from '../data/collections'
-import { addCollectionsToSitemap, createCollectionPageExports, createLayoutExports } from '../render/pages'
-import { RenderBlocks } from '../core/blocks'
-import { LivePreviewListener } from '../render/components'
-import { generateImportName, getFromImportMap, renderCollectionModule } from '../core/utils'
+// NOTE: render fns (createLayoutExports, createCollectionPageExports,
+// RenderBlocks, LivePreviewListener, renderCollectionModule, ...) are
+// App-Router-only. They are intentionally NOT re-exported from
+// `createWWWConfig` and must be imported from the `render/*` subpath
+// (`@justanarthur/payload-www/render-pages`, `render-components`,
+// `render-blocks`, `render-utils`) in App Router contexts only.
+// Importing them at the top level here would chain `next/headers`,
+// `next/cache`, `next/navigation` and React into the root barrel and
+// break builds that import `createWWWConfig` from a Node entrypoint
+// such as `payload.config.ts`.
 
 export type WWWConfigOptions = {
   /**
@@ -47,14 +53,6 @@ export type WWWConfigApi = {
   createPagesCollection: typeof createPagesCollection
   createHeaderGlobal: typeof createHeaderGlobal
   createFooterGlobal: typeof createFooterGlobal
-  createLayoutExports: typeof createLayoutExports
-  createCollectionPageExports: typeof createCollectionPageExports
-  addCollectionsToSitemap: typeof addCollectionsToSitemap
-  RenderBlocks: typeof RenderBlocks
-  LivePreviewListener: typeof LivePreviewListener
-  getFromImportMap: typeof getFromImportMap
-  generateImportName: typeof generateImportName
-  renderCollectionModule: typeof renderCollectionModule
 }
 
 export type WWWInputConfig = Omit<Config, 'collections' | 'globals'> & {
@@ -67,21 +65,25 @@ export type WWWInputConfig = Omit<Config, 'collections' | 'globals'> & {
 }
 
 /**
- * Build the lib's full API surface, configured for a specific host.
+ * Build the lib's data-config API surface, configured for a specific
+ * host.
  *
  * Hosts call this once with their i18n setup, blocks, and SEO
- * fields. The returned object includes:
- *   - `withWWWConfig` — wraps a `Config` and injects Pages + Header +
- *     Footer with the host's blocks/fields
- *   - `createPagesCollection` / `createHeaderGlobal` / `createFooterGlobal`
- *     — for hosts that want to wire the collections into their own
- *     config manually
- *   - `createLayoutExports` / `createCollectionPageExports` /
- *     `addCollectionsToSitemap` — Next.js page factories (the host
- *     supplies the i18n/getURL/generateMeta deps at call time)
- *   - `RenderBlocks` / `LivePreviewListener` — React renderers
- *   - `getFromImportMap` / `generateImportName` / `renderCollectionModule`
- *     — the import-map utilities
+ * fields. The returned object is **safe to import from a Node entrypoint**
+ * such as `payload.config.ts` — it only contains Payload collection /
+ * global factories and the `withWWWConfig` composer.
+ *
+ * For the App Router rendering side (page factories, Live Preview
+ * listener, block renderer, import-map utilities, ...), import
+ * directly from the `render/*` subpaths:
+ *
+ *   import { createCollectionPageExports } from '@justanarthur/payload-www/render-pages'
+ *   import { LivePreviewListener } from '@justanarthur/payload-www/render-components'
+ *   import { RenderBlocks } from '@justanarthur/payload-www/render-blocks'
+ *
+ * Those modules pull in `next/headers`, `next/cache`, `next/navigation`
+ * and React, so they MUST stay out of the root barrel and out of
+ * `payload.config.ts`.
  */
 export function createWWWConfig(options: WWWConfigOptions): WWWConfigApi {
   const { i18n, blocks, seoFields, slugField, footerBlocks } = options
@@ -165,14 +167,6 @@ export function createWWWConfig(options: WWWConfigOptions): WWWConfigApi {
     withWWWConfig,
     createPagesCollection: _createPagesCollection,
     createHeaderGlobal: _createHeaderGlobal,
-    createFooterGlobal: _createFooterGlobal,
-    createLayoutExports,
-    createCollectionPageExports,
-    addCollectionsToSitemap,
-    RenderBlocks,
-    LivePreviewListener,
-    getFromImportMap,
-    generateImportName,
-    renderCollectionModule
+    createFooterGlobal: _createFooterGlobal
   }
 }

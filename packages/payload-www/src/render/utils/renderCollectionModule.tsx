@@ -1,7 +1,7 @@
 import type { ImportMap } from 'payload'
 import React from 'react'
 
-import { getFromImportMap } from './getFromImportMap'
+import { getFromImportMap } from '../../core/utils/getFromImportMap'
 
 export function renderCollectionModule(
   collection: { slug: string; custom?: Record<string, any> }[] = [],

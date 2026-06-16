@@ -1,5 +1,12 @@
 import type { CollectionAfterChangeHook, CollectionAfterDeleteHook } from 'payload'
-import { revalidatePath, revalidateTag } from 'next/cache'
+// `next/cache` is App-Router-only and must NOT be eagerly imported at the
+// module top level. The lib's data collections (Pages, Header, Footer)
+// re-export this factory from `data/collections/*` so that
+// `payload.config.ts` (a Node entrypoint) ends up loading this module.
+// Importing `next/cache` eagerly would chain it into the root barrel and
+// break the build. We resolve it lazily inside the hook at request time,
+// which is the only point the function is ever called in a real
+// App Router context anyway.
 
 export type RevalidatePageOptions = {
   homeSlug?: string
@@ -24,8 +31,9 @@ export function createRevalidatePageHooks(options: RevalidatePageOptions = {}) {
     return `/${locale}/${slug ?? ''}`
   }
 
-  const afterChange: CollectionAfterChangeHook = ({ doc, previousDoc, req: { payload, context, locale } }) => {
+  const afterChange: CollectionAfterChangeHook = async ({ doc, previousDoc, req: { payload, context, locale } }) => {
     if (context.disableRevalidate) return doc
+    const { revalidatePath, revalidateTag } = await import('next/cache')
     const typed = doc as { _status?: string; slug?: string | null }
     const prev = previousDoc as { _status?: string; slug?: string | null } | undefined
     const l = (locale as string) ?? ''
@@ -52,8 +60,9 @@ export function createRevalidatePageHooks(options: RevalidatePageOptions = {}) {
     return doc
   }
 
-  const afterDelete: CollectionAfterDeleteHook = ({ doc, req: { payload, context, locale } }) => {
+  const afterDelete: CollectionAfterDeleteHook = async ({ doc, req: { payload, context, locale } }) => {
     if (context.disableRevalidate) return doc
+    const { revalidatePath, revalidateTag } = await import('next/cache')
     const typed = doc as { slug?: string | null } | null
     const l = (locale as string) ?? ''
     const path = slugToPath(typed?.slug, l)

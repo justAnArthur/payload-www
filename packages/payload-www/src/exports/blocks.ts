@@ -1,5 +1,5 @@
-import type { RenderBlocksProps } from '../core/blocks/renderBlocks'
-import { RenderBlocks } from '../core/blocks/renderBlocks'
+import type { RenderBlocksProps } from '../render/blocks/renderBlocks'
+import { RenderBlocks } from '../render/blocks/renderBlocks'
 
 export default RenderBlocks
 

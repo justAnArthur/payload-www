@@ -1,9 +1,15 @@
 import type { Metadata, MetadataRoute } from 'next'
-import { draftMode } from 'next/headers'
+// NOTE: `next/headers` must NOT be eagerly imported at the module top level.
+// The lib's `createWWWConfig` is reachable from `payload.config.ts` (a Node
+// entrypoint outside the App Router scope), and eager import would chain
+// `next/headers` into every consumer of `@justanarthur/payload-www`. Next 16
+// detects that module in a non-Server-Component context and throws the
+// "next/headers is only available in Server Components" build error.
+// Import it lazily inside the async function that actually needs it.
 import type { ImportMap, SanitizedConfig } from 'payload'
 import type { ReactElement } from 'react'
 
-import { renderCollectionModule } from '../../core/utils/renderCollectionModule'
+import { renderCollectionModule } from '../utils/renderCollectionModule'
 import { buildHreflangAlternates } from '../metadata/hreflang'
 import {
   type ArticleLdOptions,
@@ -121,6 +127,7 @@ export function createCollectionPageExports(
   const siteUrl = deps.getServerSideURL()
 
   const default_ = async (props: PageProps<any>): Promise<ReactElement> => {
+    const { draftMode } = await import('next/headers')
     const [config, { isEnabled: draft }, locale, jsonLdNodes] = await Promise.all([
       configPromise,
       draftMode(),
