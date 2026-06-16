@@ -3,4 +3,4 @@ import { RenderBlocks } from '../core/blocks/renderBlocks'
 
 export default RenderBlocks
 
-export { RenderBlocks, type RenderBlocksProps } from '../core/blocks/renderBlocks'
+export { RenderBlocks, type RenderBlocksProps }

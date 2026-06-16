@@ -14,11 +14,11 @@ export default {
 }
 
 export {
-  createRevalidatePageHooks,
   createRevalidateGlobalHook,
+  createRevalidatePageHooks,
   createTranslateToOtherLocalesHook,
   populatePublishedAt,
-  type RevalidatePageOptions,
   type RevalidateGlobalOptions,
+  type RevalidatePageOptions,
   type TranslateToOtherLocalesOptions
 }

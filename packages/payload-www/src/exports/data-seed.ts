@@ -14,8 +14,8 @@ export {
   createBaseSeed,
   type CreateBaseSeedOptions,
   type CreateBaseSeedResult,
+  type SeedCategoryInput,
   type SeedPageInput,
   type SeedPostInput,
-  type SeedUserInput,
-  type SeedCategoryInput
-} from '../data/seed/createBaseSeed'
+  type SeedUserInput
+}

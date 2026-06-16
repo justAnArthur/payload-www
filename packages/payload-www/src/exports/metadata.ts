@@ -34,17 +34,17 @@ export default {
 export {
   buildArticleLd,
   buildBreadcrumbsLd,
-  buildOrganizationLd,
+  buildCanonicalUrl,
   buildHreflangAlternates,
-  queryDocBySlug,
+  buildOrganizationLd,
+  getRenderModuleExports,
+  getUrlPath,
   queryAllDocs,
   queryAllLocaleSlugs,
-  getUrlPath,
+  queryDocBySlug,
   segmentsToStoredSlug,
   segmentsToUrlPath,
   storedSlugToSegments,
-  buildCanonicalUrl,
-  getRenderModuleExports,
   type ArticleLdOptions,
   type BreadcrumbItem
 }

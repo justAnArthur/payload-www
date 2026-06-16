@@ -3,4 +3,4 @@ import { linkGroup } from '../core/fields/linkGroup'
 
 export default { link, linkGroup, appearanceOptions }
 
-export { link, linkGroup, appearanceOptions, type LinkAppearances, type LinkOptions } from '../core/fields/index'
+export { appearanceOptions, link, linkGroup, type LinkAppearances, type LinkOptions }

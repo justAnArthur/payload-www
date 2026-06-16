@@ -1,12 +1,7 @@
 import { populatePublishedAt } from '../core/hooks/populatePublishedAt'
-import { createRevalidatePageHooks } from '../core/hooks/revalidatePage'
-import { createRevalidateGlobalHook } from '../core/hooks/revalidateGlobal'
-import { createTranslateToOtherLocalesHook } from '../core/hooks/translateToOtherLocales'
-import type {
-  RevalidateGlobalOptions,
-  RevalidatePageOptions,
-  TranslateToOtherLocalesOptions
-} from '../core/hooks/index'
+import { createRevalidatePageHooks, type RevalidatePageOptions } from '../core/hooks/revalidatePage'
+import { createRevalidateGlobalHook, type RevalidateGlobalOptions } from '../core/hooks/revalidateGlobal'
+import { createTranslateToOtherLocalesHook, type TranslateToOtherLocalesOptions } from '../core/hooks/translateToOtherLocales'
 
 export default {
   populatePublishedAt,
@@ -23,4 +18,4 @@ export {
   type RevalidatePageOptions,
   type RevalidateGlobalOptions,
   type TranslateToOtherLocalesOptions
-} from '../core/hooks/index'
+}

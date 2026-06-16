@@ -1,87 +1,136 @@
+import type { WWWConfigApi, WWWConfigOptions, WWWInputConfig } from '../config/createWWWConfig'
 import { createWWWConfig } from '../config/createWWWConfig'
-
-export {
-  createWWWConfig, type WWWConfigOptions, type WWWConfigApi, type WWWInputConfig
-} from '../config/createWWWConfig'
-
-export { anyone, authenticated, authenticatedOrPublished } from '../core/access/index'
-export {
-  createRevalidatePageHooks,
-  type RevalidatePageOptions
-} from '../core/hooks/revalidatePage'
-export { createRevalidateGlobalHook, type RevalidateGlobalOptions } from '../core/hooks/revalidateGlobal'
-export {
+import {
+  anyone,
+  authenticated,
+  authenticatedOrPublished
+} from '../core/access/index'
+import { createRevalidatePageHooks, type RevalidatePageOptions } from '../core/hooks/revalidatePage'
+import { createRevalidateGlobalHook, type RevalidateGlobalOptions } from '../core/hooks/revalidateGlobal'
+import {
   createTranslateToOtherLocalesHook,
   type TranslateToOtherLocalesOptions
 } from '../core/hooks/translateToOtherLocales'
-export { populatePublishedAt } from '../core/hooks/populatePublishedAt'
-
-export { link, appearanceOptions, type LinkAppearances, type LinkOptions } from '../core/fields/link'
-export { linkGroup } from '../core/fields/linkGroup'
-
-export { getFromImportMap } from '../core/utils/getFromImportMap'
-export { generateImportName } from '../core/utils/generateImportName'
-export { renderCollectionModule } from '../core/utils/renderCollectionModule'
-
-export {
+import { populatePublishedAt } from '../core/hooks/populatePublishedAt'
+import { appearanceOptions, link, type LinkAppearances, type LinkOptions } from '../core/fields/link'
+import { linkGroup } from '../core/fields/linkGroup'
+import { getFromImportMap } from '../core/utils/getFromImportMap'
+import { generateImportName } from '../core/utils/generateImportName'
+import { renderCollectionModule } from '../core/utils/renderCollectionModule'
+import {
   buildArticleLd,
   buildBreadcrumbsLd,
   buildOrganizationLd,
   type ArticleLdOptions,
   type BreadcrumbItem
 } from '../render/metadata/jsonld'
-export { buildHreflangAlternates } from '../render/metadata/hreflang'
-export {
+import { buildHreflangAlternates } from '../render/metadata/hreflang'
+import {
+  buildCanonicalUrl,
   getUrlPath,
   segmentsToStoredSlug,
   segmentsToUrlPath,
-  storedSlugToSegments,
-  buildCanonicalUrl
+  storedSlugToSegments
 } from '../render/metadata/slug'
-export {
-  queryDocBySlug,
+import {
+  getRenderModuleExports,
   queryAllDocs,
   queryAllLocaleSlugs,
-  getRenderModuleExports
+  queryDocBySlug
 } from '../render/metadata/query'
+import { LivePreviewListener, type LivePreviewListenerProps } from '../render/components/LivePreviewListener'
+import { RenderBlocks, type RenderBlocksProps } from '../core/blocks/renderBlocks'
+import {
+  createBaseSeed,
+  type CreateBaseSeedOptions,
+  type CreateBaseSeedResult,
+  type SeedCategoryInput,
+  type SeedPageInput,
+  type SeedPostInput,
+  type SeedUserInput
+} from '../data/seed/createBaseSeed'
+import { createTestPayload, type CreateTestPayloadOptions, type CreateTestPayloadResult } from '../data/test/createTestPayload'
+import { createLayoutExports, handleLocale, type CreateLayoutExportsOptions } from '../render/pages/createLayoutExports'
+import {
+  addCollectionsToSitemap,
+  createCollectionPageExports,
+  type CreateCollectionPageExportsArgs,
+  type CreateCollectionPageExportsDeps,
+  type JsonLdEntry,
+  type JsonLdOutput,
+  type MetadataOptions,
+  type PageExtendProps
+} from '../render/pages/createCollectionPageExports'
+import {
+  createPagesCollection,
+  type CreatePagesCollectionOptions,
+  HOME_PAGE_SLUG,
+  PAGES_SLUG,
+  pageSlugNestedDivider
+} from '../data/collections/Pages/index'
+import { createHeaderGlobal, type CreateHeaderGlobalOptions } from '../data/collections/globals/Header/config'
+import { createFooterGlobal, type CreateFooterGlobalOptions } from '../data/collections/globals/Footer/config'
+import { generatePreviewPath } from '../data/collections/previewPath'
 
-export { LivePreviewListener, type LivePreviewListenerProps } from '../render/components/index'
-export { RenderBlocks, type RenderBlocksProps } from '../core/blocks/renderBlocks'
-
+export { createWWWConfig, type WWWConfigOptions, type WWWConfigApi, type WWWInputConfig }
+export { anyone, authenticated, authenticatedOrPublished }
+export { createRevalidatePageHooks, type RevalidatePageOptions }
+export { createRevalidateGlobalHook, type RevalidateGlobalOptions }
+export { createTranslateToOtherLocalesHook, type TranslateToOtherLocalesOptions }
+export { populatePublishedAt }
+export { appearanceOptions, link, type LinkAppearances, type LinkOptions }
+export { linkGroup }
+export { getFromImportMap }
+export { generateImportName }
+export { renderCollectionModule }
+export {
+  buildArticleLd,
+  buildBreadcrumbsLd,
+  buildOrganizationLd,
+  type ArticleLdOptions,
+  type BreadcrumbItem
+}
+export { buildHreflangAlternates }
+export {
+  buildCanonicalUrl,
+  getUrlPath,
+  segmentsToStoredSlug,
+  segmentsToUrlPath,
+  storedSlugToSegments
+}
+export { getRenderModuleExports, queryAllDocs, queryAllLocaleSlugs, queryDocBySlug }
+export { LivePreviewListener, type LivePreviewListenerProps }
+export { RenderBlocks, type RenderBlocksProps }
 export {
   createBaseSeed,
   type CreateBaseSeedOptions,
   type CreateBaseSeedResult,
+  type SeedCategoryInput,
   type SeedPageInput,
   type SeedPostInput,
-  type SeedUserInput,
-  type SeedCategoryInput
-} from '../data/seed/createBaseSeed'
+  type SeedUserInput
+}
+export { createTestPayload, type CreateTestPayloadOptions, type CreateTestPayloadResult }
+export { createLayoutExports, handleLocale, type CreateLayoutExportsOptions }
 export {
-  createTestPayload,
-  type CreateTestPayloadOptions,
-  type CreateTestPayloadResult
-} from '../data/test/createTestPayload'
-
-export { createLayoutExports, handleLocale, type CreateLayoutExportsOptions } from '../render/pages/createLayoutExports'
-export {
-  createCollectionPageExports,
   addCollectionsToSitemap,
-  type MetadataOptions,
+  createCollectionPageExports,
   type CreateCollectionPageExportsArgs,
   type CreateCollectionPageExportsDeps,
-  type PageExtendProps,
   type JsonLdEntry,
-  type JsonLdOutput
-} from '../render/pages/createCollectionPageExports'
-
+  type JsonLdOutput,
+  type MetadataOptions,
+  type PageExtendProps
+}
 export {
   createPagesCollection,
-  type CreatePagesCollectionOptions
-} from '../data/collections/Pages/index'
-export { createHeaderGlobal, type CreateHeaderGlobalOptions } from '../data/collections/globals/Header/config'
-export { createFooterGlobal, type CreateFooterGlobalOptions } from '../data/collections/globals/Footer/config'
-export { generatePreviewPath } from '../data/collections/previewPath'
-export { HOME_PAGE_SLUG, pageSlugNestedDivider, PAGES_SLUG } from '../data/collections/Pages/index'
+  type CreatePagesCollectionOptions,
+  HOME_PAGE_SLUG,
+  PAGES_SLUG,
+  pageSlugNestedDivider
+}
+export { createHeaderGlobal, type CreateHeaderGlobalOptions }
+export { createFooterGlobal, type CreateFooterGlobalOptions }
+export { generatePreviewPath }
 
 export default createWWWConfig

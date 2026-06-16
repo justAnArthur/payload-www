@@ -7,6 +7,27 @@ export default defineConfig({
   ],
   format: ['esm'],
   clean: true,
+  splitting: false,
+  external: [
+    /node:/,
+    /@payloadcms/,
+    /next/,
+    /^react$/,
+    /^react\//,
+    /^react-dom/,
+    /^payload$/,
+    /^payload\//,
+    /^sharp/,
+    /^@img\//,
+    /^file-type/,
+    /^formidable/,
+    /^busboy/,
+    /^(fs|path|os|crypto|child_process|worker_threads|stream|buffer|url|util|zlib|http|https|tls|net|events|string_decoder|process|readline|querystring|assert|constants|domain|dns|punycode|tty|vm)$/
+  ],
+  noExternal: [],
+  define: {
+    'process.env.NODE_ENV': '"production"'
+  },
   sourceBase: './src/exports',
   plugins: [
     exports()

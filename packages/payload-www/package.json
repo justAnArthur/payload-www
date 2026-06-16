@@ -175,7 +175,7 @@
     "node": ">=20"
   },
   "scripts": {
-    "build": "bunup",
+    "build": "bunup && node scripts/strip-createRequire.mjs",
     "clean": "rm -rf dist .tsbuildinfo",
     "test": "vitest run",
     "test:watch": "vitest",

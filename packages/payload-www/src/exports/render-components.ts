@@ -1,6 +1,5 @@
-import type { LivePreviewListenerProps } from '../render/components/index'
-import { LivePreviewListener } from '../render/components/index'
+import { LivePreviewListener, type LivePreviewListenerProps } from '../render/components/LivePreviewListener'
 
 export default LivePreviewListener
 
-export { LivePreviewListener, type LivePreviewListenerProps } from '../render/components/index'
+export { LivePreviewListener, type LivePreviewListenerProps }

@@ -3,11 +3,5 @@ import { createFooterGlobal, type CreateFooterGlobalOptions } from '../data/coll
 
 export default { createHeaderGlobal, createFooterGlobal }
 
-export {
-  createHeaderGlobal,
-  type CreateHeaderGlobalOptions
-} from '../data/collections/globals/Header/config'
-export {
-  createFooterGlobal,
-  type CreateFooterGlobalOptions
-} from '../data/collections/globals/Footer/config'
+export { createHeaderGlobal, type CreateHeaderGlobalOptions }
+export { createFooterGlobal, type CreateFooterGlobalOptions }

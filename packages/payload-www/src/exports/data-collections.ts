@@ -20,14 +20,14 @@ export default {
 }
 
 export {
-  createPagesCollection,
-  createHeaderGlobal,
   createFooterGlobal,
+  createHeaderGlobal,
+  createPagesCollection,
   generatePreviewPath,
   HOME_PAGE_SLUG,
   pageSlugNestedDivider,
   PAGES_SLUG,
-  type CreatePagesCollectionOptions,
+  type CreateFooterGlobalOptions,
   type CreateHeaderGlobalOptions,
-  type CreateFooterGlobalOptions
-} from '../data/collections/index'
+  type CreatePagesCollectionOptions
+}

@@ -4,4 +4,4 @@ import { renderCollectionModule } from '../core/utils/renderCollectionModule'
 
 export default { getFromImportMap, generateImportName, renderCollectionModule }
 
-export { getFromImportMap, generateImportName, renderCollectionModule } from '../core/utils/index'
+export { generateImportName, getFromImportMap, renderCollectionModule }

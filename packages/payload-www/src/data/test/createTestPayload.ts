@@ -1,7 +1,7 @@
 import { sqliteAdapter } from '@payloadcms/db-sqlite'
 import { flattenAllFields, getPayload, inMemoryKVAdapter, type Payload } from 'payload'
-import path from 'path'
-import { fileURLToPath } from 'url'
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 
 import { createWWWConfig } from '../../config/createWWWConfig'
 

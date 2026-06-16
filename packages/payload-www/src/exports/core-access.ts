@@ -2,4 +2,4 @@ import { anyone, authenticated, authenticatedOrPublished } from '../core/access/
 
 export default { anyone, authenticated, authenticatedOrPublished }
 
-export { anyone, authenticated, authenticatedOrPublished } from '../core/access/index'
+export { anyone, authenticated, authenticatedOrPublished }

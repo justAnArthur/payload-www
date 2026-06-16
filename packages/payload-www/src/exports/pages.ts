@@ -18,15 +18,15 @@ export default {
 }
 
 export {
+  addCollectionsToSitemap,
+  createCollectionPageExports,
   createLayoutExports,
   handleLocale,
-  createCollectionPageExports,
-  addCollectionsToSitemap,
-  type CreateLayoutExportsOptions,
-  type MetadataOptions,
   type CreateCollectionPageExportsArgs,
   type CreateCollectionPageExportsDeps,
-  type PageExtendProps,
+  type CreateLayoutExportsOptions,
   type JsonLdEntry,
-  type JsonLdOutput
+  type JsonLdOutput,
+  type MetadataOptions,
+  type PageExtendProps
 }
