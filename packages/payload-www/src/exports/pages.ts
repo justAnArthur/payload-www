@@ -1,4 +1,6 @@
-import { createLayoutExports, type CreateLayoutExportsOptions, handleLocale } from '../render/pages/createLayoutExports'
+import { PagesPage } from '../render/pages/PagesPage'
+import { HeaderPage } from '../render/pages/HeaderPage'
+import { FooterPage } from '../render/pages/FooterPage'
 import {
   addCollectionsToSitemap,
   createCollectionPageExports,
@@ -11,20 +13,21 @@ import {
 } from '../render/pages/createCollectionPageExports'
 
 export default {
-  createLayoutExports,
-  handleLocale,
   createCollectionPageExports,
-  addCollectionsToSitemap
+  addCollectionsToSitemap,
+  PagesPage,
+  HeaderPage,
+  FooterPage
 }
 
 export {
   addCollectionsToSitemap,
   createCollectionPageExports,
-  createLayoutExports,
-  handleLocale,
+  PagesPage,
+  HeaderPage,
+  FooterPage,
   type CreateCollectionPageExportsArgs,
   type CreateCollectionPageExportsDeps,
-  type CreateLayoutExportsOptions,
   type JsonLdEntry,
   type JsonLdOutput,
   type MetadataOptions,

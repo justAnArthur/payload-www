@@ -1,44 +1,21 @@
 import type { CollectionAfterChangeHook, CollectionAfterDeleteHook } from 'payload'
-// `next/cache` is App-Router-only and must NOT be eagerly imported at the
-// module top level. The lib's data collections (Pages, Header, Footer)
-// re-export this factory from `data/collections/*` so that
-// `payload.config.ts` (a Node entrypoint) ends up loading this module.
-// Importing `next/cache` eagerly would chain it into the root barrel and
-// break the build. We resolve it lazily inside the hook at request time,
-// which is the only point the function is ever called in a real
-// App Router context anyway.
-
-export type RevalidatePageOptions = {
-  homeSlug?: string
-  nestedSlugDivider?: string
-  sitemapTag?: string | null
-  /**
-   * Host-supplied path composer. Receives the page slug and current
-   * locale, returns the public URL path to revalidate. When provided,
-   * overrides the lib's default `/${locale}/${slug}` builder. The
-   * Pages collection's host passes this in via `createWWWConfig`'s
-   * `pagePathBuilder` option.
-   */
-  pathBuilder?: (slug: string | null | undefined, locale: string) => string
-}
+// `next/cache` is App-Router-only. Resolved lazily inside the hook
+// at request time so `payload.config.ts` (a Node entrypoint) can
+// import this module without pulling `next/cache` into its module
+// graph at load time.
 
 /**
- * Build per-locale revalidation hooks for a page collection. Returns
- * `{ afterChange, afterDelete }` pair to attach to a Pages collection.
+ * Build per-locale revalidation hooks for a page collection. The
+ * page path is `/${locale}/${slug}`; the home page (slug `''`) is
+ * `/${locale}`. The lib's Pages collection revalidates the
+ * `pages-sitemap` tag on every change so any consumer using
+ * `createSitemapHandler` (or `addCollectionsToSitemap`) sees fresh
+ * data.
  */
-export function createRevalidatePageHooks(options: RevalidatePageOptions = {}) {
-  const homeSlug = options.homeSlug ?? ''
-  const divider = options.nestedSlugDivider ?? '_'
-  const sitemapTag = options.sitemapTag === undefined ? 'pages-sitemap' : options.sitemapTag
-  const hostPathBuilder = options.pathBuilder
-
+export function createRevalidatePageHooks() {
   const slugToPath = (slug: string | null | undefined, locale: string): string => {
-    if (hostPathBuilder) return hostPathBuilder(slug, locale)
-    if (slug === homeSlug) return `/${locale}`
-    if (divider && slug && slug.includes(divider)) {
-      return `/${locale}/${slug.replaceAll(divider, '/')}`
-    }
-    return `/${locale}/${slug ?? ''}`
+    if (!slug) return `/${locale}`
+    return `/${locale}/${slug}`
   }
 
   const afterChange: CollectionAfterChangeHook = async ({ doc, previousDoc, req: { payload, context, locale } }) => {
@@ -52,7 +29,7 @@ export function createRevalidatePageHooks(options: RevalidatePageOptions = {}) {
       payload.logger.info(`Revalidating page at path: ${path}`)
       try {
         revalidatePath(path)
-        if (sitemapTag) revalidateTag(sitemapTag, 'max')
+        revalidateTag('pages-sitemap', 'max')
       } catch (error) {
         payload.logger.error(`Error revalidating page ${path}: ${String(error)}`)
       }
@@ -62,7 +39,7 @@ export function createRevalidatePageHooks(options: RevalidatePageOptions = {}) {
       payload.logger.info(`Revalidating old page at path: ${oldPath}`)
       try {
         revalidatePath(oldPath)
-        if (sitemapTag) revalidateTag(sitemapTag, 'max')
+        revalidateTag('pages-sitemap', 'max')
       } catch (error) {
         payload.logger.error(`Error revalidating old page ${oldPath}: ${String(error)}`)
       }
@@ -71,7 +48,7 @@ export function createRevalidatePageHooks(options: RevalidatePageOptions = {}) {
   }
 
   const afterDelete: CollectionAfterDeleteHook = async ({ doc, req: { payload, context, locale } }) => {
-    if (context.disableRevalidate) return doc
+    if (context.disableRevalidate) return doc ?? null
     const { revalidatePath, revalidateTag } = await import('next/cache')
     const typed = doc as { slug?: string | null } | null
     const l = (locale as string) ?? ''
@@ -79,7 +56,7 @@ export function createRevalidatePageHooks(options: RevalidatePageOptions = {}) {
     payload.logger.info(`Revalidating deleted page at path: ${path}`)
     try {
       revalidatePath(path)
-      if (sitemapTag) revalidateTag(sitemapTag, 'max')
+      revalidateTag('pages-sitemap', 'max')
     } catch (error) {
       payload.logger.error(`Error revalidating deleted page ${path}: ${String(error)}`)
     }

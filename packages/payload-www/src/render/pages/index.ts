@@ -1,4 +1,6 @@
-export { createLayoutExports, handleLocale, type CreateLayoutExportsOptions } from './createLayoutExports'
+export { PagesPage } from './PagesPage'
+export { HeaderPage } from './HeaderPage'
+export { FooterPage } from './FooterPage'
 export {
   createCollectionPageExports,
   addCollectionsToSitemap,

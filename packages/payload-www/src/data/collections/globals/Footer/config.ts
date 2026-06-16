@@ -1,88 +1,61 @@
 import type { Block, GlobalConfig } from 'payload'
 
-import { linkGroup } from '../../../../core/fields/linkGroup'
+import { link } from '../../../../core/fields/link'
 import { createRevalidateGlobalHook } from '../../../../render/hooks/revalidateGlobal'
-import { createTranslateToOtherLocalesHook } from '../../../../core/hooks/translateToOtherLocales'
+import { FOOTER_RENDER_PATH, PAGES_SLUG } from '../../../../config/constants'
 
 export type CreateFooterGlobalOptions = {
+  /**
+   * Optional override for the `custom.path` Payload uses to resolve
+   * the footer's render module. Default: the lib's `FOOTER_RENDER_PATH`.
+   */
   renderPath?: string
   /**
-   * Blocks the footer's `blocks` field accepts. The lib doesn't
-   * ship defaults — pass your footer blocks (CTA, RichText, etc.)
-   * in. Mark them `localized: true` to follow the camasys pattern.
+   * Collection slugs the nav's link fields can reference. Required
+   * by Payload 3.85 — empty `relationTo` arrays are rejected.
+   * Defaults to `['pages']` (the lib's Pages collection). Pass a
+   * different list when your host has additional linkable collections.
    */
-  blocks?: Block[]
-  /** Override the link group field used inside the `nav` array. */
-  linkGroupField?: (options?: any) => any
-  /** Locales the translation hook should target. Omit to skip. */
-  locales?: { defaultLocale: string; all: readonly string[] }
+  linkRelationTo?: string[]
 }
 
 /**
- * Build the Footer global. Mirrors the camasys
- * `payload-www/.../Footer/config.ts` shape: a `blocks` field for the
- * footer's main content, a `nav` array of titled link groups, and
- * a `socials` array.
+ * Build the Footer global. The lib's default shape mirrors the
+ * Header: a `nav` blocks field with `navColumn` (a titled group of
+ * links) and `navItem` (a single link) blocks.
  */
 export const createFooterGlobal = (
   options: CreateFooterGlobalOptions = {}
 ): GlobalConfig => {
-  const { renderPath, blocks = [], linkGroupField = linkGroup, locales } = options
+  const { renderPath = FOOTER_RENDER_PATH, linkRelationTo = [PAGES_SLUG] } = options
 
-  const translateHook = locales
-    ? createTranslateToOtherLocalesHook({
-      defaultLocale: locales.defaultLocale,
-      locales: locales.all,
-      global: 'footer'
-    })
-    : null
+  const navColumnBlock: Block = {
+    slug: 'navColumn',
+    fields: [
+      { name: 'title', type: 'text', required: true, localized: true },
+      { name: 'links', type: 'array', fields: [link({ appearances: false, localized: true, relationTo: linkRelationTo })] }
+    ]
+  }
+
+  const navItemBlock: Block = {
+    slug: 'navItem',
+    fields: [link({ appearances: false, localized: true, relationTo: linkRelationTo })]
+  }
 
   return {
     slug: 'footer',
-    ...(renderPath ? { custom: { path: renderPath } } : {}),
+    custom: { path: renderPath },
     access: { read: () => true },
     fields: [
       {
-        name: 'blocks',
-        type: 'blocks',
-        blocks,
-        localized: true,
-        required: true,
-        admin: { description: 'Primarily used to have a CTA block.' }
-      },
-      {
         name: 'nav',
-        type: 'array',
+        type: 'blocks',
         required: true,
-        localized: true,
-        fields: [
-          { name: 'title', type: 'text', required: true, localized: true },
-          linkGroupField({
-            appearances: false,
-            overrides: { localized: true } as any,
-            linkOverrides: { localized: true }
-          })
-        ]
-      },
-      {
-        name: 'socials',
-        type: 'array',
-        required: false,
-        localized: true,
-        fields: [
-          { name: 'platform', type: 'text', localized: true, required: true },
-          { name: 'url', type: 'text', localized: true, required: true },
-          { name: 'icon', type: 'text', localized: false }
-        ]
+        blocks: [navColumnBlock, navItemBlock]
       }
     ],
     hooks: {
-      afterChange: translateHook
-        ? [
-          createRevalidateGlobalHook('global_footer'),
-          translateHook as any
-        ]
-        : [createRevalidateGlobalHook('global_footer')]
+      afterChange: [createRevalidateGlobalHook('footer')]
     }
   }
 }

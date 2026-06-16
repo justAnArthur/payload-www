@@ -1,14 +1,30 @@
-import type { Metadata, MetadataRoute } from 'next'
-// NOTE: `next/headers` must NOT be eagerly imported at the module top level.
-// The lib's `createWWWConfig` is reachable from `payload.config.ts` (a Node
-// entrypoint outside the App Router scope), and eager import would chain
-// `next/headers` into every consumer of `@justanarthur/payload-www`. Next 16
-// detects that module in a non-Server-Component context and throws the
-// "next/headers is only available in Server Components" build error.
-// Import it lazily inside the async function that actually needs it.
-import type { ImportMap, SanitizedConfig } from 'payload'
-import type { ReactElement } from 'react'
+import 'server-only'
+// `next/headers` is App-Router-only. Imported lazily in the `default_`
+// body so a server entrypoint that calls `createWWWConfig` doesn't
+// pull this module into its static graph at module-init time.
+//
+// This file is server-only by design: it never top-level-imports
+// the lib's `LivePreviewListener` (a 'use client' component). The
+// listener is resolved at request time through the importMap (the
+// same mechanism the lib uses to resolve the Pages collection's
+// `custom.path` render). The lib's `withWWWConfig` registers the
+// listener under `LIVE_PREVIEW_LISTENER_PATH` in `admin.dependencies`,
+// so the importMap statically imports the lib's
+// `/render-components` shim and exposes the listener as a value.
+// `createCollectionPageExports` reads that value from the importMap
+// and renders it (with a Suspense fallback) whenever Next.js draft
+// mode is on. Hosts get live preview automatically — no opt-in
+// required, and the server entry stays free of `'use client'`
+// imports.
 
+import type { Metadata, MetadataRoute } from 'next'
+import type { ImportMap, SanitizedConfig } from 'payload'
+import * as React from 'react'
+import type { ReactElement } from 'react'
+import { Suspense } from 'react'
+
+import { RenderBlocks } from '../blocks/renderBlocks'
+import { LIVE_PREVIEW_LISTENER_PATH } from '../../config/constants'
 import { renderCollectionModule } from '../utils/renderCollectionModule'
 import { buildHreflangAlternates } from '../metadata/hreflang'
 import {
@@ -19,15 +35,8 @@ import {
   buildOrganizationLd
 } from '../metadata/jsonld'
 import { getUrlPath, segmentsToStoredSlug, storedSlugToSegments } from '../metadata/slug'
-import { getRenderModuleExports, queryAllDocs, queryAllLocaleSlugs, queryDocBySlug } from '../metadata/query'
-import { LivePreviewListener } from '../components/index'
-import { type CreateLayoutExportsOptions, handleLocale } from './createLayoutExports'
-// PageProps type from Next — not re-exported as a runtime symbol so we
-// use the structural form. Hosts can pass their own typed PageProps.
-type PageProps<P = unknown> = {
-  params: Promise<P>;
-  searchParams: Promise<Record<string, string | string[] | undefined>>
-}
+import { queryAllDocs, queryAllLocaleSlugs, queryDocBySlug } from '../metadata/query'
+import { PAGES_RENDER_PATH } from '../../config/createWWWConfig'
 
 export type PageExtendProps = { importMap: ImportMap; config: SanitizedConfig; locale: string }
 
@@ -78,26 +87,41 @@ export type JsonLdOutput = { id: string; schema: Record<string, unknown> }
 
 export type MetadataOptions = {
   urlPrefix?: string
-  nestedSlug?: boolean
-  slugField?: string
-  ogType?: 'website' | 'article'
-  homeSlug?: string
-  metaOverride?: (doc: Record<string, any>, meta: Metadata) => Metadata
+  /** When true (default), the lib generates a `{type:'website'}` JSON-LD
+   * entry per page. Pass an array to specify entries; pass `false` to
+   * skip. */
   jsonLd?: boolean | JsonLdEntry[]
   changefreq?: MetadataRoute.Sitemap[number]['changeFrequency']
   priority?: number
+  /**
+   * Override the default `'website'` JSON-LD's `name` field. Only
+   * relevant when `jsonLd !== false` and no `name` is set on the
+   * auto-generated entry.
+   */
+  websiteName?: string
 }
 
 export type CreateCollectionPageExportsArgs = {
   config: Promise<SanitizedConfig>
+  /**
+   * Defaults to `'pages'`. The collection slug whose documents the
+   * page route renders.
+   */
   slug?: string
   importMap: ImportMap
+  /**
+   * Optional custom path pointing at the host's render module for
+   * the collection. Overrides the lib's registered `custom.path`
+   * (which defaults to `PAGES_RENDER_PATH`). Use this when you've
+   * defined your own Server Component for the collection.
+   */
+  renderPath?: string
 }
 
-export type CreateCollectionPageExportsDeps = CreateLayoutExportsOptions & {
-  defaultLocale: string
-  locales: readonly string[]
-  /** Host's `getServerSideURL()` (returns the absolute site URL). */
+export type CreateCollectionPageExportsDeps = {
+  /**
+   * Host's `getServerSideURL()` (returns the absolute site URL).
+   */
   getServerSideURL: () => string
   /**
    * Host's `generateMeta({ doc, url, type })` (returns Next.js
@@ -105,42 +129,96 @@ export type CreateCollectionPageExportsDeps = CreateLayoutExportsOptions & {
    * host can compose its title/description with the right base.
    */
   generateMeta: (args: { doc: Record<string, any>; url: string; type: 'website' | 'article' }) => Promise<Metadata>
+  /**
+   * When `true` (default), the route page renders a 404 for unknown
+   * slugs. Set `false` to render an empty page.
+   */
+  notFoundOnMissing?: boolean
 }
 
+const HOME_SLUG = ''
+
+/**
+ * Build a Pages (or any collection) page route's exports:
+ * `default` (the Page Server Component), `generateMetadata`,
+ * `generateStaticParams`, and `generateSitemap`.
+ *
+ * The host imports this in `app/(frontend)/[slug]/page.tsx` and
+ * destructures the result:
+ *
+ *   const { default: Page, generateMetadata, generateStaticParams } =
+ *     createCollectionPageExports({ config: configPromise, importMap },
+ *       { getServerSideURL, generateMeta: ... })
+ *
+ * Locales are read from the resolved config (`config.localization`).
+ * First locale is the default. No next-intl glue required.
+ */
 export function createCollectionPageExports(
-  { slug = 'pages', config: configPromise, importMap }: CreateCollectionPageExportsArgs,
+  { slug = 'pages', config: configPromise, importMap, renderPath }: CreateCollectionPageExportsArgs,
   deps: CreateCollectionPageExportsDeps,
   options: MetadataOptions = {}
 ) {
-  const {
-    urlPrefix = '',
-    nestedSlug = false,
-    slugField = 'slug',
-    ogType = 'website',
-    homeSlug,
-    metaOverride,
-    jsonLd: jsonLdOption = true,
-    changefreq = 'weekly',
-    priority = 0.5
-  } = options
+  const { jsonLd: jsonLdOption = true, changefreq = 'weekly', priority = 0.5, websiteName } = options
+  const { getServerSideURL, generateMeta, notFoundOnMissing = true } = deps
 
-  const siteUrl = deps.getServerSideURL()
+  async function resolveLocales() {
+    const cfg = await configPromise
+    const loc = cfg.localization
+    if (!loc) return { list: ['en'] as readonly string[], default: 'en' }
+    const list = loc.localeCodes ?? (loc.locales as any[]).map((l: any) => l.code) ?? []
+    const def = loc.defaultLocale ?? list[0] ?? 'en'
+    return { list: list as readonly string[], default: def }
+  }
 
-  const default_ = async (props: PageProps<any>): Promise<ReactElement> => {
-    const { draftMode } = await import('next/headers')
-    const [config, { isEnabled: draft }, locale, jsonLdNodes] = await Promise.all([
-      configPromise,
-      draftMode(),
-      handleLocale(props.params, deps),
-      jsonLdOption !== undefined ? generateJsonLd(props) : Promise.resolve<JsonLdOutput[]>([])
-    ])
-
-    const render = renderCollectionModule(config.collections, slug, importMap, {
-      ...props,
-      config,
+  async function fetchDoc(locale: string, storedSlug: string) {
+    return queryDocBySlug({
+      collectionSlug: slug,
+      slug: storedSlug,
+      slugField: 'slug',
       locale,
-      searchParams: props.searchParams
+      draft: true,
+      config: configPromise
     })
+  }
+
+  const default_ = async (props: any): Promise<ReactElement> => {
+    const { draftMode } = await import('next/headers')
+    const { list: _locales, default: defaultLocale } = await resolveLocales()
+    const { slug: rawSlug, locale: incomingLocale } = (await props.params) ?? {}
+    const locale = typeof incomingLocale === 'string' ? incomingLocale : defaultLocale
+
+    const storedSlug = segmentsToStoredSlug(rawSlug ?? '', false)
+    const doc = await fetchDoc(locale, storedSlug)
+
+    if (!doc && notFoundOnMissing) {
+      const { notFound } = await import('next/navigation')
+      notFound()
+    }
+
+    const { isEnabled: draft } = await draftMode()
+    const cfg = await configPromise
+    const collectionCustomPath = cfg.collections.find((c) => c.slug === slug)?.custom?.path
+    const effectivePath = renderPath ?? collectionCustomPath ?? PAGES_RENDER_PATH
+
+    const render =
+      effectivePath === PAGES_RENDER_PATH
+        ? doc
+          ? <RenderBlocks
+              blocks={(doc as any).blocks ?? []}
+              importMap={importMap}
+              config={cfg}
+              locale={locale}
+            />
+          : null
+        : renderCollectionModule(cfg.collections, slug, importMap, {
+            ...props,
+            config: cfg,
+            locale,
+            searchParams: props.searchParams,
+            doc
+          })
+
+    const jsonLdNodes = doc ? await generateJsonLd(props, doc, locale) : []
 
     return (
       <>
@@ -152,56 +230,53 @@ export function createCollectionPageExports(
           />
         ))}
         {render}
-        {draft && <LivePreviewListener/>}
+        {draft
+          ? (() => {
+              const ResolvedListener = importMap?.[LIVE_PREVIEW_LISTENER_PATH] as
+                | React.ComponentType<any>
+                | undefined
+              if (!ResolvedListener) return null
+              return (
+                <Suspense fallback={null}>
+                  <ResolvedListener />
+                </Suspense>
+              )
+            })()
+          : null}
       </>
     )
   }
 
-  async function generateMetadata(props: PageProps<any>): Promise<Metadata> {
-    const config = await configPromise
-    const { slug: rawSlug, locale: incomingLocale } = await props.params
+  async function generateMetadata(props: any): Promise<Metadata> {
+    const { list: locales, default: defaultLocale } = await resolveLocales()
+    const cfg = await configPromise
+    const { slug: rawSlug, locale: incomingLocale } = (await props.params) ?? {}
+    const locale = typeof incomingLocale === 'string' ? incomingLocale : defaultLocale
 
-    if (!deps.hasLocale(deps.locales, incomingLocale)) {
-      return { robots: { index: false, follow: false } }
-    }
-
-    const locale = incomingLocale
-    const collection = config.collections.find((c) => c.slug === slug)
-    if (!collection) return {}
-
-    const customGenerateMetadata = getRenderModuleExports('generateMetadata', collection, importMap)
-    if (customGenerateMetadata) {
-      return customGenerateMetadata(props)
-    }
-
-    const storedSlug = segmentsToStoredSlug(rawSlug ?? [], nestedSlug as any)
-    const urlPath = getUrlPath(rawSlug ?? [], nestedSlug, homeSlug ?? '')
-
-    const doc = await queryDocBySlug({
-      collectionSlug: slug,
-      slug: storedSlug,
-      slugField,
-      locale,
-      draft: true,
-      config: configPromise
-    })
+    const storedSlug = segmentsToStoredSlug(rawSlug ?? '', false)
+    const doc = await fetchDoc(locale, storedSlug)
 
     if (!doc) return { title: 'Not found', robots: { index: false, follow: false } }
 
-    const canonical = `${siteUrl}/${locale}${urlPrefix}${urlPath}`
-    const meta = await deps.generateMeta({ doc, url: canonical, type: ogType })
+    const collection = cfg.collections.find((c) => c.slug === slug)
+    if (!collection) return {}
+
+    const urlPath = getUrlPath(storedSlug, false, HOME_SLUG)
+    const siteUrl = getServerSideURL()
+    const canonical = `${siteUrl}/${locale}${urlPath}`
+    const meta = await generateMeta({ doc, url: canonical, type: 'website' })
 
     const languages = await buildHreflangAlternates({
       siteUrl,
       locale,
-      urlPrefix,
+      urlPrefix: '',
       storedSlug,
-      nested: nestedSlug,
-      homeSlug: homeSlug ?? '',
-      defaultLocale: deps.defaultLocale,
-      locales: deps.locales,
+      nested: false,
+      homeSlug: HOME_SLUG,
+      defaultLocale,
+      locales,
       queryAllLocaleSlugs: (s, l) =>
-        queryAllLocaleSlugs({ collectionSlug: slug, slug: s, slugField, locale: l, config: configPromise })
+        queryAllLocaleSlugs({ collectionSlug: slug, slug: s, slugField: 'slug', locale: l, config: configPromise })
     })
 
     meta.alternates = {
@@ -209,35 +284,20 @@ export function createCollectionPageExports(
       languages: Object.keys(languages).length ? languages : undefined
     }
 
-    return metaOverride ? metaOverride(doc, meta) : meta
+    return meta
   }
 
-  async function generateJsonLd(props: PageProps<any>): Promise<JsonLdOutput[]> {
-    if (jsonLdOption === undefined) return []
+  async function generateJsonLd(_props: any, doc: any, locale: string): Promise<JsonLdOutput[]> {
+    if (jsonLdOption === false || !doc) return []
+    const siteUrl = getServerSideURL()
+    const { slug: rawSlug } = (_props?.params ? await _props.params : { slug: '' }) as any
+    const storedSlug = segmentsToStoredSlug(rawSlug ?? '', false)
+    const urlPath = getUrlPath(storedSlug, false, HOME_SLUG)
+    const canonical = `${siteUrl}/${locale}${urlPath}`
 
     const entries: JsonLdEntry[] = Array.isArray(jsonLdOption)
       ? jsonLdOption
       : [{ type: 'website' }]
-
-    const { slug: rawSlug, locale: incomingLocale } = await props.params
-    if (!deps.hasLocale(deps.locales, incomingLocale)) return []
-
-    const locale = incomingLocale
-    const storedSlug = segmentsToStoredSlug(rawSlug ?? [], nestedSlug as any)
-    const urlPath = getUrlPath(rawSlug ?? [], nestedSlug, homeSlug ?? '')
-
-    const doc = await queryDocBySlug({
-      collectionSlug: slug,
-      slug: storedSlug,
-      slugField,
-      locale,
-      draft: true,
-      config: configPromise
-    })
-
-    if (!doc) return []
-
-    const canonical = `${siteUrl}/${locale}${urlPrefix}${urlPath}`
 
     const outputs: JsonLdOutput[] = []
     for (const entry of entries) {
@@ -264,7 +324,7 @@ export function createCollectionPageExports(
             '@type': 'WebSite',
             '@id': `${siteUrl}#website`,
             url: siteUrl,
-            name: entry.name ?? new URL(siteUrl).hostname,
+            name: entry.name ?? websiteName ?? new URL(siteUrl).hostname,
             ...(entry.alternateName ? { alternateName: entry.alternateName } : {}),
             inLanguage: locale
           }
@@ -297,48 +357,32 @@ export function createCollectionPageExports(
     return outputs
   }
 
-  async function generateStaticParams(props: { params: { locale: string } }) {
-    const locale = deps.hasLocale(deps.locales, props.params.locale)
-      ? props.params.locale
-      : deps.defaultLocale
-
-    const docs = await queryAllDocs({
-      collectionSlug: slug,
-      slugField,
-      locale,
-      config: configPromise
-    })
-
-    return docs
-      .map((doc) => {
-        const slugVal = doc[slugField] as string | undefined
-        if (!slugVal) return null
-        if (homeSlug && slugVal === homeSlug) return null
-        return { slug: storedSlugToSegments(slugVal, nestedSlug as any), locale }
-      })
-      .filter(Boolean) as { slug: string[]; locale: string }[]
+  async function generateStaticParams() {
+    const { list: locales } = await resolveLocales()
+    const params: Array<{ slug?: string; locale?: string }> = []
+    for (const locale of locales) {
+      const docs = await queryAllDocs({ collectionSlug: slug, slugField: 'slug', locale, config: configPromise })
+      for (const doc of docs) {
+        const slugVal = (doc as any).slug as string | undefined
+        if (typeof slugVal !== 'string' || slugVal === '') continue
+        params.push({ slug: slugVal, locale })
+      }
+    }
+    return params
   }
 
   async function generateSitemap(): Promise<MetadataRoute.Sitemap> {
-    const docs = await queryAllDocs({
-      collectionSlug: slug,
-      slugField,
-      locale: deps.defaultLocale,
-      config: configPromise
-    })
-
+    const { list: locales, default: defaultLocale } = await resolveLocales()
+    const docs = await queryAllDocs({ collectionSlug: slug, slugField: 'slug', locale: defaultLocale, config: configPromise })
+    const siteUrl = getServerSideURL().replace(/\/$/, '')
     const urls: MetadataRoute.Sitemap = []
     for (const doc of docs) {
-      const slugVal = doc[slugField] as string | undefined
-      if (!slugVal) continue
-      if (homeSlug && slugVal === homeSlug) continue
-
-      for (const locale of deps.locales) {
-        const lastmod = doc.updatedAt ? new Date(doc.updatedAt).toISOString() : undefined
-        const urlPath = nestedSlug ? '/' + slugVal.replaceAll('_', '/') : '/' + slugVal
-        const prefix = urlPrefix.replace(/\/$/, '')
-        const url = `${siteUrl}/${locale}${prefix}${urlPath}`
-        urls.push({ url, lastModified: lastmod, changeFrequency: changefreq, priority })
+      const slugVal = (doc as any).slug as string | undefined
+      if (typeof slugVal !== 'string' || slugVal === '') continue
+      for (const locale of locales) {
+        const urlPath = `/${slugVal}`
+        const lastmod = doc.updatedAt ? new Date(doc.updatedAt as string).toISOString() : undefined
+        urls.push({ url: `${siteUrl}/${locale}${urlPath}`, lastModified: lastmod, changeFrequency: changefreq, priority })
       }
     }
     return urls
@@ -363,6 +407,5 @@ export function addCollectionsToSitemap(
     const all = await Promise.all(exports.map((e) => e.generateSitemap()))
     return all.flat()
   }
-
   return { default: buildSitemap, generateSitemap: buildSitemap }
 }

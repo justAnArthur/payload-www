@@ -1,7 +1,6 @@
 export {
   createPagesCollection,
   HOME_PAGE_SLUG,
-  pageSlugNestedDivider,
   PAGES_SLUG,
   type CreatePagesCollectionOptions
 } from './Pages/index'

@@ -1,2 +1,2 @@
-export { createRevalidatePageHooks, type RevalidatePageOptions } from './revalidatePage'
-export { createRevalidateGlobalHook, type RevalidateGlobalOptions } from './revalidateGlobal'
+export { createRevalidatePageHooks } from './revalidatePage'
+export { createRevalidateGlobalHook } from './revalidateGlobal'

@@ -8,8 +8,8 @@ import { createWWWConfig } from '../../config/createWWWConfig'
 export type CreateTestPayloadOptions = {
   /** Default blocks for the Pages collection. */
   blocks?: any[]
-  /** i18n config. */
-  i18n?: { defaultLocale: string; locales: readonly string[] }
+  /** Locale list. First entry is the default locale. */
+  locales?: readonly string[]
   /** Database file path. Default: temp file. */
   databaseFile?: string
   /** Run payload auto-migration before returning. Default: `true`. */
@@ -43,10 +43,11 @@ export async function createTestPayload(
     options.databaseFile ??
     path.join(dirname, `.test-${Date.now()}-${Math.random().toString(36).slice(2)}.db`)
 
-  const i18n = options.i18n ?? { defaultLocale: 'en', locales: ['en', 'uk'] as const }
+  const locales = options.locales ?? (['en', 'uk'] as const)
+  const defaultLocale = locales[0] ?? 'en'
   const blocks = options.blocks ?? []
 
-  const { withWWWConfig } = createWWWConfig({ i18n, blocks })
+  const { withWWWConfig } = createWWWConfig({ locales: [...locales], blocks })
 
   const config = await withWWWConfig({
     admin: { user: 'users' },
@@ -69,14 +70,10 @@ export async function createTestPayload(
       // run our own migrate() after init.
       push: false
     }) as any,
-    i18n: {
-      supportedLanguages: { en: {}, uk: {} },
-      fallbackLanguage: i18n.defaultLocale
-    } as any,
     secret: 'test-secret-do-not-use-in-prod',
     sharp: (await import('sharp')).default as any,
     editor: {} as any,
-    localization: { locales: [...i18n.locales], defaultLocale: i18n.defaultLocale } as any,
+    localization: { locales: [...locales], defaultLocale } as any,
     kv: inMemoryKVAdapter(),
     typescript: { outputFile: './payload-types.ts' }
   } as any)

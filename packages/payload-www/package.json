@@ -1,6 +1,6 @@
 {
   "name": "@justanarthur/payload-www",
-  "description": "Reusable Payload CMS website template — config builder, collections, blocks, fields, access, hooks, metadata (JSON-LD, hreflang), page renderers, and test helpers. Powers the camasys/frontend/apps/www Payload site as an external lib.",
+  "description": "Reusable Payload CMS website template — config builder, collections, globals, blocks, fields, access, hooks, metadata (JSON-LD, hreflang), page renderers, and test helpers.",
   "version": "0.0.0",
   "type": "module",
   "private": false,
@@ -11,16 +11,22 @@
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
-    "./server": {
-      "import": {
-        "types": "./dist/server.d.ts",
-        "default": "./dist/server.js"
-      }
-    },
     "./data-seed": {
       "import": {
         "types": "./dist/data-seed.d.ts",
         "default": "./dist/data-seed.js"
+      }
+    },
+    "./hooks": {
+      "import": {
+        "types": "./dist/hooks.d.ts",
+        "default": "./dist/hooks.js"
+      }
+    },
+    "./server": {
+      "import": {
+        "types": "./dist/server.d.ts",
+        "default": "./dist/server.js"
       }
     },
     "./data-test": {
@@ -33,6 +39,12 @@
       "import": {
         "types": "./dist/with-www-config.d.ts",
         "default": "./dist/with-www-config.js"
+      }
+    },
+    "./imagehash": {
+      "import": {
+        "types": "./dist/imagehash.d.ts",
+        "default": "./dist/imagehash.js"
       }
     },
     ".": {
@@ -71,16 +83,22 @@
         "default": "./dist/config.js"
       }
     },
+    "./render-utils": {
+      "import": {
+        "types": "./dist/render-utils.d.ts",
+        "default": "./dist/render-utils.js"
+      }
+    },
     "./data-collections": {
       "import": {
         "types": "./dist/data-collections.d.ts",
         "default": "./dist/data-collections.js"
       }
     },
-    "./hooks": {
+    "./seed": {
       "import": {
-        "types": "./dist/hooks.d.ts",
-        "default": "./dist/hooks.js"
+        "types": "./dist/seed.d.ts",
+        "default": "./dist/seed.js"
       }
     },
     "./pages": {
@@ -99,12 +117,6 @@
       "import": {
         "types": "./dist/core-fields.d.ts",
         "default": "./dist/core-fields.js"
-      }
-    },
-    "./core-hooks": {
-      "import": {
-        "types": "./dist/core-hooks.d.ts",
-        "default": "./dist/core-hooks.js"
       }
     },
     "./test": {
@@ -137,6 +149,12 @@
         "default": "./dist/core-utils.js"
       }
     },
+    "./translator": {
+      "import": {
+        "types": "./dist/translator.d.ts",
+        "default": "./dist/translator.js"
+      }
+    },
     "./blocks": {
       "import": {
         "types": "./dist/blocks.d.ts",
@@ -167,24 +185,6 @@
         "default": "./dist/utils.js"
       }
     },
-    "./seed": {
-      "import": {
-        "types": "./dist/seed.d.ts",
-        "default": "./dist/seed.js"
-      }
-    },
-    "./imagehash": {
-      "import": {
-        "types": "./dist/imagehash.d.ts",
-        "default": "./dist/imagehash.js"
-      }
-    },
-    "./translator": {
-      "import": {
-        "types": "./dist/translator.d.ts",
-        "default": "./dist/translator.js"
-      }
-    },
     "./package.json": "./package.json"
   },
   "license": "MIT",
@@ -206,25 +206,18 @@
     "@justanarthur/payload-plugin-translator": "workspace:*",
     "@payloadcms/live-preview-react": "3.85.0",
     "@payloadcms/richtext-lexical": "3.85.0",
-    "@payloadcms/db-sqlite": "3.85.0",
     "@payloadcms/next": "3.85.0",
-    "next": "16.2.6"
+    "next": "16.2.6",
+    "server-only": "0.0.1"
   },
   "devDependencies": {
-    "@payloadcms/live-preview-react": "3.85.0",
-    "@payloadcms/plugin-form-builder": "3.85.0",
-    "@payloadcms/plugin-nested-docs": "3.85.0",
-    "@payloadcms/plugin-redirects": "3.85.0",
-    "@payloadcms/plugin-search": "3.85.0",
     "@types/node": "22.19.9",
     "@types/react": "19.2.14",
     "@types/react-dom": "19.2.3",
     "bunup": "^0.16.32",
-    "next-intl": "^4.0.0",
     "payload": "3.85.0",
     "react": "19.2.6",
     "react-dom": "19.2.6",
-    "sharp": "0.34.2",
     "typescript": "5.7.3",
     "vitest": "4.0.18"
   },
@@ -235,7 +228,6 @@
     "@payloadcms/translations": "^3.85.0",
     "@payloadcms/ui": "^3.85.0",
     "next": "^16.2.6",
-    "next-intl": "^4.0.0",
     "payload": "^3.85.0",
     "react": "^19.2.6",
     "react-dom": "^19.2.6"

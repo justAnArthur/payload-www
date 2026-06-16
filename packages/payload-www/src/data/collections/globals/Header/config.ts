@@ -2,64 +2,49 @@ import type { Block, GlobalConfig } from 'payload'
 
 import { link } from '../../../../core/fields/link'
 import { createRevalidateGlobalHook } from '../../../../render/hooks/revalidateGlobal'
-import { createTranslateToOtherLocalesHook } from '../../../../core/hooks/translateToOtherLocales'
+import { HEADER_RENDER_PATH, PAGES_SLUG } from '../../../../config/constants'
 
 export type CreateHeaderGlobalOptions = {
+  /**
+   * Optional override for the `custom.path` Payload uses to resolve
+   * the header's render module. Default: the lib's `HEADER_RENDER_PATH`.
+   */
   renderPath?: string
-  /** Optional override for the link field used by `navItem` blocks. */
-  linkField?: (options?: { appearances?: false | 'default'[] }) => any
-  /** Optional override for the link group field used by `navColumn` blocks. */
-  linkGroupField?: (options?: any) => any
-  /** Locales the translation hook should target. Omit to skip. */
-  locales?: { defaultLocale: string; all: readonly string[] }
+  /**
+   * Collection slugs the nav's link fields can reference. Required
+   * by Payload 3.85 — empty `relationTo` arrays are rejected.
+   * Defaults to `['pages']` (the lib's Pages collection). Pass a
+   * different list when your host has additional linkable collections.
+   */
+  linkRelationTo?: string[]
 }
 
 /**
- * Build the Header global. Mirrors the camasys `payload-www/.../Header/config.ts`
- * shape: a `nav` blocks field with two block types — `navColumn` (a
- * titled group of `linkGroup` items) and `navItem` (a single link).
+ * Build the Header global. The lib's default shape: a `nav` blocks
+ * field with two block types — `navColumn` (a titled group of links)
+ * and `navItem` (a single link).
  */
 export const createHeaderGlobal = (
   options: CreateHeaderGlobalOptions = {}
 ): GlobalConfig => {
-  const {
-    renderPath,
-    linkField = (opts) => link({ ...opts, disableLabel: true, appearances: false }),
-    linkGroupField,
-    locales
-  } = options
+  const { renderPath = HEADER_RENDER_PATH, linkRelationTo = [PAGES_SLUG] } = options
 
   const navColumnBlock: Block = {
     slug: 'navColumn',
     fields: [
-      {
-        name: 'title',
-        type: 'text',
-        required: true,
-        localized: true
-      },
-      ...(linkGroupField
-        ? [linkGroupField({ linkOverrides: { fields: [{ name: 'description', type: 'text', localized: true }] } })]
-        : [])
+      { name: 'title', type: 'text', required: true, localized: true },
+      { name: 'links', type: 'array', fields: [link({ appearances: false, localized: true, relationTo: linkRelationTo })] }
     ]
   }
 
   const navItemBlock: Block = {
     slug: 'navItem',
-    fields: [linkField({ appearances: false })]
+    fields: [link({ appearances: false, localized: true, relationTo: linkRelationTo })]
   }
-
-  const translateHook = locales
-    ? createTranslateToOtherLocalesHook({
-      defaultLocale: locales.defaultLocale,
-      locales: locales.all,
-      global: 'header'
-    })
-    : null
 
   return {
     slug: 'header',
-    ...(renderPath ? { custom: { path: renderPath } } : {}),
+    custom: { path: renderPath },
     access: { read: () => true },
     fields: [
       {
@@ -70,12 +55,7 @@ export const createHeaderGlobal = (
       }
     ],
     hooks: {
-      afterChange: translateHook
-        ? [
-          createRevalidateGlobalHook('global_header'),
-          translateHook as any
-        ]
-        : [createRevalidateGlobalHook('global_header')]
+      afterChange: [createRevalidateGlobalHook('header')]
     }
   }
 }

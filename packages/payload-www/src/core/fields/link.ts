@@ -1,5 +1,7 @@
 import type { Field, GroupField } from 'payload'
 
+import { PAGES_SLUG } from '../../config/constants'
+
 export type LinkAppearances = 'default' | 'outline'
 
 export const appearanceOptions: Record<LinkAppearances, { label: string; value: string }> = {
@@ -10,7 +12,12 @@ export const appearanceOptions: Record<LinkAppearances, { label: string; value: 
 export type LinkOptions = {
   appearances?: LinkAppearances[] | false
   disableLabel?: boolean
-  /** Override the collection slugs the link can reference. */
+  /**
+   * Collection slugs the link can reference. Payload 3.85 rejects
+   * empty arrays, so the lib defaults to `['pages']` (its own Pages
+   * collection). Hosts that reference different collections pass
+   * their own list.
+   */
   relationTo?: string[]
   /** Mark the text fields as `localized: true`. */
   localized?: boolean
@@ -24,7 +31,7 @@ export const link = (options: LinkOptions = {}): Field => {
   const {
     appearances,
     disableLabel = false,
-    relationTo = [],
+    relationTo = [PAGES_SLUG],
     localized = false,
     overrides = {}
   } = options

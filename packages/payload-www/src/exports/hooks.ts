@@ -1,24 +1,12 @@
-import { populatePublishedAt } from '../core/hooks/populatePublishedAt'
-import { createRevalidatePageHooks, type RevalidatePageOptions } from '../render/hooks/revalidatePage'
-import { createRevalidateGlobalHook, type RevalidateGlobalOptions } from '../render/hooks/revalidateGlobal'
-import {
-  createTranslateToOtherLocalesHook,
-  type TranslateToOtherLocalesOptions
-} from '../core/hooks/translateToOtherLocales'
+import { createRevalidatePageHooks } from '../render/hooks/revalidatePage'
+import { createRevalidateGlobalHook } from '../render/hooks/revalidateGlobal'
 
 export default {
   createRevalidatePageHooks,
-  createRevalidateGlobalHook,
-  createTranslateToOtherLocalesHook,
-  populatePublishedAt
+  createRevalidateGlobalHook
 }
 
 export {
   createRevalidateGlobalHook,
-  createRevalidatePageHooks,
-  createTranslateToOtherLocalesHook,
-  populatePublishedAt,
-  type RevalidateGlobalOptions,
-  type RevalidatePageOptions,
-  type TranslateToOtherLocalesOptions
+  createRevalidatePageHooks
 }
