@@ -2,15 +2,25 @@ import type { CollectionConfig, Field } from 'payload'
 
 import { authenticated, authenticatedOrPublished } from '../../../core/access'
 import { createRevalidateGlobalHook } from '../../../render/hooks/revalidateGlobal'
+import { POSTS_RENDER_PATH } from '../../../config/constants'
 
 export const POSTS_SLUG = 'posts'
 
 export type CreatePostsCollectionOptions = {
   /**
-   * Optional override for the `custom.path` Payload uses to resolve
-   * the post's render module. The lib doesn't ship a default
-   * `PostsPage` Server Component (the host defines it). Set this to
-   * your own Server Component's import path.
+   * Optional override for the collection slug. Default: `'posts'`.
+   * Hosts that want a different slug (e.g. `'articles'` or `'blog'`)
+   * pass it here. Combine with the page route's URL convention and
+   * the lib's translator plugin's `collections` list.
+   */
+  slug?: string
+  /**
+   * Override the `custom.path` Payload uses to resolve the post's
+   * render module. Defaults to the lib's `POSTS_RENDER_PATH`
+   * (the lib's `<PostsPage>` Server Component, which renders
+   * `title` + `excerpt` + Lexical `content`). Hosts that want a
+   * custom render pass their own Server Component's import path
+   * here (e.g. `'@/blog/Post#default'`).
    */
   renderPath?: string
 }
@@ -27,8 +37,8 @@ export type CreatePostsCollectionOptions = {
  */
 export const createPostsCollection = (
   options: CreatePostsCollectionOptions = {}
-): CollectionConfig<'posts'> => {
-  const { renderPath } = options
+): CollectionConfig => {
+  const { renderPath = POSTS_RENDER_PATH, slug: collectionSlug = POSTS_SLUG } = options
 
   const slugField: Field = {
     name: 'slug',
@@ -48,7 +58,7 @@ export const createPostsCollection = (
     },
     {
       name: 'excerpt',
-      type: 'textarea',
+      type: 'text',
       required: false,
       localized: true
     },
@@ -67,8 +77,8 @@ export const createPostsCollection = (
   ]
 
   return {
-    slug: POSTS_SLUG,
-    ...(renderPath ? { custom: { path: renderPath } } : {}),
+    slug: collectionSlug,
+    custom: { path: renderPath },
     access: {
       create: authenticated,
       delete: authenticated,
@@ -83,5 +93,5 @@ export const createPostsCollection = (
       afterChange: [createRevalidateGlobalHook(POSTS_SLUG) as any]
     } as CollectionConfig['hooks'],
     versions: { drafts: { autosave: { interval: 1000 } } }
-  } as CollectionConfig<'posts'>
+  } as CollectionConfig
 }

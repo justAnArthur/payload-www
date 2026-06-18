@@ -1,5 +1,11 @@
 import { buildCanonicalUrl } from './slug'
 
+/**
+ * Hreflang alternate URLs as a `lang → url` map. Always includes an
+ * `'x-default'` entry pointing at the default locale's URL.
+ */
+export type HreflangAlternates = Record<string, string>
+
 export async function buildHreflangAlternates<L extends string>({
                                                                   siteUrl,
                                                                   locale,

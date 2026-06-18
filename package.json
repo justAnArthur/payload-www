@@ -5,5 +5,8 @@
     "packages/*",
     "plugins/*",
     "demo"
-  ]
+  ],
+  "dependencies": {
+    "tsx": "^4.22.4"
+  }
 }

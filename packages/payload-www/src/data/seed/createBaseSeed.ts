@@ -12,6 +12,7 @@ export type SeedPageInput = {
 export type SeedPostInput = {
   slug: string
   title: Record<string, string>
+  excerpt?: Record<string, string>
   content?: Record<string, unknown>
   status?: 'draft' | 'published'
   publishedAt?: string
@@ -209,7 +210,11 @@ export async function createBaseSeed(
       slug: page.slug,
       title: { ...page.title },
       blocks: page.blocks ?? [],
-      publishedAt: page.publishedAt ?? new Date().toISOString()
+      publishedAt: page.publishedAt ?? new Date().toISOString(),
+      // Payload's draft/publish defaults to `draft` if `_status` is
+      // omitted — `draft: false` alone doesn't promote the doc. Be
+      // explicit so the seed actually publishes.
+      _status: page.status === 'draft' ? 'draft' : 'published'
     }
     if (page.meta) data.meta = { ...page.meta }
 
@@ -245,9 +250,18 @@ export async function createBaseSeed(
     const data: Record<string, unknown> = {
       slug: post.slug,
       title: { ...post.title },
+      // Excerpt is set before the `content` / `_status` fields so
+      // Payload's beforeChange pipeline processes it in the same
+      // pass as the other localized fields. (Some Payload versions
+      // short-circuit localized-field stringification for fields
+      // appended after `_status`.)
+      ...(post.excerpt ? { excerpt: { ...post.excerpt } } : {}),
       content: post.content ?? simpleRichText('Hello world'),
       publishedAt: post.publishedAt ?? new Date().toISOString(),
-      authors: result.users.length > 0 ? [result.users[0].id] : []
+      authors: result.users.length > 0 ? [result.users[0].id] : [],
+      // Explicit publish — same reason as pages above; Payload
+      // defaults `_status` to `draft` when omitted.
+      _status: post.status === 'draft' ? 'draft' : 'published'
     }
     let id: string | number
     if (existing.docs.length === 0) {

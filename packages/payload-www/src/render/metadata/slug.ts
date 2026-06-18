@@ -28,8 +28,9 @@ export function buildCanonicalUrl<L extends string>({
   urlPrefix: string
   urlPath: string
 }): string {
-  const prefix = urlPrefix.replace(/\/$/, '')
-  return `${siteUrl}/${locale}${prefix}${urlPath}`
+  const trimmedPrefix = urlPrefix.replace(/^\/|\/$/g, '')
+  const prefixSegment = trimmedPrefix ? `/${trimmedPrefix}` : ''
+  return `${siteUrl}/${locale}${prefixSegment}${urlPath}`
 }
 
 export function getUrlPath(segments: string[] | string, nested: boolean, homeSlug: string): string {

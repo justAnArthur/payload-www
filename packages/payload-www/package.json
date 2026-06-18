@@ -65,6 +65,12 @@
         "default": "./dist/render-pages.js"
       }
     },
+    "./import-map-provider": {
+      "import": {
+        "types": "./dist/import-map-provider.d.ts",
+        "default": "./dist/import-map-provider.js"
+      }
+    },
     "./core-access": {
       "import": {
         "types": "./dist/core-access.d.ts",
@@ -208,6 +214,7 @@
     "@payloadcms/richtext-lexical": "3.85.0",
     "@payloadcms/next": "3.85.0",
     "next": "16.2.6",
+    "next-intl": "^4.0.0",
     "server-only": "0.0.1"
   },
   "devDependencies": {
@@ -228,6 +235,7 @@
     "@payloadcms/translations": "^3.85.0",
     "@payloadcms/ui": "^3.85.0",
     "next": "^16.2.6",
+    "next-intl": "^4.0.0",
     "payload": "^3.85.0",
     "react": "^19.2.6",
     "react-dom": "^19.2.6"

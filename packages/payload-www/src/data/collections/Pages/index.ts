@@ -17,6 +17,15 @@ export type CreatePagesCollectionOptions = {
    */
   blocks: Block[]
   /**
+   * Optional override for the collection slug. Default: `'pages'`.
+   * Hosts that want a different slug (e.g. `'site_pages'`) pass
+   * it here. The lib's Header / Footer `linkRelationTo` default
+   * uses `'pages'` — combine this with a matching
+   * `linkRelationTo` to keep nav links targeting the right
+   * collection.
+   */
+  slug?: string
+  /**
    * Optional override for the `custom.path` Payload uses to resolve
    * the page's render module. Default: the lib's `PAGES_RENDER_PATH`
    * (a Server Component that calls `RenderBlocks`). Use this when
@@ -28,8 +37,8 @@ export type CreatePagesCollectionOptions = {
 export const createPagesCollection = (
   blocks: Block[],
   options: Omit<CreatePagesCollectionOptions, 'blocks'> = {}
-): CollectionConfig<'pages'> => {
-  const { renderPath = PAGES_RENDER_PATH } = options
+): CollectionConfig => {
+  const { renderPath = PAGES_RENDER_PATH, slug: collectionSlug = PAGES_SLUG } = options
 
   const slugField: Field = {
     name: 'slug',
@@ -37,7 +46,16 @@ export const createPagesCollection = (
     required: true,
     unique: true,
     index: true,
-    admin: { position: 'sidebar' }
+    admin: { position: 'sidebar' },
+    // The empty slug is reserved for the home page (rendered at
+    // `/${locale}`). One doc per locale can have it.
+    validate: (value: unknown) => {
+      if (typeof value !== 'string') return 'Slug must be a string'
+      if (value !== '' && !/^[a-z0-9-]+$/.test(value)) {
+        return 'Slug must be lowercase, with hyphens (no spaces or special characters)'
+      }
+      return true
+    }
   }
 
   const baseFields: Field[] = [
@@ -76,7 +94,7 @@ export const createPagesCollection = (
     createRevalidatePageHooks()
 
   return {
-    slug: PAGES_SLUG,
+    slug: collectionSlug,
     custom: { path: renderPath },
     access: {
       create: authenticated,
@@ -90,5 +108,5 @@ export const createPagesCollection = (
       afterDelete: [revalidateAfterDelete]
     } as CollectionConfig['hooks'],
     versions: { drafts: { autosave: { interval: 1000 } } }
-  } as CollectionConfig<'pages'>
+  } as CollectionConfig
 }

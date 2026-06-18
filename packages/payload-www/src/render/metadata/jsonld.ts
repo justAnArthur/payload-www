@@ -6,6 +6,37 @@ function getImageUrl(doc: Record<string, any>, siteUrl: string): string | null {
   return null
 }
 
+/**
+ * Resolve a localized field. The lib's collections mark fields
+ * with `localized: true`; Payload returns them as a `{ en, uk }`
+ * object after locale resolution. Some hosts (notably the demo's
+ * SQLite + REST path) re-serialize the object back to a JSON
+ * string regardless of the requested locale — the helper handles
+ * both shapes. The active locale wins; other locales are joined
+ * with ` / ` as a fallback so visitors always see something
+ * meaningful.
+ */
+function resolveLocalizedField(value: unknown, locale: string): string {
+  if (value == null) return ''
+  if (typeof value === 'string') {
+    if (!value.startsWith('{')) return value
+    try {
+      const parsed = JSON.parse(value)
+      return resolveLocalizedField(parsed, locale)
+    } catch {
+      return value
+    }
+  }
+  if (typeof value !== 'object') return ''
+  const obj = value as Record<string, unknown>
+  if (typeof obj[locale] === 'string' && (obj[locale] as string).length > 0) {
+    return obj[locale] as string
+  }
+  return Object.values(obj)
+    .filter((v): v is string => typeof v === 'string' && v.length > 0)
+    .join(' / ')
+}
+
 export type ArticleLdOptions = {
   doc: Record<string, any>
   url: string
@@ -31,8 +62,11 @@ export function buildArticleLd({
     '@context': 'https://schema.org',
     '@type': type,
     '@id': `${url}#article`,
-    headline: doc.title ?? '',
-    description: doc.meta?.description ?? doc.description ?? '',
+    headline: resolveLocalizedField(doc.title, locale),
+    description: resolveLocalizedField(
+      doc.meta?.description ?? doc.description ?? doc.excerpt,
+      locale
+    ),
     inLanguage: locale,
     url,
     dateModified: doc.updatedAt ? new Date(doc.updatedAt).toISOString() : undefined

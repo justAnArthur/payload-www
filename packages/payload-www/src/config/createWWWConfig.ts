@@ -1,9 +1,5 @@
 import type { AdminComponent, Block, CollectionConfig, Config, GlobalConfig, Plugin } from 'payload'
 
-import { seoPlugin } from '@justanarthur/payload-plugin-seo'
-import { imageHashPlugin } from '@justanarthur/payload-imagehash-plugin'
-import { translator } from '@justanarthur/payload-plugin-translator'
-
 import { createPagesCollection } from '../data/collections/Pages/index'
 import { createPostsCollection } from '../data/collections/Posts/index'
 import { createHeaderGlobal } from '../data/collections/globals/Header/config'
@@ -17,6 +13,7 @@ import { createSitemapHandler } from '../render/sitemap/createSitemapHandler'
 // `/with-www-config` subpath.
 import {
   PAGES_RENDER_PATH,
+  POSTS_RENDER_PATH,
   HEADER_RENDER_PATH,
   FOOTER_RENDER_PATH,
   PAGES_SLUG,
@@ -26,6 +23,7 @@ import {
 
 export {
   PAGES_RENDER_PATH,
+  POSTS_RENDER_PATH,
   HEADER_RENDER_PATH,
   FOOTER_RENDER_PATH,
   PAGES_SLUG,
@@ -70,7 +68,7 @@ export type WWWConfigOptions = {
 }
 
 export type WWWConfigApi = {
-  withWWWConfig: (config: WWWInputConfig) => Config
+  withWWWConfig: (config: WWWInputConfig) => Promise<Config> | Config
 }
 
 export type WWWInputConfig = Omit<Config, 'collections' | 'globals'> & {
@@ -115,7 +113,7 @@ export function createWWWConfig(options: WWWConfigOptions): WWWConfigApi {
 
   const buildFooterGlobal = () => createFooterGlobal({ linkRelationTo }) as GlobalConfig
 
-  function withWWWConfig(config: WWWInputConfig): Config {
+  async function withWWWConfig(config: WWWInputConfig): Promise<Config> {
     // Direct calls to the imported factories keep their imports alive
     // through bunup's dead-code elimination. The `build*` closures
     // above remain exported for host consumers who want to compose
@@ -143,6 +141,7 @@ export function createWWWConfig(options: WWWConfigOptions): WWWConfigApi {
     // server entry).
     const renderDependencies: Record<string, AdminComponent> = {
       [PAGES_RENDER_PATH]: { path: PAGES_RENDER_PATH, type: 'component' },
+      [POSTS_RENDER_PATH]: { path: POSTS_RENDER_PATH, type: 'component' },
       [HEADER_RENDER_PATH]: { path: HEADER_RENDER_PATH, type: 'component' },
       [FOOTER_RENDER_PATH]: { path: FOOTER_RENDER_PATH, type: 'component' },
       [LIVE_PREVIEW_LISTENER_PATH]: {
@@ -151,7 +150,20 @@ export function createWWWConfig(options: WWWConfigOptions): WWWConfigApi {
       }
     }
 
-    // Lib's default plugin set. Hosts reshape via `defaultPlugins`.
+    // Lib's default plugin set. Loaded lazily so Node entrypoints
+    // (e.g. `payload seed`) don't pull in the admin UI's CSS via
+    // the translator plugin's client components. The plugin
+    // factories are pure — calling them at config build time is
+    // cheap and the resulting `Plugin` arrays work the same.
+    const [
+      { seoPlugin },
+      { imageHashPlugin },
+      { translator }
+    ] = await Promise.all([
+      import('@justanarthur/payload-plugin-seo'),
+      import('@justanarthur/payload-imagehash-plugin'),
+      import('@justanarthur/payload-plugin-translator')
+    ])
     const defaultPluginList: Plugin[] = [
       seoPlugin({ collections: ['pages'] }),
       imageHashPlugin({ algorithm: 'lqip-modern' }),

@@ -4,6 +4,7 @@
 // global they re-define via `createPagesCollection` /
 // `createHeaderGlobal` / `createFooterGlobal`.
 export const PAGES_RENDER_PATH = '@justanarthur/payload-www/render-pages#PagesPage'
+export const POSTS_RENDER_PATH = '@justanarthur/payload-www/render-pages#PostsPage'
 export const HEADER_RENDER_PATH = '@justanarthur/payload-www/render-pages#HeaderPage'
 export const FOOTER_RENDER_PATH = '@justanarthur/payload-www/render-pages#FooterPage'
 

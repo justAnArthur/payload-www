@@ -1,4 +1,5 @@
 export { PagesPage } from './PagesPage'
+export { PostsPage } from './PostsPage'
 export { HeaderPage } from './HeaderPage'
 export { FooterPage } from './FooterPage'
 export {
