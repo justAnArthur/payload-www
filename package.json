@@ -8,5 +8,8 @@
   ],
   "dependencies": {
     "tsx": "^4.22.4"
+  },
+  "resolutions": {
+    "sharp": "0.34.2"
   }
 }

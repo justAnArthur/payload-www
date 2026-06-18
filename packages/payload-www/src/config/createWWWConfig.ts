@@ -5,7 +5,7 @@ import { createPostsCollection } from '../data/collections/Posts/index'
 import { createHeaderGlobal } from '../data/collections/globals/Header/config'
 import { createFooterGlobal } from '../data/collections/globals/Footer/config'
 import { createPreviewHandler } from '../render/preview/createPreviewHandler'
-import { createSitemapHandler } from '../render/sitemap/createSitemapHandler'
+import { createSitemapFile } from '../render/sitemap/createSitemapFile'
 
 // Render path + slug + sitemap-tag constants. Lives in
 // `config/constants.ts` so any module can import it without pulling
@@ -97,7 +97,7 @@ export type WWWInputConfig = Omit<Config, 'collections' | 'globals'> & {
  * subpaths:
  *
  *   import { createCollectionPageExports } from '@justanarthur/payload-www/render-pages'
- *   import { createPreviewHandler, createSitemapHandler } from '@justanarthur/payload-www/render-utils'
+ *   import { createPreviewHandler, createSitemapFile } from '@justanarthur/payload-www/render-utils'
  */
 export function createWWWConfig(options: WWWConfigOptions): WWWConfigApi {
   const { locales, blocks, linkRelationTo, registerPosts = true, defaultPlugins } = options
@@ -209,4 +209,4 @@ export { createPostsCollection } from '../data/collections/Posts/index'
 export { createHeaderGlobal } from '../data/collections/globals/Header/config'
 export { createFooterGlobal } from '../data/collections/globals/Footer/config'
 export { createPreviewHandler, type CreatePreviewHandlerOptions } from '../render/preview/createPreviewHandler'
-export { createSitemapHandler, type CreateSitemapHandlerOptions } from '../render/sitemap/createSitemapHandler'
+export { createSitemapFile, type CreateSitemapFileOptions, type SitemapFunction } from '../render/sitemap/createSitemapFile'

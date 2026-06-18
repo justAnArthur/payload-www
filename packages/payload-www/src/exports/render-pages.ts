@@ -1,5 +1,6 @@
 import { createCollectionPageExports, type CreateCollectionPageExportsArgs, type CreateCollectionPageExportsDeps, type JsonLdEntry, type JsonLdOutput, type MetadataOptions, type PageRouting, type ShowcaseOptions } from '../render/pages/createCollectionPageExports'
 import { addCollectionsToSitemap } from '../render/pages/createCollectionPageExports'
+import { createRootLayoutExports, type CreateRootLayoutExportsArgs, type CreateRootLayoutExportsReturn, type CreateRootLayoutProvidersArgs } from '../render/pages/createRootLayoutExports'
 import { PageShowcase as _PageShowcase, type PageShowcaseProps } from '../render/components/PageShowcase'
 // Leaf imports — barrel imports through `render/pages/index.ts` drag
 // `LivePreviewListener` (a 'use client' component) into the static
@@ -17,6 +18,7 @@ export const PageShowcase = _PageShowcase
 export default {
   addCollectionsToSitemap,
   createCollectionPageExports,
+  createRootLayoutExports,
   HeaderPage,
   FooterPage,
   PagesPage,
@@ -27,12 +29,16 @@ export default {
 export {
   addCollectionsToSitemap,
   createCollectionPageExports,
+  createRootLayoutExports,
   HeaderPage,
   FooterPage,
   PagesPage,
   PostsPage,
   type CreateCollectionPageExportsArgs,
   type CreateCollectionPageExportsDeps,
+  type CreateRootLayoutExportsArgs,
+  type CreateRootLayoutExportsReturn,
+  type CreateRootLayoutProvidersArgs,
   type JsonLdEntry,
   type JsonLdOutput,
   type MetadataOptions,

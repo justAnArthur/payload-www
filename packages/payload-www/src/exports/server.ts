@@ -14,6 +14,8 @@ import { linkGroup } from '../core/fields/linkGroup'
 import { getFromImportMap } from '../core/utils/getFromImportMap'
 import { generateImportName } from '../core/utils/generateImportName'
 import { renderCollectionModule } from '../render/utils/renderCollectionModule'
+import { renderGlobalModule } from '../render/utils/renderGlobalModule'
+import { getCachedGlobal, type CachedGlobal } from '../render/utils/getCachedGlobal'
 import {
   buildArticleLd,
   buildBreadcrumbsLd,
@@ -33,7 +35,8 @@ import {
   getRenderModuleExports,
   queryAllDocs,
   queryAllLocaleSlugs,
-  queryDocBySlug
+  queryDocBySlug,
+  queryGlobal
 } from '../render/metadata/query'
 import { RenderBlocks, type RenderBlocksProps } from '../render/blocks/renderBlocks'
 import {
@@ -80,6 +83,8 @@ export { linkGroup }
 export { getFromImportMap }
 export { generateImportName }
 export { renderCollectionModule }
+export { renderGlobalModule }
+export { getCachedGlobal, type CachedGlobal }
 export {
   buildArticleLd,
   buildBreadcrumbsLd,
@@ -95,7 +100,7 @@ export {
   segmentsToUrlPath,
   storedSlugToSegments
 }
-export { getRenderModuleExports, queryAllDocs, queryAllLocaleSlugs, queryDocBySlug }
+export { getRenderModuleExports, queryAllDocs, queryAllLocaleSlugs, queryDocBySlug, queryGlobal }
 export { RenderBlocks, type RenderBlocksProps }
 export {
   createBaseSeed,

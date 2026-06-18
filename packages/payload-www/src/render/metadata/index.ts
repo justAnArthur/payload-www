@@ -13,4 +13,10 @@ export {
   type ArticleLdOptions,
   type BreadcrumbItem
 } from './jsonld'
-export { queryDocBySlug, queryAllDocs, queryAllLocaleSlugs, getRenderModuleExports } from './query'
+export {
+  queryDocBySlug,
+  queryAllDocs,
+  queryAllLocaleSlugs,
+  queryGlobal,
+  getRenderModuleExports
+} from './query'

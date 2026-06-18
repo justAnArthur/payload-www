@@ -1,3 +1,3 @@
 export { createPreviewHandler, type CreatePreviewHandlerOptions } from '../preview/createPreviewHandler'
-export { createSitemapHandler, type CreateSitemapHandlerOptions } from '../sitemap/createSitemapHandler'
+export { createSitemapFile, type CreateSitemapFileOptions, type SitemapFunction } from '../sitemap/createSitemapFile'
 export { LivePreviewListener, type LivePreviewListenerProps } from '../components/LivePreviewListener'

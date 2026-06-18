@@ -17,3 +17,9 @@ export {
   type BreadcrumbsJsonLdEntry,
   type CustomJsonLdEntry
 } from './createCollectionPageExports'
+export {
+  createRootLayoutExports,
+  type CreateRootLayoutExportsArgs,
+  type CreateRootLayoutExportsReturn,
+  type CreateRootLayoutProvidersArgs
+} from './createRootLayoutExports'

@@ -1,4 +1,4 @@
-import type { DataFromCollectionSlug, ImportMap, SanitizedConfig } from 'payload'
+import type { DataFromCollectionSlug, DataFromGlobalSlug, ImportMap, SanitizedConfig } from 'payload'
 import { getPayload } from 'payload'
 import { cache } from 'react'
 
@@ -99,6 +99,35 @@ export const queryAllLocaleSlugs = cache(async function queryAllLocaleSlugs<S ex
   const out: Record<string, string> = {}
   for (const l of rawLocales) out[l] = String(fieldValue ?? slug)
   return out
+})
+
+export const queryGlobal = cache(async function queryGlobal<G extends string>({
+                                                                                            globalSlug,
+                                                                                            locale,
+                                                                                            depth = 0,
+                                                                                            draft = false,
+                                                                                            config
+                                                                                          }: {
+  globalSlug: G
+  locale: string
+  depth?: number
+  draft?: boolean
+  config: Promise<SanitizedConfig>
+}): Promise<DataFromGlobalSlug<G> | null> {
+  const payload = await getPayload({ config })
+  try {
+    const global = await payload.findGlobal({
+      slug: globalSlug,
+      depth,
+      draft,
+      locale
+    })
+    return global as DataFromGlobalSlug<G> | null
+  } catch {
+    // Global not configured in the host's Payload — return null so the
+    // layout renders nothing in that slot instead of crashing the page.
+    return null
+  }
 })
 
 export function getRenderModuleExports(

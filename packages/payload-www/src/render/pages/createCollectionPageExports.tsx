@@ -3,16 +3,6 @@ import 'server-only'
 // in the function body so a server entrypoint that calls
 // `createWWWConfig` doesn't pull this module into its static graph
 // at module-init time.
-//
-// The live-preview listener is also handled without a static
-// `'use client'` import. The lib exposes a tiny provider hook
-// (`setImportMapProvider` in `../importMapProvider`) the host wires
-// up once in `payload.config.ts`; `createCollectionPageExports`
-// reads the importMap at request time through `getImportMap` and
-// renders the listener (with a Suspense fallback) when Next.js
-// draft mode is on. Hosts get live preview automatically — no
-// opt-in required, and the page files never need to know about
-// `importMap` directly.
 
 import type { Metadata, MetadataRoute } from 'next'
 import type { DataFromCollectionSlug, ImportMap, SanitizedConfig } from 'payload'
@@ -34,7 +24,6 @@ import {
 import { getUrlPath, segmentsToStoredSlug, storedSlugToSegments } from '../metadata/slug'
 import { queryAllDocs, queryAllLocaleSlugs, queryDocBySlug } from '../metadata/query'
 import { RichText } from '@payloadcms/richtext-lexical/react'
-import { getImportMap } from '../../exports/import-map-provider'
 
 // --- types ---
 
@@ -159,6 +148,17 @@ export type CreateCollectionPageExportsArgs<S extends string = 'pages'> = {
    */
   routing: PageRouting
   /**
+   * The host's Payload importMap. The lib uses this to resolve
+   * the collection's `custom.path` (the page renderer module) and
+   * the live-preview listener. Pass `import { importMap } from
+   * '@/app/(payload)/admin/importMap.js'` from the host's page
+   * file. Default: `{}` — the page renders without a live-preview
+   * listener and uses the lib's registered `custom.path` for the
+   * collection renderer (which requires its key to be in the
+   * supplied importMap).
+   */
+  importMap?: ImportMap
+  /**
    * Optional custom path pointing at the host's render module for
    * the collection. Overrides the lib's registered `custom.path`
    * (which defaults to `PAGES_RENDER_PATH`). Use this when you've
@@ -254,11 +254,13 @@ export function createCollectionPageExports<S extends string = 'pages'>(
     slug = 'pages' as S,
     config: configPromise,
     routing,
+    importMap: importMapArg,
     renderPath
   }: CreateCollectionPageExportsArgs<S>,
   deps: CreateCollectionPageExportsDeps<S>,
   options: MetadataOptions = {}
 ) {
+  const importMap: ImportMap = importMapArg ?? {}
   const { jsonLd: jsonLdOption = true, changefreq = 'weekly', priority = 0.5, websiteName } = options
   const {
     getServerSideURL,
@@ -328,12 +330,16 @@ export function createCollectionPageExports<S extends string = 'pages'>(
       homeSlug: HOME_SLUG,
       defaultLocale,
       locales,
+      // Pass the same `localePrefix` mode `buildLocalePath` uses so
+      // the alternates match the canonical URL shape — under
+      // `as-needed`, the default locale's alternate is `/about`,
+      // not `/en/about`.
+      localePrefix: localePrefixMode,
       queryAllLocaleSlugs: (s, l) =>
         queryAllLocaleSlugs({ collectionSlug: slug, slug: s, slugField: 'slug', locale: l, config: configPromise })
     })
-    // The hreflang helper builds URLs as `${siteUrl}/${locale}${urlPath}`,
-    // which matches `buildLocalePath` exactly. Translate to next-intl
-    // shape (canonical + languages).
+    // Translate the helper's lang→url map into next-intl's
+    // `{ canonical, languages }` shape.
     const alternates: HreflangAlternates = {}
     for (const [key, url] of Object.entries(languages)) {
       alternates[key] = url
@@ -369,7 +375,6 @@ export function createCollectionPageExports<S extends string = 'pages'>(
 
     const { isEnabled: draft } = await draftMode()
     const cfg = await configPromise
-    const importMap = await getImportMap()
     const collectionCustomPath = cfg.collections.find((c) => c.slug === slug)?.custom?.path
     const effectivePath = renderPath ?? collectionCustomPath ?? defaultRenderPath
 
@@ -400,6 +405,8 @@ export function createCollectionPageExports<S extends string = 'pages'>(
 
     const jsonLdNodes = doc ? await generateJsonLd(slugSegments, doc, locale) : []
     const { alternates: hreflangAlternates, canonical } = await resolveHreflangAlternates(locale, storedSlug)
+
+    console.log('render', { render, doc })
 
     const inner = (
       <>
