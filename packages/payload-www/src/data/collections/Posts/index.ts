@@ -1,7 +1,7 @@
 import type { CollectionConfig, Field } from 'payload'
 
 import { authenticated, authenticatedOrPublished } from '../../../core/access'
-import { createRevalidateGlobalHook } from '../../../render/hooks/revalidateGlobal'
+import { createRevalidateCollectionHook } from '../../../render/hooks/revalidateCollection'
 import { POSTS_RENDER_PATH } from '../../../config/constants'
 
 export const POSTS_SLUG = 'posts'
@@ -23,6 +23,19 @@ export type CreatePostsCollectionOptions = {
    * here (e.g. `'@/blog/Post#default'`).
    */
   renderPath?: string
+  /**
+   * Locale prefix mode for path invalidation. Defaults to `'always'`.
+   * Set to `'as-needed'` when the host uses next-intl
+   * `localePrefix: 'as-needed'` — otherwise the hook invalidates
+   * paths the public routes don't use.
+   */
+  localePrefix?: 'always' | 'as-needed' | 'never'
+  /**
+   * Default locale for prefix skipping. Falls back to
+   * `req.payload.config.localization.defaultLocale` at request time
+   * when omitted.
+   */
+  defaultLocale?: string
 }
 
 /**
@@ -38,7 +51,12 @@ export type CreatePostsCollectionOptions = {
 export const createPostsCollection = (
   options: CreatePostsCollectionOptions = {}
 ): CollectionConfig => {
-  const { renderPath = POSTS_RENDER_PATH, slug: collectionSlug = POSTS_SLUG } = options
+  const {
+    renderPath = POSTS_RENDER_PATH,
+    slug: collectionSlug = POSTS_SLUG,
+    localePrefix,
+    defaultLocale
+  } = options
 
   const slugField: Field = {
     name: 'slug',
@@ -76,6 +94,13 @@ export const createPostsCollection = (
     slugField
   ]
 
+  const { afterChange, afterDelete } = createRevalidateCollectionHook({
+    collectionSlug,
+    urlPathPrefix: '/posts',
+    localePrefix,
+    defaultLocale
+  })
+
   return {
     slug: collectionSlug,
     custom: { path: renderPath },
@@ -87,10 +112,8 @@ export const createPostsCollection = (
     },
     fields: baseFields,
     hooks: {
-      // Per-locale revalidation tag so per-locale static caching of
-      // post render output stays fresh. Hosts that use a render
-      // module with `unstable_cache` / `revalidateTag` will benefit.
-      afterChange: [createRevalidateGlobalHook(POSTS_SLUG) as any]
+      afterChange: [afterChange],
+      afterDelete: [afterDelete]
     } as CollectionConfig['hooks'],
     versions: { drafts: { autosave: { interval: 1000 } } }
   } as CollectionConfig

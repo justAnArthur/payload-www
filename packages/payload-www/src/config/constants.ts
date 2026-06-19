@@ -29,7 +29,6 @@ export const PAGES_SLUG = 'pages'
 export const POSTS_SLUG = 'posts'
 
 // Sitemap tag the Pages collection's revalidation hook invalidates
-// whenever a page is saved. The `createSitemapHandler` route handler
-// reads from this tag so the generated sitemap refreshes after
-// edits.
+// whenever a page is saved. The `createSitemapFile` factory reads
+// from this tag so the generated sitemap refreshes after edits.
 export const PAGES_SITEMAP_TAG = 'pages-sitemap'

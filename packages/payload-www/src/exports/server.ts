@@ -7,7 +7,12 @@
 
 import { createWWWConfig, type WWWConfigApi, type WWWConfigOptions, type WWWInputConfig } from '../config/createWWWConfig'
 import { anyone, authenticated, authenticatedOrPublished } from '../core/access/index'
-import { createRevalidatePageHooks } from '../render/hooks/revalidatePage'
+import {
+  createRevalidateCollectionHook,
+  createRevalidatePageHooks,
+  type CreateRevalidateCollectionHookOptions,
+  type CreateRevalidatePageHooksOptions
+} from '../render/hooks/revalidateCollection'
 import { createRevalidateGlobalHook } from '../render/hooks/revalidateGlobal'
 import { appearanceOptions, link, type LinkAppearances, type LinkOptions } from '../core/fields/link'
 import { linkGroup } from '../core/fields/linkGroup'
@@ -76,7 +81,12 @@ import { generatePreviewPath } from '../data/collections/previewPath'
 
 export { createWWWConfig, type WWWConfigOptions, type WWWConfigApi, type WWWInputConfig }
 export { anyone, authenticated, authenticatedOrPublished }
-export { createRevalidatePageHooks }
+export {
+  createRevalidateCollectionHook,
+  createRevalidatePageHooks,
+  type CreateRevalidateCollectionHookOptions,
+  type CreateRevalidatePageHooksOptions
+}
 export { createRevalidateGlobalHook }
 export { appearanceOptions, link, type LinkAppearances, type LinkOptions }
 export { linkGroup }

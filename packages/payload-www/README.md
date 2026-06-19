@@ -14,13 +14,13 @@ language switcher share a single source of truth with the rest of your app.
 - **Globals** — `Header` and `Footer` (both `nav` blocks with `navColumn` / `navItem`)
 - **Default render components** — `PagesPage`, `HeaderPage`, `FooterPage` Server Components. Override any of them by setting a different `custom.path` on the collection / global.
 - **LivePreviewListener** — built in. The lib's `createCollectionPageExports` default page renders it (via `React.lazy` so the server dist stays free of `'use client'` imports) whenever Next.js draft mode is on. Hosts get live preview automatically — no opt-in required. The component itself is also exported from `/render-components` for hosts that want to mount it elsewhere.
-- **Hooks** — `createRevalidatePageHooks` (per-locale `revalidatePath` + `revalidateTag('pages-sitemap', 'max')`), `createRevalidateGlobalHook(slug)` (per-locale tag)
+- **Hooks** — `createRevalidateCollectionHook(opts)` (canonical factory for **all** collections: Pages, Posts, host-defined; per-locale `revalidatePath` fan-out + `revalidateTag('collection_<slug>_<id>', 'max')` + sitemap tag), `createRevalidatePageHooks()` (deprecated alias for Pages preset), `createRevalidateGlobalHook(slug)` (per-locale tag for globals)
 - **Access** — `anyone`, `authenticated`, `authenticatedOrPublished`
 - **Fields** — `link`, `linkGroup` (with `disableLabel` / `appearances` / `localized` / `relationTo` / `overrides` options)
 - **Metadata** — `buildArticleLd`, `buildBreadcrumbsLd`, `buildOrganizationLd`, `buildHreflangAlternates`, slug transforms, `queryDocBySlug` / `queryAllDocs` / `queryAllLocaleSlugs`
 - **Pages** — `createCollectionPageExports` (Next.js App Router render factory), `addCollectionsToSitemap`. Supports a `showcase` sidebar and a `homeExtras` callback for the home route.
 - **Components** — `LivePreviewListener`, `RenderBlocks`, `PageShowcase` (sidebar layout for demos / previews), `LocaleSwitcher` (server-renderable nav built from the page's hreflang alternates)
-- **Route handlers** — `createPreviewHandler`, `createSitemapHandler` (from the `/render-utils` subpath). The sitemap handler is `localePrefix`-aware.
+- **Route handlers** — `createPreviewHandler` (from the `/render-utils` subpath). The Next.js sitemap convention ships as `createSitemapFile` (same subpath) — it's a `MetadataRoute.Sitemap` factory for `app/(frontend)/sitemap.ts`, not a route handler, and it's `localePrefix`-aware.
 - **Utils** — `getFromImportMap`, `generateImportName`, `renderCollectionModule`
 - **Seed / Test** — `createBaseSeed` (publishes by default — pass `status: 'draft'` to keep a doc as a draft), `createTestPayload`
 
@@ -154,35 +154,33 @@ export const GET = createPreviewHandler()
 ```
 
 ```ts
-// app/(frontend)/pages-sitemap.xml/route.ts
-import { createSitemapHandler } from '@justanarthur/payload-www/render-utils'
+// app/(frontend)/sitemap.ts
+import { createSitemapFile } from '@justanarthur/payload-www/render-utils'
 import configPromise from '@payload-config'
 import { getServerSideURL } from '@/utilities/getURL'
 
-export const GET = createSitemapHandler({
-  collections: ['pages'],
+// One file, all collections, all locales — Next.js serves it at
+// /sitemap.xml. The Pages collection's `afterChange` hook invalidates
+// the `pages-sitemap` tag the factory reads from, so edits refresh
+// the sitemap automatically.
+export default createSitemapFile({
+  collections: ['pages', 'posts'],
   config: configPromise,
   getServerSideURL,
   // 'as-needed' makes the default locale render without a prefix
-  // (`/about`), other locales prefixed (`/uk/about`).
-  localePrefix: 'as-needed'
-})
-```
-
-```ts
-// app/(frontend)/[locale]/pages-sitemap.xml/route.ts
-// Same handler — the `[locale]` segment is read from the route
-// params and the handler restricts the sitemap to that one locale.
-export const GET = createSitemapHandler({
-  collections: ['pages'],
-  config: configPromise,
-  getServerSideURL,
-  localePrefix: 'as-needed'
+  // (`/about`), other locales prefixed (`/uk/about`). Matches the
+  // host's next-intl `localePrefix` so sitemap URLs match the
+  // actual route shape.
+  localePrefix: 'as-needed',
+  // Collections mounted under a sub-route (here: Posts at
+  // `/posts/[...slug]`) need their sitemap URLs prefixed so they
+  // match the real route. Pages live at the root, so no prefix.
+  urlPrefixes: { posts: '/posts' }
 })
 ```
 
 The Pages collection's `afterChange` hook revalidates the
-`pages-sitemap` tag the sitemap handler reads from.
+`pages-sitemap` tag the sitemap factory reads from.
 
 ## Public API
 
@@ -201,6 +199,7 @@ import {
   anyone, authenticated,     // access
   authenticatedOrPublished,
   createRevalidatePageHooks, // hooks
+  createRevalidateCollectionHook, // hooks (canonical; createRevalidatePageHooks is a deprecated Pages preset)
   createRevalidateGlobalHook,
   buildArticleLd,            // metadata
   buildBreadcrumbsLd,
@@ -232,7 +231,7 @@ Subpath imports:
 | `@justanarthur/payload-www/hooks`          | revalidation hooks                                |
 | `@justanarthur/payload-www/pages`          | `createCollectionPageExports`, `addCollectionsToSitemap` |
 | `@justanarthur/payload-www/render-pages`   | same as `/pages` + `PagesPage` / `HeaderPage` / `FooterPage` / `PageShowcase` |
-| `@justanarthur/payload-www/render-utils`   | `createPreviewHandler`, `createSitemapHandler`, `LivePreviewListener`, `LocaleSwitcher` |
+| `@justanarthur/payload-www/render-utils`   | `createPreviewHandler`, `createSitemapFile`, `LivePreviewListener`, `LocaleSwitcher` |
 | `@justanarthur/payload-www/render-components` | `LivePreviewListener`                            |
 | `@justanarthur/payload-www/render-metadata` | JSON-LD + hreflang + slug utilities               |
 | `@justanarthur/payload-www/metadata`       | same as `/render-metadata`                        |
@@ -257,9 +256,25 @@ Subpath imports:
 | Option           | Type                              | Required | Description                                                            |
 |------------------|-----------------------------------|----------|------------------------------------------------------------------------|
 | `locales`        | `string[]`                        | yes      | Locale list. First entry is the default locale (translation source).   |
+| `routing`        | `PageRouting`                     | no       | The host's next-intl `defineRouting({...})` result. When passed, `locales`, `defaultLocale`, and `localePrefix` are read from this object. `localePrefix` accepts both the simple string form and next-intl's verbose `{ mode, prefixes? }` shape (normalized internally). |
 | `blocks`         | `Block[]`                         | yes      | Blocks the Pages collection accepts.                                   |
 | `linkRelationTo` | `string[]`                        | no       | Collection slugs the Header / Footer nav links can reference. Default: `['pages']`. |
+| `registerPosts`  | `boolean`                         | no       | Register the lib's Posts collection. Default `true`. |
 | `defaultPlugins` | `(defaults: Plugin[]) => Plugin[]`| no       | Final say on the default `[seoPlugin, imageHashPlugin, translator]` list. |
+
+`createRevalidateCollectionHook({ collectionSlug, urlPathPrefix?, sitemapTag?, localePrefix?, defaultLocale? })`:
+
+| Option           | Type                              | Description                                                            |
+|------------------|-----------------------------------|------------------------------------------------------------------------|
+| `collectionSlug` | `string`                          | Required. The collection's slug. Used in the `collection_<slug>_<id>` tag. |
+| `urlPathPrefix`  | `string`                          | URL path prefix. `''` for root-mounted (Pages), `'/posts'` for Posts. Default `''`. |
+| `sitemapTag`     | `string \| false`                 | Tag fired alongside paths. Default `${collectionSlug}-sitemap`. Pass `false` to opt out. |
+| `localePrefix`   | `'always' \| 'as-needed' \| 'never'` | Mirrors next-intl. Default `'always'`. Set to `'as-needed'` (with `defaultLocale`) when the host uses as-needed routing. |
+| `defaultLocale`  | `string`                          | Default locale for `localePrefix: 'as-needed'`. Falls back to `req.payload.config.localization.defaultLocale`. |
+
+The canonical hook for all collections — Pages, Posts, and host-defined. Pages internally uses this with `collectionSlug: 'pages'`, `urlPathPrefix: ''`. Fires `revalidatePath` for **every** declared locale (not just the request locale), handles slug renames while published, fires `revalidateTag('collection_<slug>_<id>', 'max')` for hosts that cache by id, and respects `req.context.disableRevalidate` for seed scripts.
+
+`createRevalidatePageHooks()` is a deprecated alias for `createRevalidateCollectionHook({ collectionSlug: 'pages', urlPathPrefix: '' })` — kept for backward compat with hosts that imported this name directly.
 
 `createCollectionPageExports({ config, importMap, slug?, renderPath?, routing }, deps, options?)`:
 
@@ -280,7 +295,7 @@ Subpath imports:
 | `options.priority`         | `number`      | Default `0.5`                                                          |
 | `options.websiteName`      | `string`      | Override the auto-generated `WebSite` JSON-LD `name`                   |
 
-`createSitemapHandler({ ... })`:
+`createSitemapFile({ ... })`:
 
 | Option          | Type            | Description                                                            |
 |-----------------|-----------------|------------------------------------------------------------------------|
@@ -288,8 +303,8 @@ Subpath imports:
 | `config`        | `Promise<any>`  | The Payload config promise                                              |
 | `getServerSideURL` | `() => string` | Host's absolute URL helper                                             |
 | `localePrefix`  | `'always' \| 'as-needed' \| 'never'` | Default `'always'`. Mirrors next-intl's `localePrefix` so the sitemap URLs match the host's route shape. With `'as-needed'`, the default locale renders without a prefix. |
-| `locales`       | `string[]`      | Optional locale filter. Defaults to every `config.localization.locales`. The route param `ctx.params.locale` (Next.js dynamic route segment) takes precedence when present. |
-| `sitemapTag`    | `string`        | Default `'pages-sitemap'` — the tag the lib's revalidation hook invalidates |
+| `locales`       | `string[]`      | Optional locale filter. Defaults to every `config.localization.locales`. |
+| `urlPrefixes`   | `Record<string, string>` | Per-collection URL path prefix. Default `''`. Pass `{ posts: '/posts' }` for a collection mounted under a sub-route. |
 | `perCollection` | `Record<string, { priority?, changefreq? }>` | Per-collection overrides                            |
 
 ## Migration notes

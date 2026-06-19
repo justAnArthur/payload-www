@@ -1,7 +1,10 @@
 import type { Block, CollectionConfig, Field } from 'payload'
 
 import { authenticated, authenticatedOrPublished } from '../../../core/access'
-import { createRevalidatePageHooks } from '../../../render/hooks/revalidatePage'
+import {
+  createRevalidateCollectionHook,
+  type CreateRevalidateCollectionHookOptions
+} from '../../../render/hooks/revalidateCollection'
 import { PAGES_RENDER_PATH, PAGES_SLUG as _PAGES_SLUG } from '../../../config/constants'
 
 export const HOME_PAGE_SLUG = ''
@@ -32,13 +35,31 @@ export type CreatePagesCollectionOptions = {
    * you've defined your own Server Component for the collection.
    */
   renderPath?: string
+  /**
+   * Locale prefix mode for path invalidation. Defaults to `'always'`
+   * (preserves current behavior). Set to `'as-needed'` when the host
+   * uses next-intl `localePrefix: 'as-needed'` — otherwise the hook
+   * invalidates paths the public routes don't use.
+   */
+  localePrefix?: CreateRevalidateCollectionHookOptions['localePrefix']
+  /**
+   * Default locale for prefix skipping. Falls back to
+   * `req.payload.config.localization.defaultLocale` at request time
+   * when omitted.
+   */
+  defaultLocale?: CreateRevalidateCollectionHookOptions['defaultLocale']
 }
 
 export const createPagesCollection = (
   blocks: Block[],
   options: Omit<CreatePagesCollectionOptions, 'blocks'> = {}
 ): CollectionConfig => {
-  const { renderPath = PAGES_RENDER_PATH, slug: collectionSlug = PAGES_SLUG } = options
+  const {
+    renderPath = PAGES_RENDER_PATH,
+    slug: collectionSlug = PAGES_SLUG,
+    localePrefix,
+    defaultLocale
+  } = options
 
   const slugField: Field = {
     name: 'slug',
@@ -91,7 +112,12 @@ export const createPagesCollection = (
   ]
 
   const { afterChange: revalidateAfterChange, afterDelete: revalidateAfterDelete } =
-    createRevalidatePageHooks()
+    createRevalidateCollectionHook({
+      collectionSlug,
+      urlPathPrefix: '',
+      localePrefix,
+      defaultLocale
+    })
 
   return {
     slug: collectionSlug,

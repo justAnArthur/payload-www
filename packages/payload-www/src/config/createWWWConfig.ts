@@ -6,6 +6,7 @@ import { createHeaderGlobal } from '../data/collections/globals/Header/config'
 import { createFooterGlobal } from '../data/collections/globals/Footer/config'
 import { createPreviewHandler } from '../render/preview/createPreviewHandler'
 import { createSitemapFile } from '../render/sitemap/createSitemapFile'
+import type { PageRouting } from '../render/pages/createCollectionPageExports'
 
 // Render path + slug + sitemap-tag constants. Lives in
 // `config/constants.ts` so any module can import it without pulling
@@ -39,6 +40,15 @@ export type WWWConfigOptions = {
    * revalidation tag suffix.
    */
   locales: string[]
+  /**
+   * The host's next-intl routing config (the value returned from
+   * `defineRouting({...})`). When passed, `locales`, `defaultLocale`,
+   * and `localePrefix` are read from this object instead of the
+   * legacy `locales: string[]` field. `localePrefix` is normalized
+   * to the simple string form internally — next-intl's verbose
+   * `{ mode, prefixes? }` shape is accepted and reduced to `mode`.
+   */
+  routing?: PageRouting
   /**
    * Blocks the Pages collection accepts.
    */
@@ -100,14 +110,33 @@ export type WWWInputConfig = Omit<Config, 'collections' | 'globals'> & {
  *   import { createPreviewHandler, createSitemapFile } from '@justanarthur/payload-www/render-utils'
  */
 export function createWWWConfig(options: WWWConfigOptions): WWWConfigApi {
-  const { locales, blocks, linkRelationTo, registerPosts = true, defaultPlugins } = options
+  const { locales, routing, blocks, linkRelationTo, registerPosts = true, defaultPlugins } = options
+
+  // Source of truth for revalidation path building: `routing` wins
+  // when both are passed; `locales` alone keeps the legacy shape
+  // working (defaults `localePrefix: 'always'`, first entry as
+  // `defaultLocale`).
+  const defaultLocale = routing?.defaultLocale ?? locales[0] ?? ''
+  const localePrefixMode: 'always' | 'as-needed' | 'never' = (() => {
+    const raw = routing?.localePrefix
+    if (typeof raw === 'string') return raw
+    return raw?.mode ?? 'always'
+  })()
 
   if (locales.length === 0) {
     throw new Error('createWWWConfig: `locales` must contain at least one entry.')
   }
 
-  const buildPagesCollection = () => createPagesCollection(blocks) as CollectionConfig
-  const buildPostsCollection = () => createPostsCollection() as CollectionConfig
+  const buildPagesCollection = () =>
+    createPagesCollection(blocks, {
+      localePrefix: localePrefixMode,
+      defaultLocale
+    }) as CollectionConfig
+  const buildPostsCollection = () =>
+    createPostsCollection({
+      localePrefix: localePrefixMode,
+      defaultLocale
+    }) as CollectionConfig
 
   const buildHeaderGlobal = () => createHeaderGlobal({ linkRelationTo }) as GlobalConfig
 

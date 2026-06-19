@@ -1,5 +1,6 @@
 import type { MetadataRoute } from 'next'
 
+import { prefixFor } from '../_locale'
 import { buildHreflangAlternates, type HreflangAlternates } from '../metadata/hreflang'
 import { queryAllDocs, queryAllLocaleSlugs } from '../metadata/query'
 
@@ -164,10 +165,4 @@ export function createSitemapFile(options: CreateSitemapFileOptions): SitemapFun
 
     return entries
   }
-}
-
-function prefixFor(locale: string, defaultLocale: string, mode: 'always' | 'as-needed' | 'never'): string {
-  if (mode === 'never') return ''
-  if (mode === 'as-needed' && locale === defaultLocale) return ''
-  return `/${locale}`
 }
