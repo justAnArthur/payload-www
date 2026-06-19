@@ -50,7 +50,9 @@
   },
   "scripts": {
     "build": "bunup",
-    "prepublishOnly": "bun run clean && bun run build"
+    "prepublishOnly": "bun run clean && bun run build",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "bson-objectid": "^2.0.4"
@@ -65,7 +67,8 @@
     "payload": "3.85.0",
     "react": "19.2.6",
     "react-dom": "19.2.6",
-    "typescript": "5.7.3"
+    "typescript": "5.7.3",
+    "vitest": "4.0.18"
   },
   "peerDependencies": {
     "@payloadcms/next": "^3.85.0",

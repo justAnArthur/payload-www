@@ -92,7 +92,61 @@ export type GenerateSEO<T = any> = (
   } & PartialDocumentInfoContext
 ) => Promise<Partial<SEOMeta>> | Partial<SEOMeta>
 
+/**
+ * Source-field mapping for the auto-generate heuristic.
+ *
+ * - `'allScalars'` (default): walk the doc schema, pull every
+ *   text / localized text / richText / image field, and map by field name
+ *   (title-ish → `meta.title`, first richText → `meta.description`,
+ *   image-ish → `meta.image`, top tokens → `meta.keywords`).
+ * - Record: pin specific source fields to specific meta slots, e.g.
+ *   `{ title: 'pageTitle', description: 'lead', image: 'hero' }`. The
+ *   heuristic only runs for keys you don't pin.
+ */
+export type DeriveFrom = 'allScalars' | Partial<Record<keyof SEOMeta, string>>
+
+/**
+ * Auto-generate the SEO meta on save.
+ *
+ * Wire this on and the plugin installs a `beforeChange` hook on every
+ * enabled collection / global that runs the heuristic (free, sub-ms) and
+ * (if `generateSEO` / `openaiApiKey` is set) the LLM generator once,
+ * then merges into the `meta` group.
+ */
+export type AutoGenerateConfig = {
+  /**
+   * When to run.
+   *
+   * - `'onCreate'` (default) — only on first save. Editor-set meta is
+   *   preserved on updates because `onlyFillEmpty: true` is the default.
+   * - `'onCreateOrUpdate'` — run on every save. Editor-set meta is still
+   *   preserved unless `onlyFillEmpty: false`.
+   * - `'onUpdate'` — only on subsequent saves.
+   * - `'off'` — disabled (same as not setting the option).
+   */
+  mode?: 'off' | 'onCreate' | 'onUpdate' | 'onCreateOrUpdate'
+  /**
+   * Only fill empty meta slots. Default `true`. Set to `false` to overwrite
+   * editor-set meta on every save (rarely what you want).
+   */
+  onlyFillEmpty?: boolean
+  /**
+   * Source field mapping. See `DeriveFrom`. Default `'allScalars'`.
+   */
+  deriveFrom?: DeriveFrom
+  /**
+   * Maximum time (ms) to wait for the user `generateSEO` / OpenAI fallback
+   * before giving up and keeping whatever the heuristic produced. Default 8000.
+   */
+  timeoutMs?: number
+}
+
 export type SEOPluginConfig = {
+  /**
+   * Auto-generate the SEO meta on save. Pass `false` to disable even when
+   * the plugin would otherwise auto-wire it.
+   */
+  autoGenerate?: AutoGenerateConfig | false
   /**
    * Collections to include the SEO group field in.
    */

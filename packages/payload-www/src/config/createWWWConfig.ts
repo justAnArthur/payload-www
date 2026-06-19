@@ -165,7 +165,10 @@ export function createWWWConfig(options: WWWConfigOptions): WWWConfigApi {
       import('@justanarthur/payload-plugin-translator')
     ])
     const defaultPluginList: Plugin[] = [
-      seoPlugin({ collections: ['pages'] }),
+      seoPlugin({
+        collections: ['pages'],
+        autoGenerate: { mode: 'onCreate', deriveFrom: 'allScalars' }
+      }),
       imageHashPlugin({ algorithm: 'lqip-modern' }),
       translator({
         collections: ['pages', 'posts'],

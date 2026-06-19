@@ -1,13 +1,14 @@
 import type { CollectionSlug, Config, Field, TabsField } from 'payload'
 import { deepMergeSimple } from 'payload/shared'
 
+import { runAutoGenerate } from './autoGenerate'
 import { MetaField } from './fields/MetaField'
 import { openaiMessage } from './openai/message'
 import { translations } from './translations'
 import type { GenerateSEO, SEOMeta, SEOPluginConfig } from './types'
 
 // Re-export types from the root entry so consumers don't need the /types subpath.
-export type { FieldsOverride, GenerateSEO, SEOMeta, SEOPluginConfig } from './types'
+export type { AutoGenerateConfig, DeriveFrom, FieldsOverride, GenerateSEO, SEOMeta, SEOPluginConfig } from './types'
 
 type GenerateRequest = {
   collectionSlug?: string
@@ -15,6 +16,38 @@ type GenerateRequest = {
   globalSlug?: string
   source?: 'fn' | 'ai'
 } & Record<string, unknown>
+
+/**
+ * Build a `beforeChange` hook that runs the auto-generate pipeline. Composes
+ * with any existing user-supplied `hooks.beforeChange` so the lib's own
+ * chains (e.g. Posts' revalidation hook) keep running.
+ */
+const buildAutoGenerateHook =
+  (pluginConfig: SEOPluginConfig, hostConfig: Config) =>
+  async (args: {
+    collection?: { slug: string }
+    data: Record<string, unknown>
+    global?: { slug: string }
+    operation: 'create' | 'update'
+    originalDoc?: Record<string, unknown>
+    req: import('payload').PayloadRequest
+  }): Promise<Record<string, unknown>> => {
+    const collectionConfig = args.collection
+      ? hostConfig.collections?.find((c) => c.slug === args.collection?.slug)
+      : undefined
+    const globalConfig = args.global
+      ? hostConfig.globals?.find((g) => g.slug === args.global?.slug)
+      : undefined
+    return runAutoGenerate({
+      pluginConfig,
+      collectionConfig,
+      globalConfig,
+      data: args.data,
+      operation: args.operation,
+      locale: typeof args.req.locale === 'string' ? args.req.locale : undefined,
+      req: args.req
+    })
+  }
 
 /**
  * Payload SEO plugin.
@@ -52,6 +85,41 @@ export const seoPlugin =
           ? pluginConfig.fields({ defaultFields: [buildMetaField()] })
           : [buildMetaField()]
 
+      const autoGenerateEnabled = pluginConfig?.autoGenerate !== false && pluginConfig?.autoGenerate !== undefined
+      const autoGenerateHook = autoGenerateEnabled
+        ? buildAutoGenerateHook(pluginConfig, config)
+        : null
+
+      // Compose the auto-generate hook with any existing `hooks.beforeChange`
+      // so the lib's own chains (e.g. Posts' revalidation hook) keep running.
+      const withAutoGenerateHook = <T extends { hooks?: { beforeChange?: unknown } }>(item: T): T => {
+        if (!autoGenerateHook) return item
+        const existing = item.hooks?.beforeChange
+        const composed = async (args: unknown): Promise<unknown> => {
+          const a = args as {
+            collection?: { slug: string }
+            data: Record<string, unknown>
+            global?: { slug: string }
+            operation: 'create' | 'update'
+            originalDoc?: Record<string, unknown>
+            req: import('payload').PayloadRequest
+          }
+          const data = await autoGenerateHook({
+            collection: a.collection,
+            data: a.data,
+            global: a.global,
+            operation: a.operation,
+            originalDoc: a.originalDoc,
+            req: a.req
+          })
+          if (typeof existing === 'function') {
+            return (existing as (a: unknown) => Promise<unknown>)({ ...a, data })
+          }
+          return data
+        }
+        return { ...item, hooks: { ...(item.hooks ?? {}), beforeChange: composed } }
+      }
+
       return {
         ...config,
         collections:
@@ -79,7 +147,7 @@ export const seoPlugin =
               const hasOnlyEmailField = collection.fields?.length === 1 && emailField
 
               if (hasOnlyEmailField) {
-                return {
+                return withAutoGenerateHook({
                   ...collection,
                   fields: [
                     ...(emailField ? [emailField] : []),
@@ -88,7 +156,7 @@ export const seoPlugin =
                       type: 'tabs'
                     } as TabsField
                   ]
-                }
+                })
               }
 
               const existingTabsIndex = collection.fields?.findIndex(
@@ -102,14 +170,14 @@ export const seoPlugin =
                   ...existingTabsField,
                   tabs: [...existingTabsField.tabs, { fields: seoFields, label: 'SEO' }]
                 }
-                return {
+                return withAutoGenerateHook({
                   ...collection,
                   fields: [
                     ...collection.fields.slice(0, existingTabsIndex),
                     updatedTabsField,
                     ...collection.fields.slice(existingTabsIndex + 1)
                   ]
-                }
+                })
               }
 
               const nonEmailFields = emailField
@@ -118,7 +186,7 @@ export const seoPlugin =
                 )
                 : collection.fields
 
-              return {
+              return withAutoGenerateHook({
                 ...collection,
                 fields: [
                   ...(emailField ? [emailField] : []),
@@ -133,13 +201,13 @@ export const seoPlugin =
                     type: 'tabs'
                   } as TabsField
                 ]
-              }
+              })
             }
 
-            return {
+            return withAutoGenerateHook({
               ...collection,
               fields: [...(collection?.fields || []), ...seoFields]
-            }
+            })
           }) || [],
         endpoints: [
           ...(config.endpoints ?? []),
@@ -223,17 +291,17 @@ export const seoPlugin =
                   ...existingTabsField,
                   tabs: [...existingTabsField.tabs, { fields: seoFields, label: 'SEO' }]
                 }
-                return {
+                return withAutoGenerateHook({
                   ...global,
                   fields: [
                     ...global.fields.slice(0, existingTabsIndex),
                     updatedTabsField,
                     ...global.fields.slice(existingTabsIndex + 1)
                   ]
-                }
+                })
               }
 
-              return {
+              return withAutoGenerateHook({
                 ...global,
                 fields: [
                   {
@@ -247,13 +315,13 @@ export const seoPlugin =
                     type: 'tabs'
                   } as TabsField
                 ]
-              }
+              })
             }
 
-            return {
+            return withAutoGenerateHook({
               ...global,
               fields: [...(global?.fields || []), ...seoFields]
-            }
+            })
           }) || [],
         i18n: {
           ...config.i18n,
