@@ -2,6 +2,7 @@ import type { AdminComponent, Block, CollectionConfig, Config, GlobalConfig, Plu
 
 import { createPagesCollection } from '../data/collections/Pages/index'
 import { createPostsCollection } from '../data/collections/Posts/index'
+import { createStaticPagesCollection } from '../data/collections/StaticPages/index'
 import { createHeaderGlobal } from '../data/collections/globals/Header/config'
 import { createFooterGlobal } from '../data/collections/globals/Footer/config'
 import { createPreviewHandler } from '../render/preview/createPreviewHandler'
@@ -18,9 +19,11 @@ import {
   HEADER_RENDER_PATH,
   FOOTER_RENDER_PATH,
   PAGES_SLUG,
+  STATIC_PAGES_SLUG,
   PAGES_SITEMAP_TAG,
   LIVE_PREVIEW_LISTENER_PATH
 } from './constants'
+import openAIResolver from "@justanarthur/payload-plugin-translator/resolvers/openAI"
 
 export {
   PAGES_RENDER_PATH,
@@ -28,6 +31,7 @@ export {
   HEADER_RENDER_PATH,
   FOOTER_RENDER_PATH,
   PAGES_SLUG,
+  STATIC_PAGES_SLUG,
   PAGES_SITEMAP_TAG,
   LIVE_PREVIEW_LISTENER_PATH
 }
@@ -137,6 +141,8 @@ export function createWWWConfig(options: WWWConfigOptions): WWWConfigApi {
       localePrefix: localePrefixMode,
       defaultLocale
     }) as CollectionConfig
+  const buildStaticPagesCollection = () =>
+    createStaticPagesCollection(blocks) as CollectionConfig
 
   const buildHeaderGlobal = () => createHeaderGlobal({ linkRelationTo }) as GlobalConfig
 
@@ -147,7 +153,10 @@ export function createWWWConfig(options: WWWConfigOptions): WWWConfigApi {
     // through bunup's dead-code elimination. The `build*` closures
     // above remain exported for host consumers who want to compose
     // by hand.
-    const baseDefaults: CollectionConfig[] = [buildPagesCollection()]
+    const baseDefaults: CollectionConfig[] = [
+      buildPagesCollection(),
+      buildStaticPagesCollection()
+    ]
     if (registerPosts) baseDefaults.push(buildPostsCollection())
     const defaultCollections = baseDefaults
     const collections =
@@ -195,14 +204,20 @@ export function createWWWConfig(options: WWWConfigOptions): WWWConfigApi {
     ])
     const defaultPluginList: Plugin[] = [
       seoPlugin({
-        collections: ['pages'],
+        collections: ['pages', 'posts', 'static-pages'],
         autoGenerate: { mode: 'onCreate', deriveFrom: 'allScalars' }
       }),
       imageHashPlugin({ algorithm: 'lqip-modern' }),
       translator({
-        collections: ['pages', 'posts'],
+        collections: ['pages', 'posts', 'static-pages'],
         globals: ['header', 'footer'],
-        resolvers: []
+        resolvers: [
+          openAIResolver({
+            apiKey: process.env.OPENAI_API_KEY!,
+            chunkLength: 31,
+            model: 'gpt-5-mini',
+          })
+        ]
       })
     ]
     const mergedPlugins: Plugin[] = defaultPlugins
@@ -238,6 +253,7 @@ export function createWWWConfig(options: WWWConfigOptions): WWWConfigApi {
 // `/render-pages` subpath instead.
 export { createPagesCollection } from '../data/collections/Pages/index'
 export { createPostsCollection } from '../data/collections/Posts/index'
+export { createStaticPagesCollection } from '../data/collections/StaticPages/index'
 export { createHeaderGlobal } from '../data/collections/globals/Header/config'
 export { createFooterGlobal } from '../data/collections/globals/Footer/config'
 export { createPreviewHandler, type CreatePreviewHandlerOptions } from '../render/preview/createPreviewHandler'

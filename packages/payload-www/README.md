@@ -10,11 +10,11 @@ language switcher share a single source of truth with the rest of your app.
 ## What's inside
 
 - **Composer** — `createWWWConfig({ locales, blocks, defaultPlugins? })` returns `{ withWWWConfig }`. One composer call is enough for the most common cases.
-- **Collections** — `Pages` (title, blocks tab, slug, drafts, revalidation hook)
+- **Collections** — `Pages` (title, blocks tab, slug, drafts, revalidation hook), `Posts` (title, excerpt, richText, drafts, revalidation hook), `StaticPages` (system pages — 404, 500, search-empty, … — addressed by a `kind` discriminator, not a slug)
 - **Globals** — `Header` and `Footer` (both `nav` blocks with `navColumn` / `navItem`)
 - **Default render components** — `PagesPage`, `HeaderPage`, `FooterPage` Server Components. Override any of them by setting a different `custom.path` on the collection / global.
 - **LivePreviewListener** — built in. The lib's `createCollectionPageExports` default page renders it (via `React.lazy` so the server dist stays free of `'use client'` imports) whenever Next.js draft mode is on. Hosts get live preview automatically — no opt-in required. The component itself is also exported from `/render-components` for hosts that want to mount it elsewhere.
-- **Hooks** — `createRevalidateCollectionHook(opts)` (canonical factory for **all** collections: Pages, Posts, host-defined; per-locale `revalidatePath` fan-out + `revalidateTag('collection_<slug>_<id>', 'max')` + sitemap tag), `createRevalidatePageHooks()` (deprecated alias for Pages preset), `createRevalidateGlobalHook(slug)` (per-locale tag for globals)
+- **Hooks** — `createRevalidateCollectionHook(opts)` (canonical factory for **all** collections: Pages, Posts, host-defined; per-locale `revalidatePath` fan-out + `revalidateTag('collection_<slug>_<id>', 'max')` + sitemap tag, with a `pathMode: 'tag-only'` mode for collections without a URL like `staticPages`), `createRevalidatePageHooks()` (deprecated alias for Pages preset), `createRevalidateGlobalHook(slug)` (per-locale tag for globals)
 - **Access** — `anyone`, `authenticated`, `authenticatedOrPublished`
 - **Fields** — `link`, `linkGroup` (with `disableLabel` / `appearances` / `localized` / `relationTo` / `overrides` options)
 - **Metadata** — `buildArticleLd`, `buildBreadcrumbsLd`, `buildOrganizationLd`, `buildHreflangAlternates`, slug transforms, `queryDocBySlug` / `queryAllDocs` / `queryAllLocaleSlugs`
@@ -182,6 +182,52 @@ export default createSitemapFile({
 The Pages collection's `afterChange` hook revalidates the
 `pages-sitemap` tag the sitemap factory reads from.
 
+### 5. System pages (404, 500, search-empty, …)
+
+The lib ships a `StaticPages` collection for pages that don't map to a
+slug-based URL. One row per `kind` discriminator (`'not-found'`,
+`'server-error'`, `'search-empty'`, `'offline'`). The host's route
+file fetches the row and renders it via `createStaticPageExports` —
+the same shape as `createCollectionPageExports`, minus the
+metadata / sitemap / static-params plumbing (system pages have no
+URL):
+
+```ts
+// app/(frontend)/[locale]/not-found.tsx
+import configPromise from '@payload-config'
+import { createStaticPageExports } from '@justanarthur/payload-www/render-pages'
+import { importMap } from '@/app/(payload)/admin/importMap.js'
+
+const { default: NotFound } = createStaticPageExports({
+  config: configPromise,
+  importMap,
+})
+
+export default NotFound
+```
+
+`createStaticPageExports` reads the active locale via
+`getLocale()` from `next-intl/server` (Next.js passes no props to
+not-found components, so the URL-segment locale comes from the
+request config — middleware sets it, the host's `i18n/request.ts`
+falls back to `defaultLocale` for invalid values). Adding a
+`server-error.tsx` is the same shape with `kind: 'server-error'`.
+
+Editors create the row in admin (under the `System` group), pick a
+`kind`, and populate the `blocks` tab using the same block set you
+passed to `createWWWConfig({ blocks })`. The `title` field is
+admin-only — not rendered. `kind` is `unique`, so the database
+enforces one row per system page. Drafts + autosave mirror `pages`.
+The translator plugin includes `'static-pages'` in its default
+`collections` list, so SK content fills automatically when you expand
+`localization.locales`.
+
+Revalidation uses the `pathMode: 'tag-only'` branch of
+`createRevalidateCollectionHook` — no URL fan-out (system pages have
+no slug), but the per-id tag (`collection_static-pages_<id>`) and the
+collection-wide tag (`static-pages` via the `sitemapTag` override)
+fire on every change.
+
 ## Public API
 
 The root import gives you the full surface:
@@ -190,10 +236,12 @@ The root import gives you the full surface:
 import {
   createWWWConfig,           // composer (default export)
   createPagesCollection,     // collection factories
+  createPostsCollection,
+  createStaticPagesCollection,
   createHeaderGlobal,
   createFooterGlobal,
   generatePreviewPath,       // admin.preview URL builder
-  HOME_PAGE_SLUG, PAGES_SLUG,
+  HOME_PAGE_SLUG, PAGES_SLUG, POSTS_SLUG, STATIC_PAGES_SLUG,
   link, linkGroup,           // fields
   appearanceOptions,
   anyone, authenticated,     // access
@@ -260,6 +308,7 @@ Subpath imports:
 | `blocks`         | `Block[]`                         | yes      | Blocks the Pages collection accepts.                                   |
 | `linkRelationTo` | `string[]`                        | no       | Collection slugs the Header / Footer nav links can reference. Default: `['pages']`. |
 | `registerPosts`  | `boolean`                         | no       | Register the lib's Posts collection. Default `true`. |
+| StaticPages      | —                                 | yes      | Always registered (every site has 404). Hosts filter it out in `collections:` to opt. |
 | `defaultPlugins` | `(defaults: Plugin[]) => Plugin[]`| no       | Final say on the default `[seoPlugin, imageHashPlugin, translator]` list. |
 
 `createRevalidateCollectionHook({ collectionSlug, urlPathPrefix?, sitemapTag?, localePrefix?, defaultLocale? })`:
@@ -271,6 +320,7 @@ Subpath imports:
 | `sitemapTag`     | `string \| false`                 | Tag fired alongside paths. Default `${collectionSlug}-sitemap`. Pass `false` to opt out. |
 | `localePrefix`   | `'always' \| 'as-needed' \| 'never'` | Mirrors next-intl. Default `'always'`. Set to `'as-needed'` (with `defaultLocale`) when the host uses as-needed routing. |
 | `defaultLocale`  | `string`                          | Default locale for `localePrefix: 'as-needed'`. Falls back to `req.payload.config.localization.defaultLocale`. |
+| `pathMode`       | `'url' \| 'tag-only'`             | Default `'url'` — fans out `revalidatePath` per locale × slug. Set `'tag-only'` for collections without a URL (e.g. `staticPages`); the hook still fires the per-id tag (`collection_<slug>_<id>`) and the collection-wide tag (via `sitemapTag`). |
 
 The canonical hook for all collections — Pages, Posts, and host-defined. Pages internally uses this with `collectionSlug: 'pages'`, `urlPathPrefix: ''`. Fires `revalidatePath` for **every** declared locale (not just the request locale), handles slug renames while published, fires `revalidateTag('collection_<slug>_<id>', 'max')` for hosts that cache by id, and respects `req.context.disableRevalidate` for seed scripts.
 

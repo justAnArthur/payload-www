@@ -28,6 +28,13 @@ export const PAGES_SLUG = 'pages'
 // translator plugin.
 export const POSTS_SLUG = 'posts'
 
+// The StaticPages collection slug. Hosts use this for system pages
+// (404, 500, search-empty, …) that don't map to a slug-based URL.
+// The lib's translator plugin includes `'static-pages'` in its
+// default `collections` list when the collection is registered
+// (it's registered by default — every site has 404).
+export const STATIC_PAGES_SLUG = 'staticPages'
+
 // Sitemap tag the Pages collection's revalidation hook invalidates
 // whenever a page is saved. The `createSitemapFile` factory reads
 // from this tag so the generated sitemap refreshes after edits.

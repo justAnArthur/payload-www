@@ -29,10 +29,19 @@ export type CreateRevalidateCollectionHookOptions = {
   localePrefix?: LocalePrefixMode
   /**
    * Default locale for `localePrefix: 'as-needed'`. Falls back to
-   * `req.payload.config.localization.defaultLocale` at request
-   * time when omitted.
+   * `req.payload.config.localization.defaultLocale` at request time
+   * when omitted.
    */
   defaultLocale?: string
+  /**
+   * Path invalidation strategy. Default: `'url'` — fans out
+   * `revalidatePath` for every locale × every slug. Set to
+   * `'tag-only'` for collections without a URL (e.g. `staticPages`
+   * — addressed by a `kind` discriminator, not a slug). Tag-only
+   * mode still fires the per-collection tag (via `sitemapTag`) and
+   * the per-id tag (`collection_<slug>_<id>`).
+   */
+  pathMode?: 'url' | 'tag-only'
 }
 
 /**
@@ -69,7 +78,8 @@ export function createRevalidateCollectionHook(
     urlPathPrefix = '',
     sitemapTag,
     localePrefix: modeOption,
-    defaultLocale: defaultLocaleOption
+    defaultLocale: defaultLocaleOption,
+    pathMode = 'url'
   } = options
 
   const resolvedSitemapTag = sitemapTag === false ? false : (sitemapTag ?? `${collectionSlug}-sitemap`)
@@ -146,12 +156,16 @@ export function createRevalidateCollectionHook(
     const slugChanged = prevSlugIsString && prev?.slug !== typed.slug
 
     if (isPublished) {
-      await fanOutPaths(payload, req, typed.slug, `Revalidating ${collectionSlug} at path:`)
+      if (pathMode !== 'tag-only') {
+        await fanOutPaths(payload, req, typed.slug, `Revalidating ${collectionSlug} at path:`)
+      }
       await fireCollectionTags(payload, typed.id, req)
     }
 
     if (wasPublished && (!isPublished || slugChanged)) {
-      await fanOutPaths(payload, req, prev?.slug, `Revalidating old ${collectionSlug} at path:`)
+      if (pathMode !== 'tag-only') {
+        await fanOutPaths(payload, req, prev?.slug, `Revalidating old ${collectionSlug} at path:`)
+      }
       await fireCollectionTags(payload, typed.id, req)
     }
 
@@ -163,7 +177,9 @@ export function createRevalidateCollectionHook(
     const { payload } = req
     const typed = doc as { slug?: string | null; id?: string | number } | null
 
-    await fanOutPaths(payload, req, typed?.slug, `Revalidating deleted ${collectionSlug} at path:`)
+    if (pathMode !== 'tag-only') {
+      await fanOutPaths(payload, req, typed?.slug, `Revalidating deleted ${collectionSlug} at path:`)
+    }
     await fireCollectionTags(payload, typed?.id, req)
 
     return doc ?? null

@@ -4,12 +4,58 @@
   "version": "0.0.0",
   "type": "module",
   "private": false,
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "sideEffects": false,
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "bunup && node scripts/strip-createRequire.mjs",
+    "clean": "rm -rf dist .tsbuildinfo",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "bun run clean && bun run build"
+  },
+  "dependencies": {
+    "@justanarthur/payload-imagehash-plugin": "workspace:*",
+    "@justanarthur/payload-plugin-seo": "workspace:*",
+    "@justanarthur/payload-plugin-translator": "workspace:*",
+    "@payloadcms/live-preview-react": "3.85.0",
+    "@payloadcms/richtext-lexical": "3.85.0",
+    "@payloadcms/next": "3.85.0",
+    "next": "16.2.6",
+    "next-intl": "^4.0.0",
+    "server-only": "0.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "22.19.9",
+    "@types/react": "19.2.14",
+    "@types/react-dom": "19.2.3",
+    "bunup": "^0.16.32",
+    "payload": "3.85.0",
+    "react": "19.2.6",
+    "react-dom": "19.2.6",
+    "typescript": "5.7.3",
+    "vitest": "4.0.18"
+  },
+  "peerDependencies": {
+    "@payloadcms/live-preview-react": "^3.85.0",
+    "@payloadcms/next": "^3.85.0",
+    "@payloadcms/richtext-lexical": "^3.85.0",
+    "@payloadcms/translations": "^3.85.0",
+    "@payloadcms/ui": "^3.85.0",
+    "next": "^16.2.6",
+    "next-intl": "^4.0.0",
+    "payload": "^3.85.0",
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6"
+  },
   "files": [
     "dist",
     "README.md"
   ],
-  "module": "./dist/index.js",
-  "types": "./dist/index.d.ts",
   "exports": {
     "./data-seed": {
       "import": {
@@ -192,52 +238,5 @@
       }
     },
     "./package.json": "./package.json"
-  },
-  "license": "MIT",
-  "sideEffects": false,
-  "engines": {
-    "node": ">=20"
-  },
-  "scripts": {
-    "build": "bunup && node scripts/strip-createRequire.mjs",
-    "clean": "rm -rf dist .tsbuildinfo",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "typecheck": "tsc --noEmit",
-    "prepublishOnly": "bun run clean && bun run build"
-  },
-  "dependencies": {
-    "@justanarthur/payload-imagehash-plugin": "workspace:*",
-    "@justanarthur/payload-plugin-seo": "workspace:*",
-    "@justanarthur/payload-plugin-translator": "workspace:*",
-    "@payloadcms/live-preview-react": "3.85.0",
-    "@payloadcms/richtext-lexical": "3.85.0",
-    "@payloadcms/next": "3.85.0",
-    "next": "16.2.6",
-    "next-intl": "^4.0.0",
-    "server-only": "0.0.1"
-  },
-  "devDependencies": {
-    "@types/node": "22.19.9",
-    "@types/react": "19.2.14",
-    "@types/react-dom": "19.2.3",
-    "bunup": "^0.16.32",
-    "payload": "3.85.0",
-    "react": "19.2.6",
-    "react-dom": "19.2.6",
-    "typescript": "5.7.3",
-    "vitest": "4.0.18"
-  },
-  "peerDependencies": {
-    "@payloadcms/live-preview-react": "^3.85.0",
-    "@payloadcms/next": "^3.85.0",
-    "@payloadcms/richtext-lexical": "^3.85.0",
-    "@payloadcms/translations": "^3.85.0",
-    "@payloadcms/ui": "^3.85.0",
-    "next": "^16.2.6",
-    "next-intl": "^4.0.0",
-    "payload": "^3.85.0",
-    "react": "^19.2.6",
-    "react-dom": "^19.2.6"
   }
 }

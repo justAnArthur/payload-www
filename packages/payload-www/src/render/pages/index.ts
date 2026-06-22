@@ -23,3 +23,7 @@ export {
   type CreateRootLayoutExportsReturn,
   type CreateRootLayoutProvidersArgs
 } from './createRootLayoutExports'
+export {
+  createStaticPageExports,
+  type CreateStaticPageExportsArgs
+} from './createStaticPageExports'

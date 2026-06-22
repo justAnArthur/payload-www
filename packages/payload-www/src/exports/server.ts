@@ -65,6 +65,10 @@ import {
   type PageExtendProps
 } from '../render/pages/createCollectionPageExports'
 import {
+  createStaticPageExports,
+  type CreateStaticPageExportsArgs
+} from '../render/pages/createStaticPageExports'
+import {
   createPagesCollection,
   type CreatePagesCollectionOptions,
   HOME_PAGE_SLUG,
@@ -75,6 +79,11 @@ import {
   type CreatePostsCollectionOptions,
   POSTS_SLUG
 } from '../data/collections/Posts/index'
+import {
+  createStaticPagesCollection,
+  type CreateStaticPagesCollectionOptions,
+  STATIC_PAGES_SLUG
+} from '../data/collections/StaticPages/index'
 import { createHeaderGlobal, type CreateHeaderGlobalOptions } from '../data/collections/globals/Header/config'
 import { createFooterGlobal, type CreateFooterGlobalOptions } from '../data/collections/globals/Footer/config'
 import { generatePreviewPath } from '../data/collections/previewPath'
@@ -133,6 +142,10 @@ export {
   type PageExtendProps
 }
 export {
+  createStaticPageExports,
+  type CreateStaticPageExportsArgs
+}
+export {
   createPagesCollection,
   type CreatePagesCollectionOptions,
   HOME_PAGE_SLUG,
@@ -142,6 +155,11 @@ export {
   createPostsCollection,
   type CreatePostsCollectionOptions,
   POSTS_SLUG
+}
+export {
+  createStaticPagesCollection,
+  type CreateStaticPagesCollectionOptions,
+  STATIC_PAGES_SLUG
 }
 export { createHeaderGlobal, type CreateHeaderGlobalOptions }
 export { createFooterGlobal, type CreateFooterGlobalOptions }
