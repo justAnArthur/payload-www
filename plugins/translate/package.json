@@ -11,6 +11,18 @@
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
+    "./jobs": {
+      "import": {
+        "types": "./dist/jobs.d.ts",
+        "default": "./dist/jobs.js"
+      }
+    },
+    "./resolvers/copy": {
+      "import": {
+        "types": "./dist/resolvers/copy.d.ts",
+        "default": "./dist/resolvers/copy.js"
+      }
+    },
     "./types": {
       "import": {
         "types": "./dist/types.d.ts",
@@ -23,22 +35,10 @@
         "default": "./dist/client.js"
       }
     },
-    "./resolvers/types": {
+    ".": {
       "import": {
-        "types": "./dist/resolvers/types.d.ts",
-        "default": "./dist/resolvers/types.js"
-      }
-    },
-    "./resolvers/google": {
-      "import": {
-        "types": "./dist/resolvers/google.d.ts",
-        "default": "./dist/resolvers/google.js"
-      }
-    },
-    "./resolvers/copy": {
-      "import": {
-        "types": "./dist/resolvers/copy.d.ts",
-        "default": "./dist/resolvers/copy.js"
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
       }
     },
     "./resolvers/openAI": {
@@ -53,10 +53,16 @@
         "default": "./dist/resolvers/libreTranslate.js"
       }
     },
-    ".": {
+    "./resolvers/types": {
       "import": {
-        "types": "./dist/index.d.ts",
-        "default": "./dist/index.js"
+        "types": "./dist/resolvers/types.d.ts",
+        "default": "./dist/resolvers/types.js"
+      }
+    },
+    "./resolvers/google": {
+      "import": {
+        "types": "./dist/resolvers/google.d.ts",
+        "default": "./dist/resolvers/google.js"
       }
     },
     "./package.json": "./package.json"
