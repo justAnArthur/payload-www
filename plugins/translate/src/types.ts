@@ -21,6 +21,24 @@ export type TranslatorConfig = {
   resolvers: TranslateResolver[],
 
   /**
+   * Auto-translate every save in the default locale to the other
+   * configured locales via Payload's job queue.
+   *
+   * When `true`, the plugin:
+   * - registers `createTranslateTask()` and `createTranslateWorkflow()`
+   *   in `config.jobs` (idempotent — skips if a task/workflow with
+   *   the same slug is already registered, so host-customized
+   *   factories survive),
+   * - prepends `createAutoTranslateCollectionHook` /
+   *   `createAutoTranslateGlobalHook` to each collection/global
+   *   listed in `collections` / `globals`.
+   *
+   * Default: `false`. Public factories stay exported for hosts that
+   * need per-entity control.
+   */
+  autoTranslate?: boolean,
+
+  /**
    * Advanced traversal options. Mirrors the options accepted by the
    * internal field walker — keep in sync if you need the latest shape.
    */
