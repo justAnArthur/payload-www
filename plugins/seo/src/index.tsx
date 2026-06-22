@@ -85,15 +85,19 @@ export const seoPlugin =
           ? pluginConfig.fields({ defaultFields: [buildMetaField()] })
           : [buildMetaField()]
 
-      const autoGenerateEnabled = pluginConfig?.autoGenerate !== false && pluginConfig?.autoGenerate !== undefined
-      const autoGenerateHook = autoGenerateEnabled
-        ? buildAutoGenerateHook(pluginConfig, config)
-        : null
+      // Always wire the auto-generate hook. `runAutoGenerate` is a no-op
+      // when `pluginConfig.autoGenerate` is falsy / off, so disabling it
+      // doesn't require conditional wiring at this layer. The unconditional
+      // reference also keeps the import live under aggressive bundlers
+      // (bunup + `sideEffects: false`).
+      const autoGenerateHook = buildAutoGenerateHook(pluginConfig, config)
 
       // Compose the auto-generate hook with any existing `hooks.beforeChange`
       // so the lib's own chains (e.g. Posts' revalidation hook) keep running.
+      // Payload expects `hooks.beforeChange` to be an array — it iterates with
+      // `for (const hook of ...)`. Passing a single function throws
+      // "hooks.beforeChange is not iterable" inside `create.ts`.
       const withAutoGenerateHook = <T extends { hooks?: { beforeChange?: unknown } }>(item: T): T => {
-        if (!autoGenerateHook) return item
         const existing = item.hooks?.beforeChange
         const composed = async (args: unknown): Promise<unknown> => {
           const a = args as {
@@ -104,20 +108,13 @@ export const seoPlugin =
             originalDoc?: Record<string, unknown>
             req: import('payload').PayloadRequest
           }
-          const data = await autoGenerateHook({
-            collection: a.collection,
-            data: a.data,
-            global: a.global,
-            operation: a.operation,
-            originalDoc: a.originalDoc,
-            req: a.req
-          })
+          const data = await autoGenerateHook(a)
           if (typeof existing === 'function') {
             return (existing as (a: unknown) => Promise<unknown>)({ ...a, data })
           }
           return data
         }
-        return { ...item, hooks: { ...(item.hooks ?? {}), beforeChange: composed } }
+        return { ...item, hooks: { ...(item.hooks ?? {}), beforeChange: [composed] } }
       }
 
       return {
