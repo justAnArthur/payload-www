@@ -303,13 +303,12 @@ export function createCollectionPageExports<S extends string = 'pages'>(
     return `/${locale}${urlPath}`
   }
 
-  async function fetchDoc(locale: string, storedSlug: string) {
+  async function fetchDoc(locale: string, storedSlug: string, draft: boolean = false) {
     return queryDocBySlug({
       collectionSlug: slug,
       slug: storedSlug,
-      slugField: 'slug',
       locale,
-      draft: true,
+      draft,
       config: configPromise
     })
   }
@@ -351,7 +350,6 @@ export function createCollectionPageExports<S extends string = 'pages'>(
     params: Promise<{ locale?: string; slug?: string[] }>
     searchParams?: Promise<Record<string, string | string[] | undefined>>
   }): Promise<ReactElement> => {
-    const { draftMode } = await import('next/headers')
     const { slug: rawSlugSegments, locale: incomingLocale } = (await props.params) ?? {}
     const slugSegments: string[] = Array.isArray(rawSlugSegments) ? rawSlugSegments : []
     const locale = typeof incomingLocale === 'string' ? incomingLocale : defaultLocale
@@ -365,15 +363,17 @@ export function createCollectionPageExports<S extends string = 'pages'>(
     const { setRequestLocale } = await import('next-intl/server')
     setRequestLocale(locale)
 
+    const { draftMode } = await import('next/headers')
+    const { isEnabled: draft } = await draftMode()
+
     const storedSlug = segmentsToStoredSlug(slugSegments, false)
-    const doc = await fetchDoc(locale, storedSlug)
+    const doc = await fetchDoc(locale, storedSlug, draft)
 
     if (!doc && notFoundOnMissing) {
       const { notFound } = await import('next/navigation')
       notFound()
     }
 
-    const { isEnabled: draft } = await draftMode()
     const cfg = await configPromise
     const collectionCustomPath = cfg.collections.find((c) => c.slug === slug)?.custom?.path
     const effectivePath = renderPath ?? collectionCustomPath ?? defaultRenderPath
