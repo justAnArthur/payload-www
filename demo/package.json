@@ -1,0 +1,61 @@
+{
+  "name": "demo",
+  "version": "1.0.0",
+  "description": "Minimal showcase for the @justanarthur/payload-www lib",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "build": "NODE_OPTIONS=--no-deprecation next build",
+    "dev": "NODE_OPTIONS=--no-deprecation next dev",
+    "generate:importmap": "NODE_OPTIONS=--no-deprecation payload generate:importmap",
+    "generate:types": "NODE_OPTIONS=--no-deprecation payload generate:types",
+    "lint": "biome lint .",
+    "lint:fix": "biome lint . --write",
+    "format": "biome format . --write",
+    "check": "biome check .",
+    "check:fix": "biome check . --write",
+    "payload": "NODE_OPTIONS=--no-deprecation payload",
+    "seed": "NODE_OPTIONS=--no-deprecation tsx src/seed/index.ts",
+    "start": "NODE_OPTIONS=--no-deprecation next start"
+  },
+  "dependencies": {
+    "@justanarthur/payload-www": "workspace:*",
+    "@justanarthur/payload-imagehash-plugin": "workspace:*",
+    "@justanarthur/payload-plugin-seo": "workspace:*",
+    "@justanarthur/payload-plugin-translator": "workspace:*",
+    "@payloadcms/admin-bar": "3.85.0",
+    "@payloadcms/db-sqlite": "3.85.0",
+    "@payloadcms/live-preview-react": "3.85.0",
+    "@payloadcms/next": "3.85.0",
+    "@payloadcms/richtext-lexical": "3.85.0",
+    "@payloadcms/ui": "3.85.0",
+    "@radix-ui/react-slot": "^1.0.2",
+    "class-variance-authority": "^0.7.0",
+    "clsx": "^2.1.1",
+    "dotenv": "16.4.7",
+    "geist": "^1.3.0",
+    "graphql": "^16.8.2",
+    "lucide-react": "0.563.0",
+    "next": "16.2.6",
+    "next-intl": "^4.0.0",
+    "payload": "3.85.0",
+    "react": "19.2.6",
+    "react-dom": "19.2.6",
+    "sharp": "0.34.2",
+    "tailwind-merge": "^3.4.0"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.4.16",
+    "@tailwindcss/postcss": "^4.1.18",
+    "@types/node": "22.19.9",
+    "@types/react": "19.2.14",
+    "@types/react-dom": "19.2.3",
+    "autoprefixer": "^10.4.19",
+    "postcss": "^8.4.38",
+    "tailwindcss": "^4.1.18",
+    "typescript": "5.7.3"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
