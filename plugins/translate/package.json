@@ -105,5 +105,9 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/justAnArthur/payload-starter_translator.git"
+  },
+  "properties": {
+    "gitCommitScopeRelatedNames": "translate,translator,translation",
+    "priority": 0
   }
 }

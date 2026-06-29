@@ -1,0 +1,13 @@
+# .justactions.yml
+# ---
+# project settings for just-github-actions-n-workflows.
+# this repo only uses bump-version + publish-npm-on-tag (npm targets),
+# so no deploy/ssh/vercel config is needed here.
+#
+# deploy targets are auto-detected per package:
+#   - npm  : package.json has `private` !== true
+# the `demo` app is marked `private: true` so it is never published.
+# ---
+
+git:
+  co_author_email: kozubov.arthur@gmail.com
