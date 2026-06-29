@@ -51,5 +51,9 @@
   "peerDependencies": {
     "payload": "^3.85.0",
     "sharp": "0.x"
+  },
+  "properties": {
+    "gitCommitScopeRelatedNames": "imagehash,imghash,blurhash,thumbhash",
+    "priority": 0
   }
 }
