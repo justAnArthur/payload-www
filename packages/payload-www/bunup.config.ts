@@ -8,6 +8,11 @@ export default defineConfig({
   format: ['esm'],
   clean: true,
   splitting: false,
+  // Infer declaration types with the TypeScript compiler instead of
+  // bunup's default isolated-declarations mode, which requires explicit
+  // annotations on every export and emits warnings that CI escalates to
+  // fatal errors (and otherwise produces degraded .d.ts).
+  dts: { inferTypes: true },
   external: [
     /node:/,
     /@payloadcms/,

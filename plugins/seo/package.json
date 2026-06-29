@@ -50,6 +50,7 @@
   },
   "scripts": {
     "build": "bunup",
+    "clean": "rm -rf dist .tsbuildinfo",
     "prepublishOnly": "bun run clean && bun run build",
     "test": "vitest run",
     "test:watch": "vitest"

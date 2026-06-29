@@ -15,6 +15,11 @@ export default defineConfig({
   // inlined into its entry file. Slightly larger entry files but
   // no broken exports.
   splitting: false,
+  // Infer declaration types with the TypeScript compiler instead of
+  // bunup's default isolated-declarations mode, which requires explicit
+  // annotations on every export and emits warnings that CI escalates to
+  // fatal errors (and otherwise produces degraded .d.ts).
+  dts: { inferTypes: true },
   // Flatten `src/exports/<name>.ts` → `dist/<name>.{js,d.ts}` so
   // the exports() plugin can map entries to clean subpath names
   // (`.`, `./jobs`, `./resolvers/google`, etc.) instead of leaking

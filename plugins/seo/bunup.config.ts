@@ -7,6 +7,11 @@ export default defineConfig({
   ],
   format: ['esm'],
   clean: true,
+  // Use the TypeScript compiler to infer declaration types instead of
+  // bunup's default isolated-declarations mode. Isolated declarations
+  // require explicit annotations on every export and emit warnings that
+  // CI (CI=true) escalates to fatal errors. inferTypes sidesteps that.
+  dts: { inferTypes: true },
   plugins: [
     exports({})
   ]
