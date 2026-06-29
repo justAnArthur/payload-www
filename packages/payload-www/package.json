@@ -238,5 +238,9 @@
       }
     },
     "./package.json": "./package.json"
+  },
+  "properties": {
+    "gitCommitScopeRelatedNames": "payload-www,render,revalidation,www",
+    "priority": 1
   }
 }
