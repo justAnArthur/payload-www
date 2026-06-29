@@ -1,0 +1,7 @@
+{
+  "ref": "main",
+  "workflows": {
+    "bump-version": "main",
+    "publish-npm-on-tag": "main"
+  }
+}
