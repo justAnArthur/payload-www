@@ -4,6 +4,7 @@
   "description": "Minimal showcase for the @justanarthur/payload-www lib",
   "license": "MIT",
   "type": "module",
+  "private": true,
   "scripts": {
     "build": "NODE_OPTIONS=--no-deprecation next build",
     "dev": "NODE_OPTIONS=--no-deprecation next dev",
