@@ -1,6 +1,7 @@
 import type { ReactElement } from 'react'
 
 import { RenderBlocks } from '../blocks/renderBlocks'
+import type { SanitizedConfig } from "payload"
 
 type PagesPageProps = {
   /**
@@ -21,7 +22,9 @@ type PagesPageProps = {
    * `importMap` it uses everywhere else; the lib's `RenderBlocks`
    * resolves each block against the map.
    */
-  importMap: Record<string, unknown>
+  importMap: Record<string, unknown>,
+
+  config: SanitizedConfig
 }
 
 /**
@@ -31,12 +34,12 @@ type PagesPageProps = {
  * collection (via the lib's `createPagesCollection` factory) and
  * pointing it at their own Server Component.
  */
-export async function PagesPage({ doc, locale, importMap }: PagesPageProps): Promise<ReactElement> {
+export async function PagesPage({ doc, ...props }: PagesPageProps): Promise<ReactElement> {
   if (!doc) return <></>
   const blocks = ((doc as any).blocks ?? []) as Array<{ blockType: string }>
   return (
     <>
-      <RenderBlocks blocks={blocks} importMap={importMap as any} config={{} as any} locale={locale}/>
+      <RenderBlocks blocks={blocks} {...props}/>
     </>
   )
 }

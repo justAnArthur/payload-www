@@ -3,14 +3,11 @@ import 'server-only'
 // in the function body so a server entrypoint that calls
 // `createWWWConfig` doesn't pull this module into its static graph
 // at module-init time.
-
 import type { Metadata, MetadataRoute } from 'next'
 import type { DataFromCollectionSlug, ImportMap, SanitizedConfig } from 'payload'
-import * as React from 'react'
 import type { ReactElement, ReactNode } from 'react'
+import * as React from 'react'
 import { Suspense } from 'react'
-
-import { RenderBlocks } from '../blocks/renderBlocks'
 import { LIVE_PREVIEW_LISTENER_PATH, PAGES_RENDER_PATH, POSTS_RENDER_PATH, POSTS_SLUG } from '../../config/constants'
 import { renderCollectionModule } from '../utils/renderCollectionModule'
 import { buildHreflangAlternates, type HreflangAlternates } from '../metadata/hreflang'
@@ -24,6 +21,7 @@ import {
 import { getUrlPath, segmentsToStoredSlug, storedSlugToSegments } from '../metadata/slug'
 import { queryAllDocs, queryAllLocaleSlugs, queryDocBySlug } from '../metadata/query'
 import { RichText } from '@payloadcms/richtext-lexical/react'
+import { PagesPage } from "./PagesPage"
 
 // --- types ---
 
@@ -186,11 +184,6 @@ export type CreateCollectionPageExportsDeps<S extends string> = {
     locale: string
   }) => Promise<Metadata>
   /**
-   * When `true` (default), the route page renders a 404 for unknown
-   * slugs. Set `false` to render an empty page.
-   */
-  notFoundOnMissing?: boolean
-  /**
    * Override the metadata type passed to `generateMeta` and the
    * JSON-LD entry default. Defaults to `'article'` for the
    * `posts` collection, `'website'` everywhere else. Hosts that
@@ -265,7 +258,6 @@ export function createCollectionPageExports<S extends string = 'pages'>(
   const {
     getServerSideURL,
     generateMeta,
-    notFoundOnMissing = true,
     metadataType: metadataTypeOverride,
     showcase: showcaseOption,
     homeExtras
@@ -369,7 +361,7 @@ export function createCollectionPageExports<S extends string = 'pages'>(
     const storedSlug = segmentsToStoredSlug(slugSegments, false)
     const doc = await fetchDoc(locale, storedSlug, draft)
 
-    if (!doc && notFoundOnMissing) {
+    if (!doc) {
       const { notFound } = await import('next/navigation')
       notFound()
     }
@@ -380,28 +372,18 @@ export function createCollectionPageExports<S extends string = 'pages'>(
 
     const render =
       effectivePath === PAGES_RENDER_PATH
-        ? doc
-          ? <RenderBlocks
-              blocks={
-                ((doc as DataFromCollectionSlug<S> & { blocks?: Array<{ blockType: string } & Record<string, unknown>> })
-                  .blocks ?? []) as Array<{ blockType: string } & Record<string, unknown>>
-              }
-              importMap={importMap}
-              config={cfg}
-              locale={locale}
-            />
-          : null
+        ? <PagesPage doc={doc} importMap={importMap} config={cfg} locale={locale}/>
         : effectivePath === POSTS_RENDER_PATH
           ? doc
             ? await renderPostBody(doc as DataFromCollectionSlug<S>, locale)
             : null
           : renderCollectionModule(cfg.collections, slug, importMap, {
-              ...props,
-              config: cfg,
-              locale,
-              searchParams: props.searchParams,
-              doc
-            })
+            ...props,
+            config: cfg,
+            locale,
+            searchParams: props.searchParams,
+            doc
+          })
 
     const jsonLdNodes = doc ? await generateJsonLd(slugSegments, doc, locale) : []
     const { alternates: hreflangAlternates, canonical } = await resolveHreflangAlternates(locale, storedSlug)
@@ -420,16 +402,16 @@ export function createCollectionPageExports<S extends string = 'pages'>(
         {render}
         {draft
           ? (() => {
-              const ResolvedListener = importMap?.[LIVE_PREVIEW_LISTENER_PATH] as
-                | React.ComponentType
-                | undefined
-              if (!ResolvedListener) return null
-              return (
-                <Suspense fallback={null}>
-                  <ResolvedListener />
-                </Suspense>
-              )
-            })()
+            const ResolvedListener = importMap?.[LIVE_PREVIEW_LISTENER_PATH] as
+              | React.ComponentType
+              | undefined
+            if (!ResolvedListener) return null
+            return (
+              <Suspense fallback={null}>
+                <ResolvedListener/>
+              </Suspense>
+            )
+          })()
           : null}
         {storedSlug === HOME_SLUG && homeExtras
           ? await homeExtras({ locale, doc: doc as DataFromCollectionSlug<S> | null })
@@ -443,7 +425,12 @@ export function createCollectionPageExports<S extends string = 'pages'>(
     // surfaces the page's metadata, JSON-LD, and language switcher.
     const { PageShowcase } = await import('../components/PageShowcase')
     const { LocaleSwitcher } = await import('../components/LocaleSwitcher')
-    const meta = await generateMeta({ doc: doc as DataFromCollectionSlug<S>, url: canonical, type: metadataType, locale })
+    const meta = await generateMeta({
+      doc: doc as DataFromCollectionSlug<S>,
+      url: canonical,
+      type: metadataType,
+      locale
+    })
     return (
       <PageShowcase
         metadata={meta}
@@ -586,7 +573,12 @@ export function createCollectionPageExports<S extends string = 'pages'>(
   }
 
   async function generateSitemap(): Promise<MetadataRoute.Sitemap> {
-    const docs = await queryAllDocs({ collectionSlug: slug, slugField: 'slug', locale: defaultLocale, config: configPromise })
+    const docs = await queryAllDocs({
+      collectionSlug: slug,
+      slugField: 'slug',
+      locale: defaultLocale,
+      config: configPromise
+    })
     const siteUrl = getServerSideURL().replace(/\/$/, '')
     const urls: MetadataRoute.Sitemap = []
     for (const doc of docs) {
@@ -634,6 +626,7 @@ export function addCollectionsToSitemap(
     const all = await Promise.all(exports.map((e) => e.generateSitemap()))
     return all.flat()
   }
+
   return { default: buildSitemap, generateSitemap: buildSitemap }
 }
 
@@ -671,7 +664,7 @@ async function renderPostBody<S extends string>(
       </header>
       {content ? (
         <div className="posts-page__content">
-          <RichText data={content} />
+          <RichText data={content}/>
         </div>
       ) : null}
     </article>

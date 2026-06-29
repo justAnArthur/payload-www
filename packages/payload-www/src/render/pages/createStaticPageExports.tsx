@@ -80,10 +80,20 @@ export function createStaticPageExports({
       config: configPromise
     })
 
-    if (!doc)
-      return <p>404</p>
+    if (!doc) {
+      console.warn('[createStaticPageExports] !doc: ' + 'STATIC_PAGES_SLUG=', STATIC_PAGES_SLUG, 'slug:' + kind)
+      return (
+        <section>
+          <h1>
+            404
+          </h1>
+        </section>
+      )
+    }
 
-    return <PagesPage doc={doc} locale={locale} importMap={importMap}/>
+    const cfg = await configPromise
+
+    return <PagesPage doc={doc} locale={locale} importMap={importMap} config={cfg}/>
   }
 
   return { default: default_ }

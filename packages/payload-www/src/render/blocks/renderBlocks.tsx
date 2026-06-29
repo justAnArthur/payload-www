@@ -46,7 +46,7 @@ export const RenderBlocks: FC<RenderBlocksProps> = ({
 
     const Block = getFromImportMap(importMapPath, importMap)
     if (!Block) {
-      console.warn(`No block found for type: ${blockType}`)
+      console.warn(`No block found for type: ${blockType}, config.admin?.dependencies?.[blockType]: ${config.admin?.dependencies?.[blockType]}`)
       continue
     }
 

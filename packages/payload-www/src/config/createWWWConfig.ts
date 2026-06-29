@@ -14,14 +14,14 @@ import type { PageRouting } from '../render/pages/createCollectionPageExports'
 // in the full `createWWWConfig` builder. Re-exported here for the
 // `/with-www-config` subpath.
 import {
-  PAGES_RENDER_PATH,
-  POSTS_RENDER_PATH,
-  HEADER_RENDER_PATH,
   FOOTER_RENDER_PATH,
-  PAGES_SLUG,
-  STATIC_PAGES_SLUG,
+  HEADER_RENDER_PATH,
+  LIVE_PREVIEW_LISTENER_PATH,
+  PAGES_RENDER_PATH,
   PAGES_SITEMAP_TAG,
-  LIVE_PREVIEW_LISTENER_PATH
+  PAGES_SLUG,
+  POSTS_RENDER_PATH,
+  STATIC_PAGES_SLUG
 } from './constants'
 import openAIResolver from "@justanarthur/payload-plugin-translator/resolvers/openAI"
 
@@ -144,9 +144,11 @@ export function createWWWConfig(options: WWWConfigOptions): WWWConfigApi {
   const buildStaticPagesCollection = () =>
     createStaticPagesCollection(blocks) as CollectionConfig
 
-  const buildHeaderGlobal = () => createHeaderGlobal({ linkRelationTo }) as GlobalConfig
+  const buildHeaderGlobal = () =>
+    createHeaderGlobal({ linkRelationTo }) as GlobalConfig
 
-  const buildFooterGlobal = () => createFooterGlobal({ linkRelationTo }) as GlobalConfig
+  const buildFooterGlobal = () =>
+    createFooterGlobal({ linkRelationTo }) as GlobalConfig
 
   async function withWWWConfig(config: WWWInputConfig): Promise<Config> {
     // Direct calls to the imported factories keep their imports alive
@@ -187,6 +189,17 @@ export function createWWWConfig(options: WWWConfigOptions): WWWConfigApi {
         type: 'component'
       }
     }
+    // ponytail: register every host block/collection/global that declares a
+    // custom.path so the host's payload.config.ts doesn't need to hand-write
+    // the matching admin.dependencies entry.
+    for (const { slug, admin } of blocks) {
+      const path = admin?.custom?.path
+      if (typeof path === 'string' && slug) renderDependencies[slug] = { path, type: 'component' }
+    }
+    for (const entry of [...collections, ...globals]) {
+      const path = entry.custom?.path
+      if (typeof path === 'string') renderDependencies[path] = { path, type: 'component' }
+    }
 
     // Lib's default plugin set. Loaded lazily so Node entrypoints
     // (e.g. `payload seed`) don't pull in the admin UI's CSS via
@@ -215,7 +228,7 @@ export function createWWWConfig(options: WWWConfigOptions): WWWConfigApi {
           openAIResolver({
             apiKey: process.env.OPENAI_API_KEY!,
             chunkLength: 31,
-            model: 'gpt-5-mini',
+            model: 'gpt-5-mini'
           })
         ]
       })
@@ -257,4 +270,6 @@ export { createStaticPagesCollection } from '../data/collections/StaticPages/ind
 export { createHeaderGlobal } from '../data/collections/globals/Header/config'
 export { createFooterGlobal } from '../data/collections/globals/Footer/config'
 export { createPreviewHandler, type CreatePreviewHandlerOptions } from '../render/preview/createPreviewHandler'
-export { createSitemapFile, type CreateSitemapFileOptions, type SitemapFunction } from '../render/sitemap/createSitemapFile'
+export {
+  createSitemapFile, type CreateSitemapFileOptions, type SitemapFunction
+} from '../render/sitemap/createSitemapFile'
