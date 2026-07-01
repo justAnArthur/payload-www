@@ -1,7 +1,7 @@
 import type { Block, CollectionConfig, Field } from 'payload'
 
 import { authenticated, authenticatedOrPublished } from '../../../core/access'
-import { slugField } from '../../../core/fields'
+import { slugField } from '../../../core/fields/slug'
 import {
   createRevalidateCollectionHook,
   type CreateRevalidateCollectionHookOptions
