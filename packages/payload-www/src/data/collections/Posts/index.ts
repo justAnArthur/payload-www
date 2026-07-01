@@ -1,7 +1,7 @@
 import type { CollectionConfig, Field } from 'payload'
 
 import { authenticated, authenticatedOrPublished } from '../../../core/access'
-import { slugField } from '../../../core/fields'
+import { slugField } from '../../../core/fields/slug'
 import { createRevalidateCollectionHook } from '../../../render/hooks/revalidateCollection'
 import { POSTS_RENDER_PATH } from '../../../config/constants'
 
