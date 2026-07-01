@@ -48,6 +48,14 @@ export type CreatePagesCollectionOptions = {
    * when omitted.
    */
   defaultLocale?: CreateRevalidateCollectionHookOptions['defaultLocale']
+  /**
+   * Enable nested (hierarchical) slugs. When `true`, the slug field
+   * additionally accepts the `_` nesting divider (so `about_us`
+   * renders at `/about/us`) and the admin description documents the
+   * convention. Pair with `createCollectionPageExports({ nested: true })`
+   * on the matching route. Default: `false` (flat, hyphen-only slugs).
+   */
+  nested?: boolean
 }
 
 export const createPagesCollection = (
@@ -58,22 +66,33 @@ export const createPagesCollection = (
     renderPath = PAGES_RENDER_PATH,
     slug: collectionSlug = PAGES_SLUG,
     localePrefix,
-    defaultLocale
+    defaultLocale,
+    nested = false
   } = options
 
+  // When nesting is enabled the `_` divider is part of the stored
+  // slug (`about_us` → `/about/us`), so the validation must allow it.
+  const slugPattern = nested ? /^[a-z0-9_-]+$/ : /^[a-z0-9-]+$/
   const slugField: Field = {
     name: 'slug',
     type: 'text',
     required: true,
     unique: true,
     index: true,
-    admin: { position: 'sidebar' },
+    admin: {
+      position: 'sidebar',
+      ...(nested
+        ? { description: 'Lowercase, hyphens for words. Use the `_` divider for nesting, e.g. `about_us` → `/about/us`.' }
+        : {})
+    },
     // The empty slug is reserved for the home page (rendered at
     // `/${locale}`). One doc per locale can have it.
     validate: (value: unknown) => {
       if (typeof value !== 'string') return 'Slug must be a string'
-      if (value !== '' && !/^[a-z0-9-]+$/.test(value)) {
-        return 'Slug must be lowercase, with hyphens (no spaces or special characters)'
+      if (value !== '' && !slugPattern.test(value)) {
+        return nested
+          ? 'Slug must be lowercase, with hyphens or the `_` nesting divider (no spaces or other special characters)'
+          : 'Slug must be lowercase, with hyphens (no spaces or special characters)'
       }
       return true
     }

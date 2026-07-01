@@ -2,6 +2,9 @@ import { describe, expect, it } from 'vitest'
 
 import { appearanceOptions, link, linkGroup } from '../src/core/fields'
 import { anyone, authenticated, authenticatedOrPublished } from '../src/core/access'
+import { createHeaderGlobal } from '../src/data/collections/globals/Header/config'
+import { createFooterGlobal } from '../src/data/collections/globals/Footer/config'
+import { createPagesCollection } from '../src/data/collections/Pages/index'
 import {
   buildArticleLd,
   buildBreadcrumbsLd,
@@ -54,9 +57,67 @@ describe('fields/link', () => {
     expect(url.localized).toBe(true)
   })
 
+  it('appends extraFields to the link group', () => {
+    const f = link({
+      extraFields: [
+        { name: 'description', type: 'text' },
+        { name: 'navHover', type: 'group', fields: [{ name: 'columns', type: 'number' }] }
+      ]
+    }) as any
+    const names = flattenNames(f)
+    expect(names).toContain('description')
+    expect(names).toContain('navHover')
+    expect(names).toContain('columns')
+  })
+
   it('shim re-exports match src exports', () => {
     expect(linkFromShim).toBe(link)
     expect(linkGroupFromShim).toBe(linkGroup)
+  })
+})
+
+describe('globals/header+footer nav extensibility', () => {
+  const extra = [{ name: 'description', type: 'text' as const }]
+
+  it('createHeaderGlobal threads navColumnLinkFields into the column link', () => {
+    const header = createHeaderGlobal({ navColumnLinkFields: extra }) as any
+    const navColumn = header.fields[0].blocks.find((b: any) => b.slug === 'navColumn')
+    expect(flattenNames(navColumn.fields[1])).toContain('description')
+  })
+
+  it('createFooterGlobal threads navItemLinkFields into the item link', () => {
+    const footer = createFooterGlobal({ navItemLinkFields: extra }) as any
+    const navItem = footer.fields[0].blocks.find((b: any) => b.slug === 'navItem')
+    expect(flattenNames(navItem)).toContain('description')
+  })
+
+  it('omits extra nav fields by default', () => {
+    const header = createHeaderGlobal() as any
+    const navColumn = header.fields[0].blocks.find((b: any) => b.slug === 'navColumn')
+    expect(flattenNames(navColumn.fields[1])).not.toContain('description')
+  })
+})
+
+describe('collections/Pages slug validation', () => {
+  const slugValidate = (opts?: { nested?: boolean }) => {
+    const collection = createPagesCollection([], opts) as any
+    const field = findField(collection, 'slug')
+    return field.validate as (v: unknown) => true | string
+  }
+
+  it('flat (default) rejects the `_` nesting divider', () => {
+    const validate = slugValidate()
+    expect(validate('about-us')).toBe(true)
+    expect(validate('about_us')).not.toBe(true)
+    expect(validate('')).toBe(true)
+  })
+
+  it('nested accepts the `_` nesting divider', () => {
+    const validate = slugValidate({ nested: true })
+    expect(validate('about_us')).toBe(true)
+    expect(validate('about-us')).toBe(true)
+    expect(validate('')).toBe(true)
+    expect(validate('About Us')).not.toBe(true)
   })
 })
 

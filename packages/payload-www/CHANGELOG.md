@@ -30,8 +30,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   export, served at `/sitemap.xml`). The old route-handler name and
   the two legacy `*-sitemap.xml/route.ts` files are gone.
 
+### Fixed
+
+- Removed a stray `console.log('render', …)` left in the
+  `createCollectionPageExports` page-render hot path.
+
 ### Added
 
+- **Nested (hierarchical) slugs.** `createCollectionPageExports({ nested: true })`
+  joins the catch-all `[...slug]` segments with the `_` divider to form
+  the stored slug (URL `/about/us` ⇄ stored `about_us`) and expands it
+  back for URL building, hreflang alternates, and `generateStaticParams`.
+  Pair with `createPagesCollection({ nested: true })` /
+  `createWWWConfig({ nested: true })` to let the Pages slug field accept
+  the `_` divider, and `createSitemapFile({ nested: { pages: true } })`
+  for the sitemap. Default stays `false` (flat, hyphen-only slugs).
+- **Extensible nav links.** `link({ extraFields })` appends host fields
+  (e.g. a `description` or a `navHover` mega-menu group) to the link
+  group. `createHeaderGlobal` / `createFooterGlobal` expose
+  `navColumnLinkFields` and `navItemLinkFields` to thread these into the
+  `navColumn` / `navItem` links without redefining the whole nav.
 - `createRevalidateCollectionHook({ collectionSlug, urlPathPrefix?,
   sitemapTag?, localePrefix?, defaultLocale? })` — canonical
   revalidation factory for **all** collections (Pages, Posts,
