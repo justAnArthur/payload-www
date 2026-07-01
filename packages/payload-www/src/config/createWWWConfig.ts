@@ -198,11 +198,14 @@ export function createWWWConfig(options: WWWConfigOptions): WWWConfigApi {
         type: 'component'
       }
     }
-    // ponytail: register every host block/collection/global that declares a
-    // custom.path so the host's payload.config.ts doesn't need to hand-write
-    // the matching admin.dependencies entry.
-    for (const { slug, admin } of blocks) {
-      const path = admin?.custom?.path
+    // Register every host block/collection/global that declares a
+    // `custom.path` so the host's payload.config.ts doesn't need to hand-write
+    // the matching admin.dependencies entry. Blocks are keyed by slug (that's
+    // what <RenderBlocks> looks up); collections/globals by their path.
+    // `custom.path` is the standard location (matching collections/globals
+    // below); `admin.custom.path` is accepted as a fallback for older configs.
+    for (const { slug, custom, admin } of blocks) {
+      const path = custom?.path ?? admin?.custom?.path
       if (typeof path === 'string' && slug) renderDependencies[slug] = { path, type: 'component' }
     }
     for (const entry of [...collections, ...globals]) {
