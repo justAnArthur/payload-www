@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { appearanceOptions, link, linkGroup } from '../src/core/fields'
+import { appearanceOptions, link, linkGroup, slugField } from '../src/core/fields'
 import { anyone, authenticated, authenticatedOrPublished } from '../src/core/access'
 import { createHeaderGlobal } from '../src/data/collections/globals/Header/config'
 import { createFooterGlobal } from '../src/data/collections/globals/Footer/config'
@@ -98,22 +98,54 @@ describe('globals/header+footer nav extensibility', () => {
   })
 })
 
-describe('collections/Pages slug validation', () => {
-  const slugValidate = (opts?: { nested?: boolean }) => {
-    const collection = createPagesCollection([], opts) as any
-    const field = findField(collection, 'slug')
-    return field.validate as (v: unknown) => true | string
-  }
+describe('fields/slug', () => {
+  it('is a required, unique, indexed text field named slug', () => {
+    const f = slugField() as any
+    expect(f.name).toBe('slug')
+    expect(f.type).toBe('text')
+    expect(f.required).toBe(true)
+    expect(f.unique).toBe(true)
+    expect(f.index).toBe(true)
+  })
+
+  it('is localized by default, and can opt out', () => {
+    expect((slugField() as any).localized).toBe(true)
+    expect((slugField({ localized: false }) as any).localized).toBe(false)
+  })
+
+  it('flat validation rejects `_`; nested accepts it; empty always allowed', () => {
+    const flat = (slugField() as any).validate as (v: unknown) => true | string
+    expect(flat('about-us')).toBe(true)
+    expect(flat('about_us')).not.toBe(true)
+    expect(flat('')).toBe(true)
+
+    const nested = (slugField({ nested: true }) as any).validate as (v: unknown) => true | string
+    expect(nested('about_us')).toBe(true)
+    expect(nested('About Us')).not.toBe(true)
+  })
+
+  it('honors a custom field name', () => {
+    expect((slugField({ name: 'path' }) as any).name).toBe('path')
+  })
+})
+
+describe('collections/Pages slug', () => {
+  const slugFieldOf = (opts?: { nested?: boolean }) =>
+    findField(createPagesCollection([], opts) as any, 'slug')
+
+  it('localizes the slug by default (per-locale URLs)', () => {
+    expect(slugFieldOf().localized).toBe(true)
+  })
 
   it('flat (default) rejects the `_` nesting divider', () => {
-    const validate = slugValidate()
+    const validate = slugFieldOf().validate as (v: unknown) => true | string
     expect(validate('about-us')).toBe(true)
     expect(validate('about_us')).not.toBe(true)
     expect(validate('')).toBe(true)
   })
 
   it('nested accepts the `_` nesting divider', () => {
-    const validate = slugValidate({ nested: true })
+    const validate = slugFieldOf({ nested: true }).validate as (v: unknown) => true | string
     expect(validate('about_us')).toBe(true)
     expect(validate('about-us')).toBe(true)
     expect(validate('')).toBe(true)

@@ -8,6 +8,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Breaking changes
 
+- **Pages / Posts `slug` is now localized by default.** The lib's
+  collections are multilingual, so the slug field is `localized: true`
+  (one slug per locale — `/about` in `en`, `/o-nas` in `sk`), stored in
+  the collection's `_locales` table. This powers per-locale URLs and
+  hreflang alternates. Hosts on a single shared slug must pass
+  `localized: false` to the extracted `slugField()` (or override the
+  field), and existing non-localized data needs a DB migration to move
+  `slug` into `<collection>_locales`.
 - **Revalidation tag rename — Posts.** The Posts collection's
   revalidation hook used to fire per-locale tags of the form
   `global_posts_<locale>`. It now fires `collection_posts_<id>`
@@ -32,11 +40,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 
+- `queryAllLocaleSlugs` now re-reads the doc with `locale: 'all'` so a
+  localized slug field resolves to its real per-locale map. Previously it
+  queried a single locale (which returns a plain string), so every
+  hreflang alternate reused the current locale's slug.
 - Removed a stray `console.log('render', …)` left in the
   `createCollectionPageExports` page-render hot path.
 
 ### Added
 
+- **`slugField()` field factory** (exported from `/fields` and
+  `/core-fields`) — the shared slug field used by the Pages / Posts
+  collections, extracted so it's reusable and configurable: `localized`
+  (default `true`) and `nested` (allow the `_` divider) options.
 - **Nested (hierarchical) slugs.** `createCollectionPageExports({ nested: true })`
   joins the catch-all `[...slug]` segments with the `_` divider to form
   the stored slug (URL `/about/us` ⇄ stored `about_us`) and expands it

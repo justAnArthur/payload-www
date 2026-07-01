@@ -1,6 +1,7 @@
 import type { Block, CollectionConfig, Field } from 'payload'
 
 import { authenticated, authenticatedOrPublished } from '../../../core/access'
+import { slugField } from '../../../core/fields'
 import {
   createRevalidateCollectionHook,
   type CreateRevalidateCollectionHookOptions
@@ -70,34 +71,6 @@ export const createPagesCollection = (
     nested = false
   } = options
 
-  // When nesting is enabled the `_` divider is part of the stored
-  // slug (`about_us` → `/about/us`), so the validation must allow it.
-  const slugPattern = nested ? /^[a-z0-9_-]+$/ : /^[a-z0-9-]+$/
-  const slugField: Field = {
-    name: 'slug',
-    type: 'text',
-    required: true,
-    unique: true,
-    index: true,
-    admin: {
-      position: 'sidebar',
-      ...(nested
-        ? { description: 'Lowercase, hyphens for words. Use the `_` divider for nesting, e.g. `about_us` → `/about/us`.' }
-        : {})
-    },
-    // The empty slug is reserved for the home page (rendered at
-    // `/${locale}`). One doc per locale can have it.
-    validate: (value: unknown) => {
-      if (typeof value !== 'string') return 'Slug must be a string'
-      if (value !== '' && !slugPattern.test(value)) {
-        return nested
-          ? 'Slug must be lowercase, with hyphens or the `_` nesting divider (no spaces or other special characters)'
-          : 'Slug must be lowercase, with hyphens (no spaces or special characters)'
-      }
-      return true
-    }
-  }
-
   const baseFields: Field[] = [
     {
       name: 'title',
@@ -127,7 +100,9 @@ export const createPagesCollection = (
       type: 'date',
       admin: { position: 'sidebar' }
     },
-    slugField
+    // Localized slug (per-locale URLs). `nested` also allows the `_`
+    // hierarchy divider (`about_us` → `/about/us`).
+    slugField({ nested })
   ]
 
   const { afterChange: revalidateAfterChange, afterDelete: revalidateAfterDelete } =

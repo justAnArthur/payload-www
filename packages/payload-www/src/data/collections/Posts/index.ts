@@ -1,6 +1,7 @@
 import type { CollectionConfig, Field } from 'payload'
 
 import { authenticated, authenticatedOrPublished } from '../../../core/access'
+import { slugField } from '../../../core/fields'
 import { createRevalidateCollectionHook } from '../../../render/hooks/revalidateCollection'
 import { POSTS_RENDER_PATH } from '../../../config/constants'
 
@@ -58,15 +59,6 @@ export const createPostsCollection = (
     defaultLocale
   } = options
 
-  const slugField: Field = {
-    name: 'slug',
-    type: 'text',
-    required: true,
-    unique: true,
-    index: true,
-    admin: { position: 'sidebar' }
-  }
-
   const baseFields: Field[] = [
     {
       name: 'title',
@@ -91,7 +83,8 @@ export const createPostsCollection = (
       type: 'date',
       admin: { position: 'sidebar' }
     },
-    slugField
+    // Localized slug (per-locale URLs).
+    slugField()
   ]
 
   const { afterChange, afterDelete } = createRevalidateCollectionHook({
