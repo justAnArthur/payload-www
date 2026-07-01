@@ -72,6 +72,14 @@ export type WWWConfigOptions = {
    */
   registerPosts?: boolean
   /**
+   * Enable nested (hierarchical) Pages slugs. When `true`, the lib's
+   * Pages collection accepts the `_` nesting divider in its slug
+   * (`about_us` → `/about/us`). Pass the same `nested: true` to
+   * `createCollectionPageExports` on the Pages route so URL building,
+   * hreflang, and static params expand the divider. Default: `false`.
+   */
+  nested?: boolean
+  /**
    * Final say on the lib's default plugin list. Receives the
    * `[seoPlugin, imageHashPlugin, translator]` array; return the
    * list to apply. Common uses: drop the translator (no AI
@@ -114,7 +122,7 @@ export type WWWInputConfig = Omit<Config, 'collections' | 'globals'> & {
  *   import { createPreviewHandler, createSitemapFile } from '@justanarthur/payload-www/render-utils'
  */
 export function createWWWConfig(options: WWWConfigOptions): WWWConfigApi {
-  const { locales, routing, blocks, linkRelationTo, registerPosts = true, defaultPlugins } = options
+  const { locales, routing, blocks, linkRelationTo, registerPosts = true, nested = false, defaultPlugins } = options
 
   // Source of truth for revalidation path building: `routing` wins
   // when both are passed; `locales` alone keeps the legacy shape
@@ -134,7 +142,8 @@ export function createWWWConfig(options: WWWConfigOptions): WWWConfigApi {
   const buildPagesCollection = () =>
     createPagesCollection(blocks, {
       localePrefix: localePrefixMode,
-      defaultLocale
+      defaultLocale,
+      nested
     }) as CollectionConfig
   const buildPostsCollection = () =>
     createPostsCollection({
