@@ -70,10 +70,7 @@ export const queryAllLocaleSlugs = cache(async function queryAllLocaleSlugs<S ex
   config: Promise<SanitizedConfig>
 }): Promise<Record<string, string> | undefined> {
   const payload = await getPayload({ config })
-  // Resolve the doc by slug in the requested locale. We then read the
-  // same field across all locales — if the slug field is localized
-  // this returns one slug per locale; if not, every locale returns
-  // the same value.
+  // Resolve the doc by its slug in the requested locale to get its id.
   const result = await payload.find({
     collection: collectionSlug,
     draft: false,
@@ -84,9 +81,29 @@ export const queryAllLocaleSlugs = cache(async function queryAllLocaleSlugs<S ex
     where: { [slugField]: { equals: slug } },
     select: { [slugField]: true }
   })
-  const doc = result.docs?.[0] as DataFromCollectionSlug<S> | undefined
+  const doc = result.docs?.[0] as (DataFromCollectionSlug<S> & { id?: string | number }) | undefined
   if (!doc) return undefined
-  const fieldValue = (doc as Record<string, unknown>)?.[slugField]
+
+  // Re-read the doc across ALL locales. A `find`/`findByID` scoped to a
+  // single locale only ever returns the slug string for that locale, so
+  // this `locale: 'all'` pass is what turns a localized slug into its
+  // per-locale map ({ en, sk, ... }) — the basis for hreflang alternates.
+  // A non-localized slug stays a plain string and falls through below.
+  let fieldValue: unknown = (doc as Record<string, unknown>)[slugField]
+  if (doc.id != null) {
+    const allLocales = await payload
+      .findByID({
+        collection: collectionSlug,
+        id: doc.id,
+        locale: 'all',
+        draft: false,
+        overrideAccess: false,
+        select: { [slugField]: true }
+      })
+      .catch(() => null)
+    if (allLocales) fieldValue = (allLocales as Record<string, unknown>)[slugField]
+  }
+
   if (fieldValue && typeof fieldValue === 'object') {
     return fieldValue as Record<string, string>
   }
