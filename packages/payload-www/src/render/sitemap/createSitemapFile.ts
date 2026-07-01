@@ -57,6 +57,14 @@ export type CreateSitemapFileOptions = {
    * Optional priority / changeFrequency overrides per collection.
    */
   perCollection?: Record<string, { priority?: number; changefreq?: 'always' | 'hourly' | 'daily' | 'weekly' | 'monthly' | 'yearly' | 'never' }>
+  /**
+   * Per-collection nested-slug flag. When a collection is marked
+   * `true`, its stored `about_us` slug is expanded into the
+   * `/about/us` URL path (and hreflang alternates), matching a
+   * `createCollectionPageExports({ nested: true })` route. Defaults
+   * to `false` (flat slugs) for every collection.
+   */
+  nested?: Record<string, boolean>
 }
 
 /**
@@ -109,6 +117,7 @@ export function createSitemapFile(options: CreateSitemapFileOptions): SitemapFun
       const collectionDefaults = options.perCollection?.[collectionSlug] ?? {}
       const urlPrefix = (options.urlPrefixes?.[collectionSlug] ?? '').replace(/\/$/, '')
       const siteUrl = options.getServerSideURL().replace(/\/$/, '')
+      const isNested = options.nested?.[collectionSlug] ?? false
 
       for (const locale of activeLocales) {
         const docs = await queryAllDocs({
@@ -125,7 +134,9 @@ export function createSitemapFile(options: CreateSitemapFileOptions): SitemapFun
           if (seen.has(dedupeKey)) continue
           seen.add(dedupeKey)
 
-          const url = `${siteUrl}${prefixFor(locale, defaultLocale, options.localePrefix ?? 'always')}${urlPrefix}/${storedSlug}`
+          // When nested, expand `about_us` → `about/us` for the URL.
+          const slugPath = isNested ? storedSlug.replaceAll('_', '/') : storedSlug
+          const url = `${siteUrl}${prefixFor(locale, defaultLocale, options.localePrefix ?? 'always')}${urlPrefix}/${slugPath}`
 
           // Full hreflang block per URL — respects `localePrefix`
           // so the default locale's `en` and `x-default` entries
@@ -135,7 +146,7 @@ export function createSitemapFile(options: CreateSitemapFileOptions): SitemapFun
             locale,
             urlPrefix,
             storedSlug,
-            nested: false,
+            nested: isNested,
             homeSlug: '',
             defaultLocale,
             locales: activeLocales,

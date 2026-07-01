@@ -25,6 +25,14 @@ export type LinkOptions = {
   overrides?: Partial<GroupField>
   /** Legacy alias for the host's custom field overrides. */
   linkOverrides?: Partial<GroupField>
+  /**
+   * Extra fields appended to the link group — e.g. a `description`
+   * text field or a `navHover` group for a mega-menu. Lets hosts
+   * extend the nav link schema without re-implementing the whole
+   * `link` field. Appended after the standard type/label/appearance
+   * fields.
+   */
+  extraFields?: Field[]
 }
 
 export const link = (options: LinkOptions = {}): Field => {
@@ -33,7 +41,8 @@ export const link = (options: LinkOptions = {}): Field => {
     disableLabel = false,
     relationTo = [PAGES_SLUG],
     localized = false,
-    overrides = {}
+    overrides = {},
+    extraFields = []
   } = options
 
   const result: GroupField = {
@@ -115,6 +124,10 @@ export const link = (options: LinkOptions = {}): Field => {
       defaultValue: 'default',
       options: opts
     })
+  }
+
+  if (extraFields.length) {
+    result.fields.push(...extraFields)
   }
 
   return { ...result, ...overrides } as Field

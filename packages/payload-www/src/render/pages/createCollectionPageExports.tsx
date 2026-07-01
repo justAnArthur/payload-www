@@ -163,6 +163,19 @@ export type CreateCollectionPageExportsArgs<S extends string = 'pages'> = {
    * defined your own Server Component for the collection.
    */
   renderPath?: string
+  /**
+   * Enable nested (hierarchical) slugs. When `true`, the catch-all
+   * `[...slug]` segments are joined with the `_` divider to form the
+   * stored slug (URL `/about/us` ⇄ stored `about_us`), URL paths and
+   * hreflang alternates are expanded back to `/about/us`, and
+   * `generateStaticParams` emits multi-segment params. When `false`
+   * (the default) only the first URL segment is used — flat slugs.
+   *
+   * Pair with `createPagesCollection({ nested: true })` (or
+   * `createWWWConfig({ nested: true })`) so the collection's slug
+   * validation accepts the `_` divider.
+   */
+  nested?: boolean
 }
 
 export type CreateCollectionPageExportsDeps<S extends string> = {
@@ -248,7 +261,8 @@ export function createCollectionPageExports<S extends string = 'pages'>(
     config: configPromise,
     routing,
     importMap: importMapArg,
-    renderPath
+    renderPath,
+    nested = false
   }: CreateCollectionPageExportsArgs<S>,
   deps: CreateCollectionPageExportsDeps<S>,
   options: MetadataOptions = {}
@@ -289,7 +303,9 @@ export function createCollectionPageExports<S extends string = 'pages'>(
 
   /** Build the locale-prefixed URL for a slug in a given locale. */
   const buildLocalePath = (locale: string, storedSlug: string): string => {
-    const urlPath = getUrlPath(storedSlug, false, HOME_SLUG)
+    // When nested, expand the stored `about_us` slug into the
+    // `/about/us` URL path; otherwise the flat slug maps 1:1.
+    const urlPath = getUrlPath(storedSlugToSegments(storedSlug, nested), nested, HOME_SLUG)
     if (localePrefixMode === 'never') return urlPath
     if (localePrefixMode === 'as-needed' && locale === defaultLocale) return urlPath
     return `/${locale}${urlPath}`
@@ -317,7 +333,7 @@ export function createCollectionPageExports<S extends string = 'pages'>(
       locale,
       urlPrefix: '',
       storedSlug,
-      nested: false,
+      nested,
       homeSlug: HOME_SLUG,
       defaultLocale,
       locales,
@@ -358,7 +374,7 @@ export function createCollectionPageExports<S extends string = 'pages'>(
     const { draftMode } = await import('next/headers')
     const { isEnabled: draft } = await draftMode()
 
-    const storedSlug = segmentsToStoredSlug(slugSegments, false)
+    const storedSlug = segmentsToStoredSlug(slugSegments, nested)
     const doc = await fetchDoc(locale, storedSlug, draft)
 
     if (!doc) {
@@ -387,8 +403,6 @@ export function createCollectionPageExports<S extends string = 'pages'>(
 
     const jsonLdNodes = doc ? await generateJsonLd(slugSegments, doc, locale) : []
     const { alternates: hreflangAlternates, canonical } = await resolveHreflangAlternates(locale, storedSlug)
-
-    console.log('render', { render, doc })
 
     const inner = (
       <>
@@ -459,7 +473,7 @@ export function createCollectionPageExports<S extends string = 'pages'>(
     const locale = typeof incomingLocale === 'string' ? incomingLocale : defaultLocale
     if (!locales.includes(locale)) return { title: 'Not found', robots: { index: false, follow: false } }
 
-    const storedSlug = segmentsToStoredSlug(slugSegments, false)
+    const storedSlug = segmentsToStoredSlug(slugSegments, nested)
     const doc = await fetchDoc(locale, storedSlug)
 
     if (!doc) return { title: 'Not found', robots: { index: false, follow: false } }
@@ -490,7 +504,7 @@ export function createCollectionPageExports<S extends string = 'pages'>(
   ): Promise<JsonLdOutput[]> {
     if (jsonLdOption === false || !doc) return []
     const siteUrl = getServerSideURL()
-    const storedSlug = segmentsToStoredSlug(slugSegments, false)
+    const storedSlug = segmentsToStoredSlug(slugSegments, nested)
     const urlPath = buildLocalePath(locale, storedSlug)
     const canonical = `${siteUrl}${urlPath}`
 
@@ -565,7 +579,7 @@ export function createCollectionPageExports<S extends string = 'pages'>(
       for (const doc of docs) {
         const slugVal = (doc as DataFromCollectionSlug<S> & { slug?: string }).slug
         if (typeof slugVal !== 'string' || slugVal === '') continue
-        const segments = storedSlugToSegments(slugVal, false)
+        const segments = storedSlugToSegments(slugVal, nested)
         params.push({ slug: Array.isArray(segments) ? segments : [segments], locale })
       }
     }

@@ -1,4 +1,4 @@
-import type { Block, GlobalConfig } from 'payload'
+import type { Block, Field, GlobalConfig } from 'payload'
 
 import { link } from '../../../../core/fields/link'
 import { createRevalidateGlobalHook } from '../../../../render/hooks/revalidateGlobal'
@@ -17,6 +17,16 @@ export type CreateFooterGlobalOptions = {
    * different list when your host has additional linkable collections.
    */
   linkRelationTo?: string[]
+  /**
+   * Extra fields appended to each `navColumn` link — e.g. a
+   * `description` text field. Lets hosts enrich the column-link
+   * schema without redefining the whole nav.
+   */
+  navColumnLinkFields?: Field[]
+  /**
+   * Extra fields appended to each top-level `navItem` link.
+   */
+  navItemLinkFields?: Field[]
 }
 
 /**
@@ -27,19 +37,24 @@ export type CreateFooterGlobalOptions = {
 export const createFooterGlobal = (
   options: CreateFooterGlobalOptions = {}
 ): GlobalConfig => {
-  const { renderPath = FOOTER_RENDER_PATH, linkRelationTo = [PAGES_SLUG] } = options
+  const {
+    renderPath = FOOTER_RENDER_PATH,
+    linkRelationTo = [PAGES_SLUG],
+    navColumnLinkFields = [],
+    navItemLinkFields = []
+  } = options
 
   const navColumnBlock: Block = {
     slug: 'navColumn',
     fields: [
       { name: 'title', type: 'text', required: true, localized: true },
-      { name: 'links', type: 'array', fields: [link({ appearances: false, localized: true, relationTo: linkRelationTo })] }
+      { name: 'links', type: 'array', fields: [link({ appearances: false, localized: true, relationTo: linkRelationTo, extraFields: navColumnLinkFields })] }
     ]
   }
 
   const navItemBlock: Block = {
     slug: 'navItem',
-    fields: [link({ appearances: false, localized: true, relationTo: linkRelationTo })]
+    fields: [link({ appearances: false, localized: true, relationTo: linkRelationTo, extraFields: navItemLinkFields })]
   }
 
   return {
