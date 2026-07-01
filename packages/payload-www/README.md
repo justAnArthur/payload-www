@@ -11,7 +11,7 @@ language switcher share a single source of truth with the rest of your app.
 
 - **Composer** — `createWWWConfig({ locales, blocks, defaultPlugins? })` returns `{ withWWWConfig }`. One composer call is enough for the most common cases.
 - **Collections** — `Pages` (title, blocks tab, slug, drafts, revalidation hook), `Posts` (title, excerpt, richText, drafts, revalidation hook), `StaticPages` (system pages — 404, 500, search-empty, … — addressed by a `kind` discriminator, not a slug)
-- **Globals** — `Header` and `Footer` (both `nav` blocks with `navColumn` / `navItem`)
+- **Globals** — `Header` and `Footer` (both `nav` blocks with `navColumn` / `navItem`). Extend the nav link schema (e.g. a `description` or a `navHover` mega-menu group) via `createHeaderGlobal({ navColumnLinkFields, navItemLinkFields })` / `createFooterGlobal({ … })`, or `link({ extraFields })` directly.
 - **Default render components** — `PagesPage`, `HeaderPage`, `FooterPage` Server Components. Override any of them by setting a different `custom.path` on the collection / global.
 - **LivePreviewListener** — built in. The lib's `createCollectionPageExports` default page renders it (via `React.lazy` so the server dist stays free of `'use client'` imports) whenever Next.js draft mode is on. Hosts get live preview automatically — no opt-in required. The component itself is also exported from `/render-components` for hosts that want to mount it elsewhere.
 - **Hooks** — `createRevalidateCollectionHook(opts)` (canonical factory for **all** collections: Pages, Posts, host-defined; per-locale `revalidatePath` fan-out + `revalidateTag('collection_<slug>_<id>', 'max')` + sitemap tag, with a `pathMode: 'tag-only'` mode for collections without a URL like `staticPages`), `createRevalidatePageHooks()` (deprecated alias for Pages preset), `createRevalidateGlobalHook(slug)` (per-locale tag for globals)
@@ -308,6 +308,7 @@ Subpath imports:
 | `blocks`         | `Block[]`                         | yes      | Blocks the Pages collection accepts.                                   |
 | `linkRelationTo` | `string[]`                        | no       | Collection slugs the Header / Footer nav links can reference. Default: `['pages']`. |
 | `registerPosts`  | `boolean`                         | no       | Register the lib's Posts collection. Default `true`. |
+| `nested`         | `boolean`                         | no       | Enable nested Pages slugs (`about_us` → `/about/us`). Relaxes the Pages slug validation to accept the `_` divider. Pass the same `nested: true` to `createCollectionPageExports` on the Pages route (and `nested: { pages: true }` to `createSitemapFile`). Default `false`. |
 | StaticPages      | —                                 | yes      | Always registered (every site has 404). Hosts filter it out in `collections:` to opt. |
 | `defaultPlugins` | `(defaults: Plugin[]) => Plugin[]`| no       | Final say on the default `[seoPlugin, imageHashPlugin, translator]` list. |
 
