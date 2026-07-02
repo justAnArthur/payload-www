@@ -19,6 +19,7 @@ export const queryDocBySlug = cache(async function queryDocBySlug<S extends stri
   draft?: boolean
   config: Promise<SanitizedConfig>
 }): Promise<DataFromCollectionSlug<S> | null> {
+  console.log('[WWW] render/metadata:queryDocBySlug collection=', collectionSlug, 'slug=', slug, 'slugField=', slugField, 'locale=', locale, 'draft=', draft)
   const payload = await getPayload({ config })
   const result = await payload.find({
     collection: collectionSlug,
@@ -29,7 +30,9 @@ export const queryDocBySlug = cache(async function queryDocBySlug<S extends stri
     where: { [slugField]: { equals: slug } },
     locale
   })
-  return result.docs?.[0] ?? null
+  const doc = result.docs?.[0] ?? null
+  console.log('[WWW] render/metadata:queryDocBySlug ->', doc ? 'hit' : 'miss')
+  return doc
 })
 
 export const queryAllDocs = cache(async function queryAllDocs<S extends string>({
@@ -43,6 +46,7 @@ export const queryAllDocs = cache(async function queryAllDocs<S extends string>(
   locale: string
   config: Promise<SanitizedConfig>
 }): Promise<DataFromCollectionSlug<S>[]> {
+  console.log('[WWW] render/metadata:queryAllDocs collection=', collectionSlug, 'locale=', locale)
   const payload = await getPayload({ config })
   const result = await payload.find({
     collection: collectionSlug,
@@ -53,7 +57,9 @@ export const queryAllDocs = cache(async function queryAllDocs<S extends string>(
     select: { [slugField]: true },
     locale
   })
-  return result.docs ?? []
+  const docs = result.docs ?? []
+  console.log('[WWW] render/metadata:queryAllDocs -> count=', docs.length)
+  return docs
 })
 
 export const queryAllLocaleSlugs = cache(async function queryAllLocaleSlugs<S extends string>({
@@ -69,6 +75,7 @@ export const queryAllLocaleSlugs = cache(async function queryAllLocaleSlugs<S ex
   locale: string
   config: Promise<SanitizedConfig>
 }): Promise<Record<string, string> | undefined> {
+  console.log('[WWW] render/metadata:queryAllLocaleSlugs collection=', collectionSlug, 'slug=', slug, 'locale=', locale)
   const payload = await getPayload({ config })
   // Resolve the doc by its slug in the requested locale to get its id.
   const result = await payload.find({
@@ -82,7 +89,10 @@ export const queryAllLocaleSlugs = cache(async function queryAllLocaleSlugs<S ex
     select: { [slugField]: true }
   })
   const doc = result.docs?.[0] as (DataFromCollectionSlug<S> & { id?: string | number }) | undefined
-  if (!doc) return undefined
+  if (!doc) {
+    console.log('[WWW] render/metadata:queryAllLocaleSlugs -> undefined (no doc)')
+    return undefined
+  }
 
   // Re-read the doc across ALL locales. A `find`/`findByID` scoped to a
   // single locale only ever returns the slug string for that locale, so
@@ -105,6 +115,7 @@ export const queryAllLocaleSlugs = cache(async function queryAllLocaleSlugs<S ex
   }
 
   if (fieldValue && typeof fieldValue === 'object') {
+    console.log('[WWW] render/metadata:queryAllLocaleSlugs -> localized map=', JSON.stringify(fieldValue))
     return fieldValue as Record<string, string>
   }
   // Non-localized slug — the same value applies to every locale.
@@ -115,6 +126,7 @@ export const queryAllLocaleSlugs = cache(async function queryAllLocaleSlugs<S ex
     : ((resolved as { localization?: { locales?: Array<{ code: string }> } })?.localization?.locales?.map((l) => l.code) ?? [])
   const out: Record<string, string> = {}
   for (const l of rawLocales) out[l] = String(fieldValue ?? slug)
+  console.log('[WWW] render/metadata:queryAllLocaleSlugs -> flat-fanout locales=', rawLocales.length, 'slug=', JSON.stringify(fieldValue ?? slug))
   return out
 })
 
@@ -131,6 +143,7 @@ export const queryGlobal = cache(async function queryGlobal<G extends string>({
   draft?: boolean
   config: Promise<SanitizedConfig>
 }): Promise<DataFromGlobalSlug<G> | null> {
+  console.log('[WWW] render/metadata:queryGlobal global=', globalSlug, 'locale=', locale, 'depth=', depth, 'draft=', draft)
   const payload = await getPayload({ config })
   try {
     const global = await payload.findGlobal({
@@ -139,8 +152,10 @@ export const queryGlobal = cache(async function queryGlobal<G extends string>({
       draft,
       locale
     })
+    console.log('[WWW] render/metadata:queryGlobal -> hit')
     return global as DataFromGlobalSlug<G> | null
-  } catch {
+  } catch (error) {
+    console.warn('[WWW] render/metadata:queryGlobal failed for slug=', globalSlug, 'err=', String(error))
     // Global not configured in the host's Payload — return null so the
     // layout renders nothing in that slot instead of crashing the page.
     return null
@@ -153,7 +168,12 @@ export function getRenderModuleExports(
   importMap: ImportMap
 ) {
   const path = collection?.custom?.path as string | undefined
-  if (!path) return undefined
+  if (!path) {
+    console.log('[WWW] render/metadata:getRenderModuleExports no custom.path exportName=', exportName)
+    return undefined
+  }
   const mod = getFromImportMap(path, importMap)
-  return (mod as Record<string, unknown>)?.[exportName] as unknown
+  const value = (mod as Record<string, unknown>)?.[exportName] as unknown
+  console.log('[WWW] render/metadata:getRenderModuleExports exportName=', exportName, 'path=', path, 'hit=', Boolean(value))
+  return value
 }

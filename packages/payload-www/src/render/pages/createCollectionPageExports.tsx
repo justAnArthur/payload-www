@@ -306,9 +306,12 @@ export function createCollectionPageExports<S extends string = 'pages'>(
     // When nested, expand the stored `about_us` slug into the
     // `/about/us` URL path; otherwise the flat slug maps 1:1.
     const urlPath = getUrlPath(storedSlugToSegments(storedSlug, nested), nested, HOME_SLUG)
-    if (localePrefixMode === 'never') return urlPath
-    if (localePrefixMode === 'as-needed' && locale === defaultLocale) return urlPath
-    return `/${locale}${urlPath}`
+    let result: string
+    if (localePrefixMode === 'never') result = urlPath
+    else if (localePrefixMode === 'as-needed' && locale === defaultLocale) result = urlPath
+    else result = `/${locale}${urlPath}`
+    console.log('[WWW] render/pages:createCollectionPageExports:buildLocalePath locale=', locale, 'storedSlug=', storedSlug, '->', result)
+    return result
   }
 
   async function fetchDoc(locale: string, storedSlug: string, draft: boolean = false) {
@@ -351,6 +354,7 @@ export function createCollectionPageExports<S extends string = 'pages'>(
     for (const [key, url] of Object.entries(languages)) {
       alternates[key] = url
     }
+    console.log('[WWW] render/pages:createCollectionPageExports:resolveHreflangAlternates canonical=', canonical, 'alts=', JSON.stringify(alternates))
     return { alternates, canonical }
   }
 
@@ -361,8 +365,9 @@ export function createCollectionPageExports<S extends string = 'pages'>(
     const { slug: rawSlugSegments, locale: incomingLocale } = (await props.params) ?? {}
     const slugSegments: string[] = Array.isArray(rawSlugSegments) ? rawSlugSegments : []
     const locale = typeof incomingLocale === 'string' ? incomingLocale : defaultLocale
+    console.log('[WWW] render/pages:createCollectionPageExports:default_ collectionSlug=', slug, 'locale=', locale, 'segments=', JSON.stringify(slugSegments), 'showcase=', showcaseEnabled)
     if (!locales.includes(locale)) {
-      console.error(`[WWW-DBG ${slug} notFound: invalid-locale] locale=${locale} segments=${JSON.stringify(slugSegments)}`)
+      console.error(`[WWW] render/pages:createCollectionPageExports:default_ notFound invalid-locale collection=${slug} locale=${locale} segments=${JSON.stringify(slugSegments)}`)
       const { notFound } = await import('next/navigation')
       notFound()
     }
@@ -374,12 +379,13 @@ export function createCollectionPageExports<S extends string = 'pages'>(
 
     const { draftMode } = await import('next/headers')
     const { isEnabled: draft } = await draftMode()
+    console.log('[WWW] render/pages:createCollectionPageExports:default_ draftMode=', draft)
 
     const storedSlug = segmentsToStoredSlug(slugSegments, nested)
     const doc = await fetchDoc(locale, storedSlug, draft)
 
     if (!doc) {
-      console.error(`[WWW-DBG ${slug} notFound: no-doc] locale=${locale} storedSlug="${storedSlug}" segments=${JSON.stringify(slugSegments)} draft=${draft}`)
+      console.error(`[WWW] render/pages:createCollectionPageExports:default_ notFound no-doc collection=${slug} locale=${locale} storedSlug="${storedSlug}" segments=${JSON.stringify(slugSegments)} draft=${draft}`)
       const { notFound } = await import('next/navigation')
       notFound()
     }
@@ -387,6 +393,7 @@ export function createCollectionPageExports<S extends string = 'pages'>(
     const cfg = await configPromise
     const collectionCustomPath = cfg.collections.find((c) => c.slug === slug)?.custom?.path
     const effectivePath = renderPath ?? collectionCustomPath ?? defaultRenderPath
+    console.log('[WWW] render/pages:createCollectionPageExports:default_ effectivePath=', effectivePath)
 
     const render =
       effectivePath === PAGES_RENDER_PATH
@@ -473,15 +480,25 @@ export function createCollectionPageExports<S extends string = 'pages'>(
     const { slug: rawSlugSegments, locale: incomingLocale } = (await props.params) ?? {}
     const slugSegments: string[] = Array.isArray(rawSlugSegments) ? rawSlugSegments : []
     const locale = typeof incomingLocale === 'string' ? incomingLocale : defaultLocale
-    if (!locales.includes(locale)) return { title: 'Not found', robots: { index: false, follow: false } }
+    console.log('[WWW] render/pages:createCollectionPageExports:generateMetadata collectionSlug=', slug, 'locale=', locale, 'segments=', JSON.stringify(slugSegments))
+    if (!locales.includes(locale)) {
+      console.log('[WWW] render/pages:createCollectionPageExports:generateMetadata invalid locale -> not found meta')
+      return { title: 'Not found', robots: { index: false, follow: false } }
+    }
 
     const storedSlug = segmentsToStoredSlug(slugSegments, nested)
     const doc = await fetchDoc(locale, storedSlug)
 
-    if (!doc) return { title: 'Not found', robots: { index: false, follow: false } }
+    if (!doc) {
+      console.log('[WWW] render/pages:createCollectionPageExports:generateMetadata no doc -> not found meta')
+      return { title: 'Not found', robots: { index: false, follow: false } }
+    }
 
     const collection = cfg.collections.find((c) => c.slug === slug)
-    if (!collection) return {}
+    if (!collection) {
+      console.warn('[WWW] render/pages:createCollectionPageExports:generateMetadata collection not in config slug=', slug)
+      return {}
+    }
 
     const { canonical, alternates } = await resolveHreflangAlternates(locale, storedSlug)
     const meta = await generateMeta({
@@ -515,6 +532,7 @@ export function createCollectionPageExports<S extends string = 'pages'>(
       : metadataType === 'article'
         ? [{ type: 'article' }]
         : [{ type: 'website' }]
+    console.log('[WWW] render/pages:createCollectionPageExports:generateJsonLd collection=', slug, 'locale=', locale, 'entries=', entries.map((e) => e.type).join(','))
 
     const outputs: JsonLdOutput[] = []
     for (const entry of entries) {
@@ -575,6 +593,7 @@ export function createCollectionPageExports<S extends string = 'pages'>(
   }
 
   async function generateStaticParams() {
+    console.log('[WWW] render/pages:createCollectionPageExports:generateStaticParams collection=', slug, 'locales=', JSON.stringify(locales))
     const params: Array<{ slug?: string[]; locale: string }> = []
     for (const locale of locales) {
       const docs = await queryAllDocs({ collectionSlug: slug, slugField: 'slug', locale, config: configPromise })
@@ -585,10 +604,12 @@ export function createCollectionPageExports<S extends string = 'pages'>(
         params.push({ slug: Array.isArray(segments) ? segments : [segments], locale })
       }
     }
+    console.log('[WWW] render/pages:createCollectionPageExports:generateStaticParams -> count=', params.length)
     return params
   }
 
   async function generateSitemap(): Promise<MetadataRoute.Sitemap> {
+    console.log('[WWW] render/pages:createCollectionPageExports:generateSitemap collection=', slug, 'locales=', JSON.stringify(locales))
     const docs = await queryAllDocs({
       collectionSlug: slug,
       slugField: 'slug',
@@ -607,6 +628,7 @@ export function createCollectionPageExports<S extends string = 'pages'>(
         urls.push({ url: `${siteUrl}${urlPath}`, lastModified: lastmod, changeFrequency: changefreq, priority })
       }
     }
+    console.log('[WWW] render/pages:createCollectionPageExports:generateSitemap -> urls=', urls.length)
     return urls
   }
 

@@ -25,10 +25,14 @@ type HeaderPageProps = {
  * factory).
  */
 export function HeaderPage({ data, locale: _locale }: HeaderPageProps): ReactElement {
-  if (!data) return <></>
+  if (!data) {
+    console.log('[WWW] render/pages:HeaderPage no data')
+    return <></>
+  }
   const nav = (data.nav ?? []) as Array<{ blockType?: string; title?: string; link?: Record<string, any>; links?: Array<{ link?: Record<string, any> }> }>
   const items = nav.filter((b) => b.blockType === 'navItem')
   const columns = nav.filter((b) => b.blockType === 'navColumn')
+  console.log('[WWW] render/pages:HeaderPage items=', items.length, 'columns=', columns.length, 'locale=', _locale)
 
   const renderLink = (link?: Record<string, any>, fallbackHref: string = '#') => {
     if (!link) return <a href={fallbackHref}>{(link as any)?.label ?? ''}</a>

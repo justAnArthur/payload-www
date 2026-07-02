@@ -84,6 +84,8 @@ export function createRevalidateCollectionHook(
 
   const resolvedSitemapTag = sitemapTag === false ? false : (sitemapTag ?? `${collectionSlug}-sitemap`)
 
+  console.log('[WWW] render/hooks:createRevalidateCollectionHook collectionSlug=', collectionSlug, 'urlPathPrefix=', urlPathPrefix, 'sitemapTag=', resolvedSitemapTag, 'pathMode=', pathMode)
+
   const resolveDefaults = (req: unknown) => {
     const mode: LocalePrefixMode = modeOption ?? 'always'
     const defaultLocale =
@@ -131,6 +133,7 @@ export function createRevalidateCollectionHook(
     docId: unknown,
     req: unknown
   ) => {
+    console.log('[WWW] render/hooks:fireCollectionTags collectionSlug=', collectionSlug, 'docId=', docId)
     if (typeof docId === 'string' || typeof docId === 'number') {
       await safeRevalidateTag(payload, `collection_${collectionSlug}_${docId}`)
     }
@@ -149,6 +152,8 @@ export function createRevalidateCollectionHook(
     const { payload } = req
     const typed = doc as { _status?: string; slug?: string | null; id?: string | number }
     const prev = previousDoc as { _status?: string; slug?: string | null } | undefined
+
+    console.log('[WWW] render/hooks:afterChange collectionSlug=', collectionSlug, 'id=', typed.id, 'slug=', typed.slug, 'prevSlug=', prev?.slug)
 
     const isPublished = typed._status === 'published'
     const wasPublished = prev?._status === 'published'
@@ -177,6 +182,8 @@ export function createRevalidateCollectionHook(
     const { payload } = req
     const typed = doc as { slug?: string | null; id?: string | number } | null
 
+    console.log('[WWW] render/hooks:afterDelete collectionSlug=', collectionSlug, 'id=', typed?.id, 'slug=', typed?.slug)
+
     if (pathMode !== 'tag-only') {
       await fanOutPaths(payload, req, typed?.slug, `Revalidating deleted ${collectionSlug} at path:`)
     }
@@ -202,9 +209,11 @@ export type CreateRevalidatePageHooksOptions = Omit<
  */
 export const createRevalidatePageHooks = (
   opts: CreateRevalidatePageHooksOptions = {}
-): { afterChange: CollectionAfterChangeHook; afterDelete: CollectionAfterDeleteHook } =>
-  createRevalidateCollectionHook({
+): { afterChange: CollectionAfterChangeHook; afterDelete: CollectionAfterDeleteHook } => {
+  console.log('[WWW] render/hooks:createRevalidatePageHooks (deprecated alias) opts=', JSON.stringify(opts))
+  return createRevalidateCollectionHook({
     collectionSlug: 'pages',
     urlPathPrefix: '',
     ...opts
   })
+}

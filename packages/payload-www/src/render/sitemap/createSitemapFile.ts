@@ -98,6 +98,7 @@ export function createSitemapFile(options: CreateSitemapFileOptions): SitemapFun
   const { collections } = options
 
   return async function sitemap(): Promise<MetadataRoute.Sitemap> {
+    console.log('[WWW] render/sitemap:createSitemapFile:sitemap collections=', JSON.stringify(options.collections), 'localePrefix=', options.localePrefix ?? 'always')
     const cfg = await options.config
     const allLocales: string[] = Array.isArray(cfg.localization?.locales)
       ? cfg.localization.locales.map((l: any) => (typeof l === 'string' ? l : l.code))
@@ -106,6 +107,7 @@ export function createSitemapFile(options: CreateSitemapFileOptions): SitemapFun
     const activeLocales = Array.isArray(options.locales) && options.locales.length > 0
       ? options.locales.filter((l) => allLocales.includes(l))
       : allLocales
+    console.log('[WWW] render/sitemap:createSitemapFile:sitemap allLocales=', JSON.stringify(allLocales), 'default=', defaultLocale, 'active=', JSON.stringify(activeLocales))
 
     const entries: MetadataRoute.Sitemap = []
     // Track (collection, locale, storedSlug) triples so the same doc
@@ -174,6 +176,7 @@ export function createSitemapFile(options: CreateSitemapFileOptions): SitemapFun
       }
     }
 
+    console.log('[WWW] render/sitemap:createSitemapFile:sitemap -> entries=', entries.length)
     return entries
   }
 }

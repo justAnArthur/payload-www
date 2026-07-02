@@ -1,20 +1,28 @@
 const SLUG_NESTED_DIVIDER = '_'
 
 export function segmentsToStoredSlug(segments: string[] | string, nested?: boolean): string {
-  if (!Array.isArray(segments)) return segments
-  if (nested) return segments.join(SLUG_NESTED_DIVIDER)
-  return segments[0] ?? ''
+  if (!Array.isArray(segments)) {
+    console.log('[WWW] render/metadata:segmentsToStoredSlug string passthrough:', JSON.stringify(segments))
+    return segments
+  }
+  const result = nested ? segments.join(SLUG_NESTED_DIVIDER) : segments[0] ?? ''
+  console.log('[WWW] render/metadata:segmentsToStoredSlug nested=', nested, 'segments=', JSON.stringify(segments), '->', result)
+  return result
 }
 
 export function segmentsToUrlPath(segments: string[] | string, nested?: boolean): string {
-  if (!Array.isArray(segments)) return '/' + segments
-  if (nested) return '/' + segments.join('/')
-  return '/' + (segments[0] ?? '')
+  let result: string
+  if (!Array.isArray(segments)) result = '/' + segments
+  else if (nested) result = '/' + segments.join('/')
+  else result = '/' + (segments[0] ?? '')
+  console.log('[WWW] render/metadata:segmentsToUrlPath nested=', nested, 'segments=', JSON.stringify(segments), '->', result)
+  return result
 }
 
 export function storedSlugToSegments(storedSlug: string, nested?: boolean): string[] | string {
-  if (nested) return storedSlug.split(SLUG_NESTED_DIVIDER)
-  return storedSlug
+  const result = nested ? storedSlug.split(SLUG_NESTED_DIVIDER) : storedSlug
+  console.log('[WWW] render/metadata:storedSlugToSegments nested=', nested, 'storedSlug=', storedSlug, '->', JSON.stringify(result))
+  return result
 }
 
 export function buildCanonicalUrl<L extends string>({
@@ -30,7 +38,9 @@ export function buildCanonicalUrl<L extends string>({
 }): string {
   const trimmedPrefix = urlPrefix.replace(/^\/|\/$/g, '')
   const prefixSegment = trimmedPrefix ? `/${trimmedPrefix}` : ''
-  return `${siteUrl}/${locale}${prefixSegment}${urlPath}`
+  const result = `${siteUrl}/${locale}${prefixSegment}${urlPath}`
+  console.log('[WWW] render/metadata:buildCanonicalUrl siteUrl=', siteUrl, 'locale=', locale, 'urlPrefix=', urlPrefix, 'urlPath=', urlPath, '->', result)
+  return result
 }
 
 export function getUrlPath(segments: string[] | string, nested: boolean, homeSlug: string): string {

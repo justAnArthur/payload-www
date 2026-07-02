@@ -10,10 +10,14 @@ export function renderCollectionModule(
   props?: Record<string, any>
 ) {
   const renderPath = collection?.find((c) => c.slug === slug)?.custom?.path
-  if (!renderPath) return null
+  if (!renderPath) {
+    console.log('[WWW] render/utils:renderCollectionModule no custom.path slug=', slug)
+    return null
+  }
 
   const CollectionRenderModule = getFromImportMap(renderPath, importMap)
   if (!CollectionRenderModule) {
+    console.error('[WWW] render/utils:renderCollectionModule not found slug=', slug, 'path=', renderPath)
     if (process.env.NODE_ENV !== 'production') {
       throw Error(
         `Render module for collection with slug "${slug}" not found at path "${renderPath}". Check your import map and collection configuration.`
@@ -22,5 +26,6 @@ export function renderCollectionModule(
     return null
   }
 
+  console.log('[WWW] render/utils:renderCollectionModule rendering slug=', slug, 'path=', renderPath)
   return <CollectionRenderModule importMap={importMap} {...props} />
 }

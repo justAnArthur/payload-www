@@ -131,7 +131,9 @@ export function createRootLayoutExports(args: CreateRootLayoutExportsArgs): Crea
     params: Promise<{ locale: string }>
   }): Promise<ReactElement> {
     const { locale } = await params
+    console.log('[WWW] render/pages:createRootLayoutExports:RootLayout locale=', locale)
     if (!routing.locales.includes(locale as any)) {
+      console.error('[WWW] render/pages:createRootLayoutExports:RootLayout invalid locale=', locale)
       const { notFound } = await import('next/navigation')
       notFound()
     }
@@ -147,6 +149,7 @@ export function createRootLayoutExports(args: CreateRootLayoutExportsArgs): Crea
     // and pass through to the host's providers slot.
     const { draftMode: nextDraftMode } = await import('next/headers')
     const { isEnabled: draftMode } = await nextDraftMode()
+    console.log('[WWW] render/pages:createRootLayoutExports:RootLayout draftMode=', draftMode)
 
     const cfg = await configPromise
 
@@ -157,6 +160,7 @@ export function createRootLayoutExports(args: CreateRootLayoutExportsArgs): Crea
       queryGlobal({ globalSlug: 'header', locale, depth: 0, config: configPromise }),
       queryGlobal({ globalSlug: 'footer', locale, depth: 0, config: configPromise })
     ])
+    console.log('[WWW] render/pages:createRootLayoutExports:RootLayout header?', Boolean(headerData), 'footer?', Boolean(footerData))
 
     const headerEl = renderGlobalModule(cfg.globals, 'header', importMap, {
       data: headerData,

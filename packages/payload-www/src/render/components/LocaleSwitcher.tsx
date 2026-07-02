@@ -35,6 +35,7 @@ export function LocaleSwitcher({
   labels
 }: LocaleSwitcherProps): ReactElement {
   const locales = Object.keys(hreflangAlternates).filter((k) => k !== 'x-default')
+  console.log('[WWW] render/components:LocaleSwitcher currentLocale=', currentLocale, 'locales=', JSON.stringify(locales), 'hasXDefault=', Boolean(hreflangAlternates['x-default']))
   return (
     <nav aria-label="Language" className="locale-switcher">
       <ul className="flex flex-wrap gap-2 list-none p-0 m-0">

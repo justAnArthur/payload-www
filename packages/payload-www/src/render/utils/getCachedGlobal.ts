@@ -23,8 +23,9 @@ export const getCachedGlobal = <G extends string>(
   config: Promise<SanitizedConfig>,
   slug: G,
   depth = 0
-): (() => Promise<DataFromGlobalSlug<G> | null>) =>
-  unstable_cache(
+): (() => Promise<DataFromGlobalSlug<G> | null>) => {
+  console.log('[WWW] render/utils:getCachedGlobal slug=', slug, 'depth=', depth)
+  return unstable_cache(
     async () =>
       queryGlobal<G>({
         globalSlug: slug,
@@ -35,6 +36,7 @@ export const getCachedGlobal = <G extends string>(
     [slug],
     { tags: [`global_${slug}`] }
   ) as () => Promise<DataFromGlobalSlug<G> | null>
+}
 
 /**
  * Type alias for the return shape — matches Payload's

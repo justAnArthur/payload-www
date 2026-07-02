@@ -50,13 +50,20 @@ export const AdminBar: FC<AdminBarProps> = ({ preview, exitPreviewPath = '/next/
   const [open, setOpen] = useState(false)
   const merged = { ...defaultLabels, ...labels }
 
-  if (!preview) return null
+  if (!preview) {
+    console.log('[WWW] render/components:AdminBar preview=false -> null')
+    return null
+  }
+  console.log('[WWW] render/components:AdminBar preview=true exitPreviewPath=', exitPreviewPath)
 
   return (
     <>
       <button
         type="button"
-        onClick={() => setOpen(true)}
+        onClick={() => {
+          console.log('[WWW] render/components:AdminBar trigger clicked')
+          setOpen(true)
+        }}
         title={merged.triggerHint}
         style={{
           position: 'fixed',
@@ -119,7 +126,10 @@ export const AdminBar: FC<AdminBarProps> = ({ preview, exitPreviewPath = '/next/
           </div>
           <a
             href={exitPreviewPath}
-            onClick={() => router.refresh()}
+            onClick={() => {
+              console.log('[WWW] render/components:AdminBar exit preview -> refresh')
+              router.refresh()
+            }}
             style={{
               display: 'inline-block',
               padding: '6px 10px',
