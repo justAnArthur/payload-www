@@ -68,9 +68,37 @@ export function createStaticPageExports({
 } {
   const importMap: ImportMap = importMapArg ?? {}
 
+  // [WWW-DBG] counts how many times Next renders this static-page (404)
+  // boundary during a build. Remove after debugging.
+  let dbgRenderCount = 0
+
   const default_ = async (): Promise<ReactElement> => {
     const { getLocale } = await import('next-intl/server')
     const locale = await getLocale()
+
+    // [WWW-DBG] who triggers this render, and how often?
+    dbgRenderCount++
+    {
+      let reqUrl = '?'
+      try {
+        const { headers } = await import('next/headers')
+        const h = await headers()
+        reqUrl =
+          h.get('x-invoke-path') ||
+          h.get('x-matched-path') ||
+          h.get('x-next-url') ||
+          h.get('next-url') ||
+          h.get('referer') ||
+          '?'
+      } catch { /* headers() unavailable here */ }
+      console.error(`[WWW-DBG static-render #${dbgRenderCount}] kind=${kind} locale=${locale} url=${reqUrl}`)
+      if (dbgRenderCount <= 5) {
+        console.error(
+          `[WWW-DBG static-render #${dbgRenderCount}] stack:\n` +
+          (new Error('static-render').stack?.split('\n').slice(2, 12).join('\n') ?? '')
+        )
+      }
+    }
 
     const doc = await queryDocBySlug({
       collectionSlug: STATIC_PAGES_SLUG,
