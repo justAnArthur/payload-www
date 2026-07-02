@@ -362,6 +362,7 @@ export function createCollectionPageExports<S extends string = 'pages'>(
     const slugSegments: string[] = Array.isArray(rawSlugSegments) ? rawSlugSegments : []
     const locale = typeof incomingLocale === 'string' ? incomingLocale : defaultLocale
     if (!locales.includes(locale)) {
+      console.error(`[WWW-DBG ${slug} notFound: invalid-locale] locale=${locale} segments=${JSON.stringify(slugSegments)}`)
       const { notFound } = await import('next/navigation')
       notFound()
     }
@@ -378,6 +379,7 @@ export function createCollectionPageExports<S extends string = 'pages'>(
     const doc = await fetchDoc(locale, storedSlug, draft)
 
     if (!doc) {
+      console.error(`[WWW-DBG ${slug} notFound: no-doc] locale=${locale} storedSlug="${storedSlug}" segments=${JSON.stringify(slugSegments)} draft=${draft}`)
       const { notFound } = await import('next/navigation')
       notFound()
     }
