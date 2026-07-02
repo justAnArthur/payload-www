@@ -31,8 +31,12 @@ export const RenderBlocks: FC<RenderBlocksProps> = ({
                                                       locale,
                                                       searchParams
                                                     }) => {
-  if (!blocks || !Array.isArray(blocks) || blocks.length === 0) return null
+  if (!blocks || !Array.isArray(blocks) || blocks.length === 0) {
+    console.log('[WWW] render/blocks:RenderBlocks no blocks (locale=', locale, ')')
+    return null
+  }
 
+  console.log('[WWW] render/blocks:RenderBlocks rendering count=', blocks.length, 'locale=', locale)
   const rendered: React.ReactNode[] = []
   for (let i = 0; i < blocks.length; i++) {
     const block = blocks[i]
@@ -46,10 +50,11 @@ export const RenderBlocks: FC<RenderBlocksProps> = ({
 
     const Block = getFromImportMap(importMapPath, importMap)
     if (!Block) {
-      console.warn(`No block found for type: ${blockType}, config.admin?.dependencies?.[blockType]: ${config.admin?.dependencies?.[blockType]}`)
+      console.warn(`[WWW] render/blocks:RenderBlocks no block for type=${blockType} importMapPath=${importMapPath} (locale=${locale})`)
       continue
     }
 
+    console.log('[WWW] render/blocks:RenderBlocks [', i, '] blockType=', blockType, 'importMapPath=', importMapPath)
     rendered.push(
       <Block
         key={i}

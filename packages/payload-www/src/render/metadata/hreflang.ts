@@ -43,6 +43,7 @@ export async function buildHreflangAlternates<L extends string>({
   localePrefix?: 'always' | 'as-needed' | 'never'
 }): Promise<Record<string, string>> {
   const allLocaleSlugs = await queryAllLocaleSlugs(storedSlug, locale)
+  console.log('[WWW] render/metadata:buildHreflangAlternates storedSlug=', storedSlug, 'locale=', locale, 'allLocaleSlugs=', JSON.stringify(allLocaleSlugs))
   const languages: Record<string, string> = {}
 
   // Build a URL for a given locale's slug, applying the locale
@@ -77,5 +78,6 @@ export async function buildHreflangAlternates<L extends string>({
     languages['x-default'] = urlFor(defaultLocale, allLocaleSlugs[defaultLocale])
   }
 
+  console.log('[WWW] render/metadata:buildHreflangAlternates ->', JSON.stringify(languages))
   return languages
 }

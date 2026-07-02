@@ -45,11 +45,14 @@ export function createPreviewHandler(options: CreatePreviewHandlerOptions) {
     const url = new URL(req.url)
     const path = url.searchParams.get('path') ?? '/'
     const previewSecret = url.searchParams.get('previewSecret')
+    console.log('[WWW] render/preview:createPreviewHandler:GET path=', path, 'hasSecret=', Boolean(previewSecret), 'enableDraftMode=', enableDraftMode)
     if (!previewSecret || previewSecret !== secret) {
+      console.warn('[WWW] render/preview:createPreviewHandler:GET invalid preview secret (401)')
       return new Response('Invalid preview secret', { status: 401 })
     }
     if (enableDraftMode) {
       ;(await draftMode()).enable()
+      console.log('[WWW] render/preview:createPreviewHandler:GET draftMode enabled')
     }
     redirect(path)
     return new Response(null, { status: 204 })

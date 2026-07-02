@@ -6,6 +6,12 @@ function getImageUrl(doc: Record<string, any>, siteUrl: string): string | null {
   return null
 }
 
+function getImageUrlWithLog(doc: Record<string, any>, siteUrl: string): string | null {
+  const result = getImageUrl(doc, siteUrl)
+  console.log('[WWW] render/metadata:jsonld:getImageUrl ->', result)
+  return result
+}
+
 /**
  * Resolve a localized field. The lib's collections mark fields
  * with `localized: true`; Payload returns them as a `{ en, uk }`
@@ -37,6 +43,14 @@ function resolveLocalizedField(value: unknown, locale: string): string {
     .join(' / ')
 }
 
+function resolveLocalizedFieldWithLog(value: unknown, locale: string): string {
+  const result = resolveLocalizedField(value, locale)
+  if (value && typeof value === 'object') {
+    console.log('[WWW] render/metadata:jsonld:resolveLocalizedField locale=', locale, '->', JSON.stringify(result))
+  }
+  return result
+}
+
 export type ArticleLdOptions = {
   doc: Record<string, any>
   url: string
@@ -58,12 +72,14 @@ export function buildArticleLd({
                                }: ArticleLdOptions): Record<string, unknown> {
   const name = publisherName ?? new URL(siteUrl).hostname
 
+  console.log('[WWW] render/metadata:buildArticleLd url=', url, 'locale=', locale, 'type=', type, 'publisherName=', name)
+
   const ld: Record<string, unknown> = {
     '@context': 'https://schema.org',
     '@type': type,
     '@id': `${url}#article`,
-    headline: resolveLocalizedField(doc.title, locale),
-    description: resolveLocalizedField(
+    headline: resolveLocalizedFieldWithLog(doc.title, locale),
+    description: resolveLocalizedFieldWithLog(
       doc.meta?.description ?? doc.description ?? doc.excerpt,
       locale
     ),
@@ -75,7 +91,7 @@ export function buildArticleLd({
   const datePublished = (doc as any).publishedAt ?? doc.createdAt
   if (datePublished) ld.datePublished = new Date(datePublished).toISOString()
 
-  const imgUrl = getImageUrl(doc, siteUrl)
+  const imgUrl = getImageUrlWithLog(doc, siteUrl)
   if (imgUrl) ld.image = imgUrl
 
   ld.author = { '@type': 'Organization', name, url: siteUrl }
@@ -98,6 +114,7 @@ export function buildBreadcrumbsLd({
   items: BreadcrumbItem[]
   currentUrl: string
 }): Record<string, unknown> {
+  console.log('[WWW] render/metadata:buildBreadcrumbsLd items=', items.length, 'currentUrl=', currentUrl)
   return {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
@@ -111,16 +128,17 @@ export function buildBreadcrumbsLd({
 }
 
 export function buildOrganizationLd({
-                                      siteUrl,
-                                      name,
-                                      logo,
-                                      sameAs
-                                    }: {
+                                       siteUrl,
+                                       name,
+                                       logo,
+                                       sameAs
+                                     }: {
   siteUrl: string
   name?: string
   logo?: string
   sameAs?: string[]
 }): Record<string, unknown> {
+  console.log('[WWW] render/metadata:buildOrganizationLd siteUrl=', siteUrl, 'name=', name, 'logo?', Boolean(logo), 'sameAs?', Boolean(sameAs))
   const org: Record<string, unknown> = {
     '@context': 'https://schema.org',
     '@type': 'Organization',

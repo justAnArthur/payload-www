@@ -30,10 +30,14 @@ export function renderGlobalModule(
   props?: Record<string, any>
 ) {
   const renderPath = globals?.find((g) => g.slug === slug)?.custom?.path
-  if (!renderPath) return null
+  if (!renderPath) {
+    console.log('[WWW] render/utils:renderGlobalModule no custom.path slug=', slug)
+    return null
+  }
 
   const GlobalRenderModule = getFromImportMap(renderPath, importMap)
   if (!GlobalRenderModule) {
+    console.error('[WWW] render/utils:renderGlobalModule not found slug=', slug, 'path=', renderPath)
     if (process.env.NODE_ENV !== 'production') {
       throw Error(
         `Render module for global with slug "${slug}" not found at path "${renderPath}". Check your import map and global configuration.`
@@ -42,5 +46,6 @@ export function renderGlobalModule(
     return null
   }
 
+  console.log('[WWW] render/utils:renderGlobalModule rendering slug=', slug, 'path=', renderPath)
   return <GlobalRenderModule importMap={importMap} {...props} />
 }

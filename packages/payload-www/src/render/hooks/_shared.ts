@@ -22,7 +22,9 @@ function nextCacheImport(): Promise<NextCache> {
  * Used by seed scripts and tests so saves don't churn the cache.
  */
 export function shouldSkipRevalidate(context: Record<string, unknown> | undefined): boolean {
-  return Boolean(context?.disableRevalidate)
+  const skip = Boolean(context?.disableRevalidate)
+  if (skip) console.log('[WWW] render/hooks:_shared:shouldSkipRevalidate -> skip')
+  return skip
 }
 
 /**
@@ -39,10 +41,12 @@ type PayloadLike = { logger: { error: (m: string) => void; info?: (m: string) =>
  * next request will pick up the new content eventually.
  */
 export async function safeRevalidatePath(payload: PayloadLike, path: string): Promise<void> {
+  console.log('[WWW] render/hooks:_shared:safeRevalidatePath path=', path)
   try {
     const { revalidatePath } = await nextCacheImport()
     revalidatePath(path)
   } catch (error) {
+    console.error('[WWW] render/hooks:_shared:safeRevalidatePath failed path=', path, 'err=', String(error))
     payload.logger.error(`revalidatePath("${path}") failed: ${String(error)}`)
   }
 }
@@ -57,10 +61,12 @@ export async function safeRevalidateTag(
   tag: string,
   profile: 'max' | 'minutes' | 'hours' | 'days' = 'max'
 ): Promise<void> {
+  console.log('[WWW] render/hooks:_shared:safeRevalidateTag tag=', tag, 'profile=', profile)
   try {
     const { revalidateTag } = await nextCacheImport()
     revalidateTag(tag, profile)
   } catch (error) {
+    console.error('[WWW] render/hooks:_shared:safeRevalidateTag failed tag=', tag, 'err=', String(error))
     payload.logger.error(`revalidateTag("${tag}") failed: ${String(error)}`)
   }
 }

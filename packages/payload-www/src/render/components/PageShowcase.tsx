@@ -47,6 +47,7 @@ export function PageShowcase({
   metadataHeading = 'Page metadata',
   jsonLdHeading = 'JSON-LD'
 }: PageShowcaseProps): ReactElement {
+  console.log('[WWW] render/components:PageShowcase jsonLdEntries=', jsonLd.length, 'hasOg=', Boolean(metadata.openGraph), 'hasTwitter=', Boolean(metadata.twitter), 'canonical=', metadata.alternates?.canonical)
   const og = metadata.openGraph as
     | { title?: string; description?: string; type?: string; url?: string; siteName?: string }
     | undefined

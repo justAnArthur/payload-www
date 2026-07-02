@@ -40,10 +40,14 @@ type PostsPageProps = {
  * here. The component serializes on the server.
  */
 export async function PostsPage({ doc, locale, importMap: _importMap }: PostsPageProps): Promise<ReactElement> {
-  if (!doc) return <></>
+  if (!doc) {
+    console.log('[WWW] render/pages:PostsPage no doc')
+    return <></>
+  }
   const title = readText((doc as any).title, locale)
   const excerpt = readText((doc as any).excerpt, locale)
   const content = (doc as any).content
+  console.log('[WWW] render/pages:PostsPage titleLen=', title.length, 'excerptLen=', excerpt.length, 'hasContent=', Boolean(content), 'locale=', locale)
 
   return (
     <article className="posts-page prose prose-neutral dark:prose-invert mx-auto max-w-3xl py-10">

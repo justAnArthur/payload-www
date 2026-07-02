@@ -35,8 +35,12 @@ type PagesPageProps = {
  * pointing it at their own Server Component.
  */
 export async function PagesPage({ doc, ...props }: PagesPageProps): Promise<ReactElement> {
-  if (!doc) return <></>
+  if (!doc) {
+    console.log('[WWW] render/pages:PagesPage no doc')
+    return <></>
+  }
   const blocks = ((doc as any).blocks ?? []) as Array<{ blockType: string }>
+  console.log('[WWW] render/pages:PagesPage blocks=', blocks.length, 'locale=', props.locale)
   return (
     <>
       <RenderBlocks blocks={blocks} {...props}/>

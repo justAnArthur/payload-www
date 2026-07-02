@@ -45,6 +45,14 @@ export const link = (options: LinkOptions = {}): Field => {
     extraFields = []
   } = options
 
+  console.log('[WWW] core/fields:link options=', JSON.stringify({
+    appearances: appearances === false ? false : (appearances ?? 'default-set'),
+    disableLabel,
+    relationTo,
+    localized,
+    extraFieldsCount: extraFields.length
+  }))
+
   const result: GroupField = {
     name: 'link',
     type: 'group',
@@ -130,5 +138,6 @@ export const link = (options: LinkOptions = {}): Field => {
     result.fields.push(...extraFields)
   }
 
+  console.log('[WWW] core/fields:link built fieldsCount=', result.fields.length)
   return { ...result, ...overrides } as Field
 }

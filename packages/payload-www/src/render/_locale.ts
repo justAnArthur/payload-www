@@ -21,9 +21,12 @@ export type LocalePrefixMode = 'always' | 'as-needed' | 'never'
  * Callers append any sub-path (`/${slug}`, `/posts/${slug}`).
  */
 export function prefixFor(locale: string, defaultLocale: string, mode: LocalePrefixMode): string {
-  if (mode === 'never') return ''
-  if (mode === 'as-needed' && locale === defaultLocale) return ''
-  return `/${locale}`
+  let result: string
+  if (mode === 'never') result = ''
+  else if (mode === 'as-needed' && locale === defaultLocale) result = ''
+  else result = `/${locale}`
+  console.log('[WWW] render/_locale:prefixFor locale=', locale, 'default=', defaultLocale, 'mode=', mode, '->', JSON.stringify(result))
+  return result
 }
 
 /**
@@ -40,11 +43,21 @@ export function prefixFor(locale: string, defaultLocale: string, mode: LocalePre
  * structural-type gymnastics.
  */
 export function resolveLocale(req: unknown): string {
-  if (!req || typeof req !== 'object') return ''
+  if (!req || typeof req !== 'object') {
+    console.log('[WWW] render/_locale:resolveLocale -> "" (no req)')
+    return ''
+  }
   const r = req as { locale?: unknown; payload?: unknown }
-  if (typeof r.locale === 'string' && r.locale.length > 0) return r.locale
+  if (typeof r.locale === 'string' && r.locale.length > 0) {
+    console.log('[WWW] render/_locale:resolveLocale ->', r.locale, '(from req.locale)')
+    return r.locale
+  }
   const fallback = (r.payload as { config?: { localization?: { defaultLocale?: unknown } } } | undefined)?.config?.localization?.defaultLocale
-  if (typeof fallback === 'string' && fallback.length > 0) return fallback
+  if (typeof fallback === 'string' && fallback.length > 0) {
+    console.log('[WWW] render/_locale:resolveLocale ->', fallback, '(from config.localization.defaultLocale)')
+    return fallback
+  }
+  console.log('[WWW] render/_locale:resolveLocale -> "" (no locale anywhere)')
   return ''
 }
 
@@ -57,10 +70,16 @@ export function resolveLocale(req: unknown): string {
  * in that case.
  */
 export function allLocales(req: unknown): string[] {
-  if (!req || typeof req !== 'object') return []
+  if (!req || typeof req !== 'object') {
+    console.log('[WWW] render/_locale:allLocales -> [] (no req)')
+    return []
+  }
   const r = req as { payload?: unknown }
   const list = (r.payload as { config?: { localization?: { locales?: unknown } } } | undefined)?.config?.localization?.locales
-  if (!Array.isArray(list) || list.length === 0) return []
+  if (!Array.isArray(list) || list.length === 0) {
+    console.log('[WWW] render/_locale:allLocales -> [] (no locales declared)')
+    return []
+  }
   const out: string[] = []
   for (const entry of list) {
     if (typeof entry === 'string' && entry.length > 0) {
@@ -70,5 +89,6 @@ export function allLocales(req: unknown): string[] {
       if (typeof code === 'string' && code.length > 0) out.push(code)
     }
   }
+  console.log('[WWW] render/_locale:allLocales ->', JSON.stringify(out))
   return out
 }

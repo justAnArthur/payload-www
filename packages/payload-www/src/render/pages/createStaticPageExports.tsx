@@ -75,6 +75,7 @@ export function createStaticPageExports({
   const default_ = async (): Promise<ReactElement> => {
     const { getLocale } = await import('next-intl/server')
     const locale = await getLocale()
+    console.log('[WWW] render/pages:createStaticPageExports:default_ kind=', kind, 'locale=', locale)
 
     // [WWW-DBG] who triggers this render, and how often?
     dbgRenderCount++
@@ -121,6 +122,7 @@ export function createStaticPageExports({
 
     const cfg = await configPromise
 
+    console.log('[WWW] render/pages:createStaticPageExports:default_ -> rendering via PagesPage kind=', kind, 'locale=', locale)
     return <PagesPage doc={doc} locale={locale} importMap={importMap} config={cfg}/>
   }
 

@@ -19,10 +19,14 @@ type FooterPageProps = {
  * factory).
  */
 export function FooterPage({ data, locale: _locale }: FooterPageProps): ReactElement {
-  if (!data) return <></>
+  if (!data) {
+    console.log('[WWW] render/pages:FooterPage no data')
+    return <></>
+  }
   const nav = (data.nav ?? []) as Array<{ blockType?: string; title?: string; link?: Record<string, any>; links?: Array<{ link?: Record<string, any> }> }>
   const items = nav.filter((b) => b.blockType === 'navItem')
   const columns = nav.filter((b) => b.blockType === 'navColumn')
+  console.log('[WWW] render/pages:FooterPage items=', items.length, 'columns=', columns.length, 'locale=', _locale)
 
   const renderLink = (link?: Record<string, any>, fallbackHref: string = '#') => {
     if (!link) return <a href={fallbackHref}>{(link as any)?.label ?? ''}</a>
