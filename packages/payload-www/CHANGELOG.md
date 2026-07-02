@@ -40,6 +40,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 
+- Block render components declared via `custom.path` are now
+  auto-registered in the admin importMap. The composer read
+  `admin.custom.path` for blocks — inconsistent with collections/globals
+  (which use `custom.path`) — so blocks with a top-level `custom.path`
+  were silently skipped and didn't render. Now reads `custom.path`, with
+  `admin.custom.path` kept as a fallback.
 - `queryAllLocaleSlugs` now re-reads the doc with `locale: 'all'` so a
   localized slug field resolves to its real per-locale map. Previously it
   queried a single locale (which returns a plain string), so every
