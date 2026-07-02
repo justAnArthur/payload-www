@@ -38,8 +38,6 @@ export const slugField = (options: SlugFieldOptions = {}): Field => {
     ? 'Slug must be lowercase, with hyphens or the `_` nesting divider (no spaces or other special characters)'
     : 'Slug must be lowercase, with hyphens (no spaces or special characters)'
 
-  console.log('[WWW] core/fields:slugField options=', JSON.stringify({ name, nested, localized }))
-
   return {
     name,
     type: 'text',
@@ -55,10 +53,7 @@ export const slugField = (options: SlugFieldOptions = {}): Field => {
     },
     validate: (value: unknown) => {
       if (typeof value !== 'string') return 'Slug must be a string'
-      if (value !== '' && !pattern.test(value)) {
-        console.warn('[WWW] core/fields:slugField invalid slug value=', JSON.stringify(value))
-        return invalidMessage
-      }
+      if (value !== '' && !pattern.test(value)) return invalidMessage
       return true
     }
   }
