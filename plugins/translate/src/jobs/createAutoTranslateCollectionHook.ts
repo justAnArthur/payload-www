@@ -2,72 +2,27 @@ import type { CollectionAfterChangeHook } from 'payload'
 
 import { TRANSLATE_WORKFLOW_SLUG } from './constants'
 
-// We accept any Document shape — the hook only reads `_status`, `id`,
-// and `updatedAt` from the doc, all of which Payload attaches
-// regardless of the collection's specific field schema.
+
+
+
 type AnyDoc = { _status?: string; id?: number | string; updatedAt?: string | Date }
 
 export type CreateAutoTranslateCollectionHookOptions = {
-  /**
-   * The collection's slug. Used to populate the workflow's
-   * `collection` input so the queued task targets the right entity.
-   */
+  
   collectionSlug: string
-  /**
-   * Source-of-truth locale. The hook only fires when the request
-   * is operating **in** this locale — edits to a non-default locale
-   * don't fan out (those edits would be translations of translations).
-   *
-   * Falls back to `req.payload.config.localization.defaultLocale`
-   * at request time when omitted.
-   */
+  
   defaultLocale?: string
-  /**
-   * Target locales the workflow fans out to. Defaults to every
-   * locale declared on `req.payload.config.localization.locales`
-   * **except** the default locale.
-   */
+  
   targetLocales?: string[]
-  /**
-   * Only fan out when the doc is published. Default: `true`.
-   * Keeps draft autosaves from triggering per-locale jobs.
-   * Set `false` if your host treats drafts as valid translation
-   * sources.
-   */
+  
   onlyOnPublished?: boolean
-  /**
-   * Workflow slug the hook queues. Must match the slug of the
-   * workflow registered in
-   * `payload.config.ts → jobs: { workflows: [...] }`.
-   * Default: `'translateEntityToLocales'`.
-   */
+  
   workflowSlug?: string
-  /**
-   * Resolver key the queued task should call. Must match a `key`
-   * declared in `translator({ resolvers: [...] })`. Default: the
-   * first registered resolver's key (resolved at request time),
-   * which the workflow forwards to the per-locale task as the
-   * `resolver` input.
-   */
+  
   resolverKey?: string
 }
 
-/**
- * Build a `CollectionAfterChangeHook` that schedules the
- * auto-translation workflow for every non-default locale.
- *
- * Skip rules (any one is sufficient):
- *
- * - `context.disableAutoTranslate` is set (lets seed scripts and
- *   tests opt out).
- * - `req.locale` is missing or doesn't match `defaultLocale`.
- * - `req.user` is missing (system-initiated changes shouldn't
- *   kick off LLM-billed jobs).
- * - `onlyOnPublished` (default `true`) is enabled and the doc's
- *   `_status` is not `'published'`.
- * - The resolved target locale list is empty (e.g. single-locale
- *   site).
- */
+
 export function createAutoTranslateCollectionHook(
   options: CreateAutoTranslateCollectionHookOptions
 ): { afterChange: CollectionAfterChangeHook } {
@@ -124,9 +79,9 @@ export function createAutoTranslateCollectionHook(
           msg: `auto-translate: queued translation of ${collectionSlug}#${typed.id} → ${toLocale} (job ${job.id})`
         })
       } catch (error) {
-        // One failing queue call must NOT break the save — the doc is
-        // already persisted; missing translations will be picked up
-        // by the next save or a manual retranslate.
+        
+        
+        
         req.payload.logger.error({
           msg: `auto-translate: failed to queue ${collectionSlug}#${typed.id} → ${toLocale}: ${String(error)}`
         })
@@ -139,7 +94,7 @@ export function createAutoTranslateCollectionHook(
   return { afterChange }
 }
 
-// -------- shared helpers --------
+
 
 function shouldSkipAutoTranslate(context: Record<string, unknown> | undefined): boolean {
   return Boolean((context as { disableAutoTranslate?: unknown } | undefined)?.disableAutoTranslate)

@@ -5,14 +5,7 @@ import type { SEOMeta } from '../types'
 
 let openai: OpenAI
 
-/**
- * Default OpenAI fallback for the `/plugin-seo/generate` endpoint. Used only
- * when the user did not provide a `generateSEO` function but did set
- * `openaiApiKey` in the plugin config. The user's doc (JSON-stringified) is
- * passed as the prompt; the model is asked to return a JSON object with
- * title / description / keywords. The call is permissive — any keys the
- * model returns are merged into the meta response.
- */
+
 export const openaiMessage = async ({
                                       apiKey,
                                       content,

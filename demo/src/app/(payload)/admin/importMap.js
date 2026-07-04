@@ -27,7 +27,7 @@ import { default as default_4938a80cc738257869bd28b4e2b2059f } from '@/Footer/Co
 import { LivePreviewListener as LivePreviewListener_bb27da336af6cdab6f00ce241a8c786e } from '@justanarthur/payload-www/render-components'
 import { default as default_61399738b6ab0fa4dd602554caf98171 } from '@/blocks/Content/Component'
 
-/** @type import('payload').ImportMap */
+
 export const importMap = {
   "@justanarthur/payload-plugin-seo/client#GenerateButton": GenerateButton_268419788155f6a6e75e06eff266d768,
   "@justanarthur/payload-plugin-seo/client#TitleFieldComponent": TitleFieldComponent_268419788155f6a6e75e06eff266d768,

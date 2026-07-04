@@ -1,13 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-// Import the factories from the SOURCE (not the built dist). The
-// dist has `translateOperation` inlined into the per-locale entry,
-// so vi.mock on the source file would never intercept. Source
-// imports go through vitest's normal module graph, where vi.mock
-// on the resolved path works.
-//
-// Mock `translateOperation` at the file the factories actually
-// import from (`'../translate/operation'` relative to the source).
+
+
+
+
+
+
+
+
 const translateOperationMock = vi.fn()
 
 vi.mock('../../../plugins/translate/src/translate/operation', () => ({
@@ -49,7 +49,7 @@ function buildTaskReq(payload: MockPayload, opts: { localization?: unknown } = {
   } as never
 }
 
-// -------- createTranslateTask --------
+
 
 describe('createTranslateTask', () => {
   let payload: MockPayload
@@ -223,7 +223,7 @@ describe('createTranslateTask', () => {
   it('falls back to the input resolver when no resolverKey is configured', async () => {
     translateOperationMock.mockResolvedValue({ success: true, translatedData: {} })
 
-    const task = createTranslateTask() // no resolverKey
+    const task = createTranslateTask() 
     await task.handler({
       input: { id: 7, collection: 'pages', fromLocale: 'en', toLocale: 'uk', resolver: 'queued-key' },
       job: { id: 'job-1' } as never,
@@ -238,7 +238,7 @@ describe('createTranslateTask', () => {
   it('falls back to the first configured resolver key as a last resort', async () => {
     translateOperationMock.mockResolvedValue({ success: true, translatedData: {} })
 
-    const task = createTranslateTask() // no resolverKey, no input resolver
+    const task = createTranslateTask() 
     await task.handler({
       input: { id: 7, collection: 'pages', fromLocale: 'en', toLocale: 'uk' },
       job: { id: 'job-1' } as never,
@@ -279,7 +279,7 @@ describe('createTranslateTask', () => {
   })
 })
 
-// -------- createTranslateWorkflow --------
+
 
 describe('createTranslateWorkflow', () => {
   let payload: MockPayload

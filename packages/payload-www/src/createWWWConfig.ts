@@ -1,0 +1,105 @@
+import type { AdminComponent, CollectionConfig, Config, GlobalConfig, Plugin } from 'payload'
+import { name } from "../../../package.json"
+import openAIResolver from "@justanarthur/payload-plugin-translator/resolvers/openAI"
+import { createPostsCollection, POSTS_SLUG } from "./collections/createPostsCollection"
+import { createPagesCollection, PAGES_SLUG } from "./collections/createPagesCollection"
+import { createFooterGlobal, FOOTER_SLUG } from "./collections/createFooterGlobal"
+import { createHeaderGlobal, HEADER_SLUG } from "./collections/createHeaderGlobal"
+import { seoPlugin } from '@justanarthur/payload-plugin-seo'
+import { imageHashPlugin } from '@justanarthur/payload-imagehash-plugin'
+import { translator } from '@justanarthur/payload-plugin-translator'
+import { SEOPluginConfig } from "@justanarthur/payload-plugin-seo/types"
+import { BlurhashPluginOptions } from "@justanarthur/payload-imagehash-plugin/types"
+import { TranslatorConfig } from "@justanarthur/payload-plugin-translator/types"
+
+export type WWWConfigApi = {
+  withWWWConfig: (config: WWWInputConfig) => Promise<Config> | Config
+}
+
+export type WWWInputConfig = Omit<Config, 'collections' | 'globals' | 'plugins'> & {
+  collections: MergeOrOverride<CollectionConfig[]>
+  globals: MergeOrOverride<GlobalConfig[]>
+  plugins?: MergeOrOverride<Plugin[]>,
+  defaultPluginsConfigs?: {
+    seo?: MergeOrOverride<SEOPluginConfig>,
+    imageHash?: MergeOrOverride<BlurhashPluginOptions>,
+    translator?: MergeOrOverride<TranslatorConfig>
+  }
+}
+
+export function createWWWConfig(): WWWConfigApi {
+
+  async function withWWWConfig(config: WWWInputConfig): Promise<Config> {
+    const blocks = config.blocks || []
+
+    const collections = mergeOrOverride([
+      createPagesCollection(blocks),
+      createPostsCollection()
+    ], config.collections)
+
+    const globals = mergeOrOverride([
+      createHeaderGlobal(),
+      createFooterGlobal()
+    ], config.globals)
+
+    const renderDependencies: Record<string, AdminComponent> = {}
+    for (const { slug, custom } of blocks) {
+      const path = custom?.[name]?.path
+      if (typeof path === 'string' && slug) renderDependencies[slug] = { path, type: 'component' }
+    }
+    for (const { custom } of [...collections, ...globals]) {
+      const path = custom?.[name]?.path
+      if (typeof path === 'string') renderDependencies[path] = { path, type: 'component' }
+    }
+
+    const plugins = mergeOrOverride(
+      [
+        seoPlugin(mergeOrOverride({
+          collections: [PAGES_SLUG, POSTS_SLUG],
+          autoGenerate: { mode: 'onCreate', deriveFrom: 'allScalars' }
+        }, config.defaultPluginsConfigs?.seo)),
+        imageHashPlugin(mergeOrOverride({
+          algorithm: 'lqip-modern'
+        }, config.defaultPluginsConfigs?.imageHash)),
+        translator(mergeOrOverride({
+          collections: [PAGES_SLUG, POSTS_SLUG],
+          globals: [HEADER_SLUG, FOOTER_SLUG],
+          resolvers: [
+            openAIResolver({
+              apiKey: process.env.OPENAI_API_KEY!,
+              chunkLength: 31,
+              model: 'gpt-5-mini'
+            })
+          ]
+        }, config.defaultPluginsConfigs?.translator))
+      ],
+      config.plugins)
+
+    return ({
+      ...config,
+      collections,
+      globals,
+      plugins,
+      admin: {
+        ...(config.admin ?? {}),
+        dependencies: {
+          ...renderDependencies,
+          ...(config.admin?.dependencies ?? {})
+        }
+      }
+    }) as Config
+  }
+
+  return { withWWWConfig }
+}
+
+type MergeOrOverride<T> = T | ((defaultValue: T) => T)
+
+function mergeOrOverride<T>(defaultValue: T, overrideValue?: MergeOrOverride<T>): T {
+  if (typeof !overrideValue)
+    return defaultValue
+  else if (typeof overrideValue === 'function') // @ts-ignore
+    return overrideValue(defaultValue)
+  else
+    return overrideValue ?? defaultValue
+}

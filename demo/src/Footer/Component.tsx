@@ -13,13 +13,7 @@ const isNavItem = (block: NonNullable<FooterType['nav']>[number]): block is Extr
 const isNavColumn = (block: NonNullable<FooterType['nav']>[number]): block is Extract<NonNullable<FooterType['nav']>[number], { blockType: 'navColumn' }> =>
   block.blockType === 'navColumn'
 
-/**
- * Host's footer visual. Registered in `payload.config.ts`'s
- * `admin.dependencies` under the importMap key
- * `@/Footer/Component#default` so `createRootLayoutExports`'s
- * `renderGlobalModule` resolves it via the footer global's
- * `custom.path` (overridden in `globals({ defaultGlobals })`).
- */
+
 export default async function Footer() {
   const footerData = await getCachedGlobal(configPromise, 'footer', 1)()
   const nav = (footerData?.nav ?? []) as NonNullable<FooterType['nav']>

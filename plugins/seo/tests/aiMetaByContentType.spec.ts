@@ -5,21 +5,21 @@ import { generateMeta, type SEOMetaShape } from '../src/generateMeta'
 import { runAutoGenerate } from '../src/autoGenerate/runAutoGenerate'
 import type { SEOPluginConfig } from '../src/types'
 
-// Real OpenAI is gated on OPENAI_API_KEY — without it, these tests skip
-// cleanly (no mock, no flakiness, no cost). Set the env var locally to
-// exercise the actual LLM path; CI without the secret skips.
+
+
+
 const HAS_OPENAI = Boolean(process.env.OPENAI_API_KEY)
 const OPENAI_KEY = process.env.OPENAI_API_KEY ?? ''
-// Generous timeout — gpt-4o-mini cold calls can take a few seconds.
+
 const OPENAI_TIMEOUT_MS = 30000
 const skipIfNoOpenAI = it.skipIf(!HAS_OPENAI)
 
-// Pretty-print the full pipeline so you can SEE what the AI generated
-// for each document. Vitest shows stdout by default in the terminal —
-// run `bunx vitest run tests/aiMetaByContentType.spec.ts` and the AI's
-// actual output (not the assertion, the raw text) appears inline.
+
+
+
+
 const logPipeline = (label: string, doc: Record<string, unknown>, meta: Record<string, unknown>, rendered: Record<string, unknown>): void => {
-  // Strip noisy wrapper noise from richText bodies for cleaner output.
+  
   const stripRichText = (v: unknown): unknown => {
     if (v === null || typeof v !== 'object') return v
     if (Array.isArray(v)) return v.map(stripRichText)
@@ -42,7 +42,7 @@ const logPipeline = (label: string, doc: Record<string, unknown>, meta: Record<s
     }
     return out
   }
-  // eslint-disable-next-line no-console
+  
   console.log(
     `\n━━━ ${label} ━━━\n` +
       `\n📄 INPUT DOC\n${JSON.stringify(stripRichText(doc), null, 2)}\n` +
@@ -51,29 +51,29 @@ const logPipeline = (label: string, doc: Record<string, unknown>, meta: Record<s
   )
 }
 
-// ----------------------------------------------------------------
-// aiMetaByContentType — end-to-end view of "what the AI pipeline
-// generates for {page, post, static-page} + how that meta lands on
-// the rendered web page".
-//
-// Each test sets up a representative doc shape, runs the autoGenerate
-// pipeline (heuristic + optional generator), then runs the SEO →
-// Next.js Metadata mapper on the result. Both stages are asserted so
-// we catch drift in either direction: a regression in runAutoGenerate
-// (wrong meta written) and a regression in generateMeta (wrong
-// <head> tags emitted).
-//
-// Path shape reminder (from MetaField tabs → buildFieldPaths):
-//   meta.content.title / description / keywords / image
-//   meta.social.social.{ogTitle, ogDescription, ogImage, ogType,
-//                      ogUrl, ogSiteName, ogLocale, twitterCard,
-//                      twitterTitle, twitterDescription, twitterImage,
-//                      twitterSite, twitterCreator}
-//   meta.advanced.advanced.{canonicalUrl, robots, noindex, author,
-//                           publishedAt, modifiedAt}
-// The double-nest on social/advanced is cosmetic — tab name == group
-// name in the schema, and renaming it is a breaking schema change.
-// ----------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 const makeReq = (locale?: string): PayloadRequest =>
   ({
@@ -81,7 +81,7 @@ const makeReq = (locale?: string): PayloadRequest =>
     locale
   }) as unknown as PayloadRequest
 
-// Tiny shape helper to read nested meta paths without `as any` chains.
+
 const getMeta = <T = unknown>(data: Record<string, unknown>, path: string): T => {
   const parts = path.split('.')
   let cur: unknown = data.meta
@@ -92,17 +92,17 @@ const getMeta = <T = unknown>(data: Record<string, unknown>, path: string): T =>
   return cur as T
 }
 
-// ================================================================
-// page collection — typical site page (About, Contact, Landing)
-// ================================================================
-//
-// Schema mirrors what the demo's `[...slug]` catch-all expects:
-// `title` (localized text), `description` (localized textarea),
-// `body` (richText), `heroImage` (upload to media). The collection
-// schema drives the heuristic — fields are extracted by name, the
-// `meta` group gets populated, and `generateMeta` turns it into the
-// Metadata that Next.js renders as <title>, <meta name="description">,
-// og:* and twitter:* tags.
+
+
+
+
+
+
+
+
+
+
+
 
 describe('page — what AI generates and how it lands on the web page', () => {
   const pagesCollection: CollectionConfig = {
@@ -141,19 +141,19 @@ describe('page — what AI generates and how it lands on the web page', () => {
       req: makeReq('en')
     })
 
-    // ----- AI output -----
+    
     expect(getMeta<string>(data, 'content.title')).toBe('About us')
     expect(getMeta<string>(data, 'content.description')).toBe('Learn about the team and what we build.')
     expect(getMeta<string>(data, 'content.image')).toBe('media-about-hero')
     expect(typeof getMeta<string>(data, 'content.keywords')).toBe('string')
 
-    // Secondary slots mirrored into OG/Twitter.
+    
     expect(getMeta<string>(data, 'social.social.ogTitle')).toBe('About us')
     expect(getMeta<string>(data, 'social.social.twitterTitle')).toBe('About us')
     expect(getMeta<string>(data, 'social.social.ogDescription')).toBe('Learn about the team and what we build.')
     expect(getMeta<string>(data, 'social.social.twitterDescription')).toBe('Learn about the team and what we build.')
 
-    // ----- Rendered page Metadata -----
+    
     const meta = data.meta as SEOMetaShape
     const rendered = generateMeta({
       meta,
@@ -167,7 +167,7 @@ describe('page — what AI generates and how it lands on the web page', () => {
     expect(rendered.description).toBe('Learn about the team and what we build.')
     expect(rendered.keywords).toBeInstanceOf(Array)
     expect((rendered.keywords as string[]).length).toBeGreaterThan(0)
-    // OG shape: website by default, URL and locale come from args.
+    
     expect(rendered.openGraph).toMatchObject({
       type: 'website',
       title: 'About us',
@@ -175,14 +175,14 @@ describe('page — what AI generates and how it lands on the web page', () => {
       url: 'https://example.com/en/about',
       locale: 'en'
     })
-    // Twitter card defaults to summary_large_image when nothing is set
-    // explicitly (the heuristic mirrors title/description but not card).
+    
+    
     expect(rendered.twitter).toMatchObject({
       card: 'summary_large_image',
       title: 'About us',
       description: 'Learn about the team and what we build.'
     })
-    // The lib never sets alternates — owner-of-route owns canonical/hreflang.
+    
     expect(rendered.alternates).toBeUndefined()
   })
 
@@ -195,7 +195,7 @@ describe('page — what AI generates and how it lands on the web page', () => {
       autoGenerate: { mode: 'onCreateOrUpdate', deriveFrom: 'allScalars' }
     }
 
-    // First save under `de`: AI writes German.
+    
     await runAutoGenerate({
       pluginConfig: config,
       collectionConfig: pagesCollection,
@@ -207,7 +207,7 @@ describe('page — what AI generates and how it lands on the web page', () => {
     expect(getMeta<string>(data, 'content.title')).toBe('Über uns')
     expect(getMeta<string>(data, 'content.description')).toBe('Deutsche Zusammenfassung.')
 
-    // The page is then rendered under /de/about — meta is German.
+    
     const renderedDe = generateMeta({
       meta: data.meta as SEOMetaShape,
       url: 'https://example.com/de/about',
@@ -245,14 +245,14 @@ describe('page — what AI generates and how it lands on the web page', () => {
   })
 
   it('falls back to a default title when the page doc has no meta at all', () => {
-    // Not-found / unconfigured route — meta is null/undefined.
+    
     const rendered = generateMeta({
       meta: undefined,
       type: 'website',
       fallback: { title: 'Untitled' }
     })
     expect(rendered.title).toBe('Untitled')
-    // No description, no OG, no Twitter — minimal head.
+    
     expect(rendered.description).toBeUndefined()
     expect(rendered.openGraph).toBeUndefined()
     expect(rendered.twitter).toBeUndefined()
@@ -278,9 +278,9 @@ describe('page — what AI generates and how it lands on the web page', () => {
       req: makeReq('en')
     })
 
-    // Editor's title wins — heuristic doesn't overwrite it.
+    
     expect(getMeta<string>(data, 'content.title')).toBe('Editor-pinned')
-    // Editor's description is also kept.
+    
     expect(getMeta<string>(data, 'content.description')).toBe('Editor description')
 
     const rendered = generateMeta({ meta: data.meta as SEOMetaShape, type: 'website' })
@@ -289,16 +289,16 @@ describe('page — what AI generates and how it lands on the web page', () => {
   })
 })
 
-// ================================================================
-// post collection — blog article
-// ================================================================
-//
-// Posts are the "article" OG type. The demo's `posts/[...slug]` route
-// expects: `title`, `excerpt` (NOT a `description` field), `body`
-// (richText), `coverImage`, `author`, `publishedAt`, `modifiedAt`.
-// The AI must still find a description (excerpt matches the
-// `description|excerpt|summary|lead|intro` regex), pull a cover image,
-// and surface the article timestamps in the rendered OG object.
+
+
+
+
+
+
+
+
+
+
 
 describe('post — what AI generates and how it lands on a web page', () => {
   const postsCollection: CollectionConfig = {
@@ -358,12 +358,12 @@ describe('post — what AI generates and how it lands on a web page', () => {
       req: makeReq('en')
     })
 
-    // AI wrote title + description + image.
+    
     expect(getMeta<string>(data, 'content.title')).toBe('How we built Payload SEO')
     expect(getMeta<string>(data, 'content.description')).toBe('A deep dive into the new SEO plugin.')
     expect(getMeta<string>(data, 'content.image')).toBe('media-cover-1')
 
-    // Render the page as type: 'article' (the demo posts route does this).
+    
     const rendered = generateMeta({
       meta: data.meta as SEOMetaShape,
       url: 'https://example.com/en/posts/seo-plugin',
@@ -373,9 +373,9 @@ describe('post — what AI generates and how it lands on a web page', () => {
 
     expect(rendered.title).toBe('How we built Payload SEO')
     expect(rendered.description).toBe('A deep dive into the new SEO plugin.')
-    // Article OG carries the timestamps. (Heuristic does NOT currently
-    // surface them — these would come from the editor / generateSEO
-    // call; when they're missing, the OG still emits type:'article'.)
+    
+    
+    
     expect(rendered.openGraph).toMatchObject({
       type: 'article',
       title: 'How we built Payload SEO',
@@ -465,8 +465,8 @@ describe('post — what AI generates and how it lands on a web page', () => {
   })
 
   it('renders cleanly when the post has zero content (no fields populated)', () => {
-    // Edge: a freshly-created post the author hasn't filled yet.
-    // The rendered page should still emit a title + a usable OG/Twitter.
+    
+    
     const rendered = generateMeta({
       meta: undefined,
       type: 'article',
@@ -475,25 +475,25 @@ describe('post — what AI generates and how it lands on a web page', () => {
     })
     expect(rendered.title).toBe('Untitled post')
     expect(rendered.description).toBeUndefined()
-    // When meta is null/undefined, the lib returns ONLY title.
+    
     expect(rendered.openGraph).toBeUndefined()
     expect(rendered.twitter).toBeUndefined()
   })
 })
 
-// ================================================================
-// static-page — error / not-found / minimal routes
-// ================================================================
-//
-// These are routes that have no collection behind them (404, 500, the
-// framework's error boundary). The doc is null; the only meta is the
-// fallback passed in by the route. The page should still get a
-// sensible <title> and a noindex so crawlers don't keep trying.
+
+
+
+
+
+
+
+
 
 describe('static-page (not-found, error) — what the page looks like when meta is absent', () => {
   it('renders a "Not found" title when the route passes null doc + no fallback', () => {
     const rendered = generateMeta({ meta: undefined, type: 'website' })
-    // The lib hard-codes 'Not found' as the absolute last-resort title.
+    
     expect(rendered.title).toBe('Not found')
   })
 
@@ -517,9 +517,9 @@ describe('static-page (not-found, error) — what the page looks like when meta 
   })
 
   it('emits noindex when the static-page routes set it explicitly', () => {
-    // Static routes write meta directly (not via runAutoGenerate) — they
-    // can flip `advanced.advanced.noindex = true` to tell crawlers to
-    // back off. generateMeta turns that into Next.js's robots shape.
+    
+    
+    
     const meta: SEOMetaShape = {
       advanced: { advanced: { noindex: true } }
     }
@@ -528,12 +528,12 @@ describe('static-page (not-found, error) — what the page looks like when meta 
   })
 
   it('emits noindex for an unconfigured / unknown route (404) by convention', () => {
-    // The lib returns ONLY title when meta is null/undefined — no robots
-    // tag emitted. The route is responsible for setting noindex via its
-    // own generateMeta if it wants to keep crawlers out.
+    
+    
+    
     const rendered = generateMeta({ meta: undefined, type: 'website', fallback: { title: '404' } })
     expect(rendered.title).toBe('404')
-    // Document the contract: no robots tag is emitted when meta is null.
+    
     expect(rendered.robots).toBeUndefined()
   })
 
@@ -545,40 +545,40 @@ describe('static-page (not-found, error) — what the page looks like when meta 
       fallback: { title: 'Not found' }
     })
     expect(rendered.alternates).toBeUndefined()
-    // OG and Twitter are also intentionally empty — there's no content
-    // to share from a 404.
+    
+    
     expect(rendered.openGraph).toBeUndefined()
     expect(rendered.twitter).toBeUndefined()
   })
 })
 
-// ================================================================
-// REAL OpenAI — what gpt-4o-mini generates and how it lands on the
-// web page
-// ================================================================
-//
-// These tests call the real OpenAI API (no mocks). They skip unless
-// OPENAI_API_KEY is set in the environment, so CI without the secret
-// stays green and the suite stays free.
-//
-// To run locally:
-//   export OPENAI_API_KEY=sk-...
-//   bunx vitest run tests/aiMetaByContentType.spec.ts
-//
-// We assert on STRUCTURAL properties of the LLM output (keys present,
-// types right, lengths reasonable) — exact strings are non-deterministic
-// and would flake on every model update.
-//
-// IMPORTANT: these tests use MINIMAL docs on purpose. The heuristic runs
-// FIRST and would mask an OpenAI failure if we left description / body
-// for it to fill. To force OpenAI to do meaningful work, we leave the
-// doc with only `title` — no description, no excerpt, no body. The
-// heuristic can only fill `title`; everything else must come from
-// OpenAI or the assertions fail.
-//
-// Cost note: gpt-4o-mini at ~$0.15/M input + $0.60/M output tokens. The
-// live tests below use < 300 input + < 300 output tokens each, i.e.
-// sub-cent per run.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 describe('page — real OpenAI generates meta and renders on a web page', () => {
   const pagesCollection: CollectionConfig = {
@@ -586,12 +586,12 @@ describe('page — real OpenAI generates meta and renders on a web page', () => 
     fields: [{ name: 'title', type: 'text', localized: true } as Field]
   } as CollectionConfig
 
-  // `onlyFillEmpty: false` is the production-shape config when you trust
-  // OpenAI — heuristic fills first, then OpenAI's output REPLACES it.
-  // With `true` (default) OpenAI's text would be silently dropped because
-  // the heuristic already wrote a description from the title text.
-  // We assert OpenAI-specific shape (description != title, many keywords)
-  // to verify the LLM actually ran, not just the heuristic.
+  
+  
+  
+  
+  
+  
 
   skipIfNoOpenAI(
     'OpenAI generates description + keywords from a title-only page doc',
@@ -619,35 +619,35 @@ describe('page — real OpenAI generates meta and renders on a web page', () => 
         req: makeReq('en')
       })
 
-      // ----- AI output -----
+      
       const meta = data.meta as Record<string, unknown>
       const content = (meta.content ?? {}) as Record<string, unknown>
       const social = ((meta.social as Record<string, unknown> | undefined)?.social ?? {}) as Record<string, unknown>
 
-      // OpenAI may "normalize" the title (capitalize acronyms like
-      // CMS / SEO, fix punctuation). We don't pin the exact casing —
-      // we only assert the title is a non-empty string and contains
-      // the core content words.
+      
+      
+      
+      
       expect(typeof content.title).toBe('string')
       const title = content.title as string
       expect(title.length).toBeGreaterThan(10)
       expect(title.toLowerCase()).toContain('payload')
       expect(title.toLowerCase()).toContain('seo')
 
-      // OpenAI MUST produce a description. The heuristic's fallback
-      // (first 155 chars of title) would give the same text as the
-      // title — so a DIFFERENT description is the strong signal that
-      // OpenAI wrote it.
+      
+      
+      
+      
       expect(typeof content.description).toBe('string')
       const desc = content.description as string
       expect(desc.length).toBeGreaterThan(40)
       expect(desc.length).toBeLessThan(300)
-      // Strong signal: OpenAI wrote a real description, not the title.
+      
       expect(desc).not.toBe(content.title)
 
-      // OpenAI MUST produce keywords. Heuristic on title-only produces
-      // 3-4 low-quality tokens ("payload, plugin, building, scratch").
-      // OpenAI typically returns 5-8+ semantically relevant keywords.
+      
+      
+      
       expect(typeof content.keywords).toBe('string')
       const kwEntries = (content.keywords as string)
         .split(',')
@@ -655,14 +655,14 @@ describe('page — real OpenAI generates meta and renders on a web page', () => 
         .filter((s) => s.length > 0)
       expect(kwEntries.length).toBeGreaterThanOrEqual(4)
 
-      // OG/Twitter mirror: OpenAI's response often overrides these with
-      // tighter copy. We just assert they're present and non-empty.
+      
+      
       expect(typeof social.ogTitle).toBe('string')
       expect((social.ogTitle as string).length).toBeGreaterThan(0)
       expect(typeof social.twitterTitle).toBe('string')
       expect((social.twitterTitle as string).length).toBeGreaterThan(0)
 
-      // ----- Rendered page Metadata -----
+      
       const rendered = generateMeta({
         meta: data.meta as SEOMetaShape,
         url: 'https://example.com/en/about',
@@ -671,10 +671,10 @@ describe('page — real OpenAI generates meta and renders on a web page', () => 
         fallback: { title: 'Untitled' }
       })
 
-      // Rendered title matches the AI-written title (whatever casing).
+      
       expect(rendered.title).toBe(title)
       expect(rendered.description).toBe(desc)
-      // `keywords` is split into an array on render.
+      
       expect(rendered.keywords).toBeInstanceOf(Array)
       expect((rendered.keywords as string[]).length).toBeGreaterThanOrEqual(4)
       expect(rendered.openGraph).toMatchObject({
@@ -728,12 +728,12 @@ describe('post — real OpenAI generates article meta and renders on a web page'
         req: makeReq('en')
       })
 
-      // ----- AI output -----
+      
       const meta = data.meta as Record<string, unknown>
       const content = (meta.content ?? {}) as Record<string, unknown>
 
-      // OpenAI may normalize the title (capitalize acronyms, fix casing).
-      // We assert it's a non-empty string that contains the core content.
+      
+      
       expect(typeof content.title).toBe('string')
       const title = content.title as string
       expect(title.length).toBeGreaterThan(10)
@@ -752,7 +752,7 @@ describe('post — real OpenAI generates article meta and renders on a web page'
         .filter((s) => s.length > 0)
       expect(kwEntries.length).toBeGreaterThanOrEqual(4)
 
-      // ----- Rendered page Metadata (type: 'article') -----
+      
       const rendered = generateMeta({
         meta: data.meta as SEOMetaShape,
         url: 'https://example.com/en/posts/seo-plugin',
@@ -785,10 +785,10 @@ describe('live OpenAI — sanity checks that prevent silent contract drift', () 
   skipIfNoOpenAI(
     'OpenAI returns usable meta for a one-field doc (smoke test for the integration)',
     async () => {
-      // The lightest end-to-end check. If OpenAI is reachable and the
-      // prompt + response_format are correct, a title-only doc gets a
-      // proper description back. Fails fast if auth breaks or model
-      // changes break response_format.
+      
+      
+      
+      
       const inputDoc: Record<string, unknown> = {
         title: 'A short note about OpenAI integration'
       }
@@ -819,8 +819,8 @@ describe('live OpenAI — sanity checks that prevent silent contract drift', () 
       expect(typeof content.description).toBe('string')
       const desc = content.description as string
       expect(desc.length).toBeGreaterThan(20)
-      // Stronger signal than length: the description must NOT be the
-      // title verbatim (heuristic mirror would be exactly the title).
+      
+      
       expect(desc).not.toBe(content.title)
 
       const rendered = generateMeta({ meta: data.meta as SEOMetaShape, type: 'website' })
@@ -830,27 +830,27 @@ describe('live OpenAI — sanity checks that prevent silent contract drift', () 
   )
 })
 
-// ================================================================
-// page with rich content (blocks + json + richText) — what AI
-// extracts from structured content and how it renders
-// ================================================================
-//
-// The previous live tests use MINIMAL docs (title only) so the test
-// can prove OpenAI ran. This one uses a REALISTIC doc shape so you
-// can SEE what the AI does when there's structured content to read.
-//
-// The schema mirrors what a marketing landing page might look like:
-//   - `title` (localized text)
-//   - `description` (localized textarea) — left empty so AI fills it
-//   - `body` (richText with multiple paragraphs)
-//   - `layout` (blocks array — `content` block with columns)
-//   - `faq` (json — structured Q&A pairs)
-//   - `customMeta` (json — extra structured fields)
-//   - `heroImage` (upload)
-//
-// The heuristic can pull plaintext from the body and (limited) the
-// first block column. OpenAI sees the whole JSON and can reference
-// FAQ entries, layout columns, and structured meta in its output.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 describe('page with rich content — AI extracts meta from blocks + json + richText', () => {
   const richPagesCollection: CollectionConfig = {
@@ -951,25 +951,25 @@ describe('page with rich content — AI extracts meta from blocks + json + richT
         req: makeReq('en')
       })
 
-      // ----- AI output -----
+      
       const meta = data.meta as Record<string, unknown>
       const content = (meta.content ?? {}) as Record<string, unknown>
       const social = ((meta.social as Record<string, unknown> | undefined)?.social ?? {}) as Record<string, unknown>
 
-      // OpenAI fills what heuristic cannot from the rich content.
+      
       expect(typeof content.title).toBe('string')
       const title = content.title as string
       expect(title.length).toBeGreaterThan(10)
       expect(title.toLowerCase()).toContain('payload')
 
-      // Description was empty in input — OpenAI MUST write one (and it
-      // should reflect the rich content, not be a generic blurb).
+      
+      
       expect(typeof content.description).toBe('string')
       const desc = content.description as string
       expect(desc.length).toBeGreaterThan(80)
       expect(desc).not.toBe(content.title)
-      // We can't pin exact phrasing, but OpenAI should reference the
-      // core subject (cross-border / job platforms / CMS) somewhere.
+      
+      
       const descLower = desc.toLowerCase()
       const referencesTopic =
         descLower.includes('payload') ||
@@ -978,9 +978,9 @@ describe('page with rich content — AI extracts meta from blocks + json + richT
         descLower.includes('cross-border')
       expect(referencesTopic).toBe(true)
 
-      // Keywords: heuristic derives from body plaintext, OpenAI can
-      // add structured-data-derived keywords (e.g. "localization",
-      // "typescript" from the layout columns or FAQ).
+      
+      
+      
       expect(typeof content.keywords).toBe('string')
       const kwEntries = (content.keywords as string)
         .split(',')
@@ -988,16 +988,16 @@ describe('page with rich content — AI extracts meta from blocks + json + richT
         .filter((s) => s.length > 0)
       expect(kwEntries.length).toBeGreaterThanOrEqual(4)
 
-      // Image: heuristic picks it from heroImage (image-relation).
+      
       expect(content.image).toBe('media-hero-payload')
 
-      // OG/Twitter: should mirror the AI's title + description.
+      
       expect(typeof social.ogTitle).toBe('string')
       expect(social.ogDescription).toBe(desc)
       expect(social.twitterTitle).toBeTypeOf('string')
       expect(social.twitterDescription).toBe(desc)
 
-      // ----- Rendered page Metadata -----
+      
       const rendered = generateMeta({
         meta: data.meta as SEOMetaShape,
         url: 'https://example.com/en/payload-job-platform',

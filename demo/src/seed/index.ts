@@ -1,10 +1,10 @@
-// Demo seed. Idempotent — safe to re-run on a populated DB.
-// Run with: `bun run seed` (from the demo workspace).
-//
-// Creates a home Pages doc (slug `''`), a few showcase pages in
-// both locales, and a couple of posts. The lib's `createBaseSeed`
-// is used to wire the payload + validation; this file owns the
-// content (so it's a showcase fixture, not a generic seed).
+
+
+
+
+
+
+
 
 import 'dotenv/config'
 
@@ -27,8 +27,8 @@ const homeBlock = (text: string, heading?: string) => ({
   blockType: 'content' as const
 })
 
-// crypto.randomUUID is only on Node 19+. Fall back to a tiny
-// collision-resistant id when unavailable.
+
+
 function cryptoId(): string {
   if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
     return crypto.randomUUID()
@@ -41,9 +41,9 @@ const text = (en: string, uk: string) => ({ en, uk })
 async function main() {
   const payload = await getPayload({ config })
 
-  // Ensure the home doc has a `home` page in the Pages collection
-  // with slug `''`. The lib's Pages factory allows it (the slug
-  // field doesn't enforce `localized`).
+  
+  
+  
   const home = await payload.find({
     collection: 'pages',
     where: { slug: { equals: '' } },
@@ -57,10 +57,10 @@ async function main() {
       collection: 'pages',
       data: {
         slug: '',
-        // Cast: the schema declares `title` as `localized: true`
-        // (so the runtime accepts the `{ en, uk }` object), but
-        // `generate:types` emits a flat `string` for fields built
-        // via the lib's factory. The runtime behavior is correct.
+        
+        
+        
+        
         title: { en: 'payload-www demo', uk: 'payload-www демо' } as unknown as string,
         _status: 'published',
         publishedAt: new Date().toISOString(),

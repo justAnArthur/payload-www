@@ -11,7 +11,7 @@ export type TranslateArgs = {
   emptyOnly?: boolean
   globalSlug?: string
   id?: number | string
-  /** active locale */
+  
   locale: string
   localeFrom: string
   overrideAccess?: boolean

@@ -1,40 +1,19 @@
 import type { WorkflowConfig, WorkflowHandler } from 'payload'
 
-// Same narrowing pattern as `TranslateTaskConfig` — keep
-// `workflow.handler(...)` callable at the test site.
+
+
 export type TranslateWorkflowConfig = Omit<WorkflowConfig, 'handler'> & {
   handler: WorkflowHandler
 }
 
 export type CreateTranslateWorkflowOptions = {
-  /**
-   * Override the workflow slug. Default:
-   * `'translateEntityToLocales'`.
-   */
+  
   slug?: string
-  /**
-   * Override the per-locale task slug the workflow schedules.
-   * Must match the slug passed to `createTranslateTask` on the
-   * host's side. Default: `'translateEntityToLocale'`.
-   */
+  
   taskSlug?: string
 }
 
-/**
- * Build the per-save translation workflow.
- *
- * The workflow receives one `entity + (fromLocale, toLocale, updatedAt)`
- * tuple per call and schedules **one** `translateEntityToLocale` task.
- * The `afterChange` hook factories fan out one call per non-default
- * locale so each task runs independently — one failing locale does
- * not block the others.
- *
- * The dedupe key (entity + locales + `updatedAt`) lets Payload collapse
- * duplicate jobs queued by rapid autosave bursts.
- *
- * Hosts wire the returned workflow into
- * `payload.config.ts → jobs: { workflows: [<workflow>] }`.
- */
+
 export function createTranslateWorkflow(
   options: CreateTranslateWorkflowOptions = {}
 ): TranslateWorkflowConfig {

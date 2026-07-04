@@ -1,9 +1,9 @@
 import type { PayloadRequest } from 'payload'
 
 export type TranslateResolverArgs = {
-  /** Locale to translate from */
+  
   localeFrom: string
-  /** Locale to translate to */
+  
   localeTo: string
   req: PayloadRequest
   texts: string[]

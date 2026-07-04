@@ -1,8 +1,8 @@
 import type { FC } from 'react'
 import type { ImportMap, SanitizedConfig } from 'payload'
 
-import { getFromImportMap } from '../../core/utils/getFromImportMap'
-import { generateImportName } from '../../core/utils/generateImportName'
+import { getFromImportMap } from '../getFromImportMap'
+import { generateImportName } from '../generateImportName'
 
 export type RenderBlocksProps = {
   blocks: Array<{ blockType: string } & Record<string, unknown>>
@@ -13,16 +13,7 @@ export type RenderBlocksProps = {
   searchParams?: Record<string, string | string[] | undefined>
 }
 
-/**
- * Render a page's `blocks` array to React. Each block's render module
- * is resolved via Payload's generated importMap. The host registers
- * each block in the importMap with a key like `BlockCta#default` (use
- * `generateImportName('block', 'cta')` to build the key).
- *
- * Falls back gracefully: if a block's importMap path is missing or
- * the component is not registered, the block is skipped and a
- * `console.warn` is logged (in dev).
- */
+
 export const RenderBlocks: FC<RenderBlocksProps> = ({
                                                       blocks,
                                                       blockProps,
@@ -42,9 +33,7 @@ export const RenderBlocks: FC<RenderBlocksProps> = ({
     const block = blocks[i]
     const { blockType } = block
 
-    // The host may have registered the render path under either:
-    //   1. the standard `Block<Slug>#default` key (recommended), or
-    //   2. a custom path under `config.admin.dependencies[blockType].path`.
+
     const importMapPath: string | undefined =
       config.admin?.dependencies?.[blockType]?.path ?? generateImportName('block', blockType)
 

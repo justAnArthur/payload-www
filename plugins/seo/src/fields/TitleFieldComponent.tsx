@@ -16,10 +16,7 @@ type TitleFieldComponentProps = {
   readonly minLength?: number
 } & TextFieldClientProps
 
-/**
- * Client-only editor UI for the meta `title` field — text input with a
- * length indicator and a Google "best practices" hint.
- */
+
 export const TitleFieldComponent: React.FC<TitleFieldComponentProps> = ({
                                                                           field: { label, required } = {} as never,
                                                                           maxLength: maxLengthFromProps,

@@ -6,10 +6,7 @@ export type TitleFieldOptions = {
   readonly minLength?: number
 }
 
-/**
- * Server-safe field factory. Builds the `meta.title` text field config and
- * wires up the client `TitleFieldComponent` for the admin UI.
- */
+
 export const TitleField = (options: TitleFieldOptions = {}): TextField => {
   return {
     name: 'title',

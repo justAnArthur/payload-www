@@ -1,4 +1,4 @@
-import { anyone, authenticated, authenticatedOrPublished } from '../core/access/index'
+import { anyone, authenticated, authenticatedOrPublished } from '../collections/access/index'
 
 export default { anyone, authenticated, authenticatedOrPublished }
 

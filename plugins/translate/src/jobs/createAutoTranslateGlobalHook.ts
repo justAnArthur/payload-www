@@ -5,52 +5,19 @@ import { TRANSLATE_WORKFLOW_SLUG } from './constants'
 type AnyDoc = { id?: number | string; updatedAt?: string | Date }
 
 export type CreateAutoTranslateGlobalHookOptions = {
-  /**
-   * The global's slug. Used to populate the workflow's `global`
-   * input so the queued task targets the right entity.
-   */
+  
   globalSlug: string
-  /**
-   * Source-of-truth locale. The hook only fires when the request
-   * is operating **in** this locale — edits to a non-default locale
-   * don't fan out (those edits would be translations of translations).
-   *
-   * Falls back to `req.payload.config.localization.defaultLocale`
-   * at request time when omitted.
-   */
+  
   defaultLocale?: string
-  /**
-   * Target locales the workflow fans out to. Defaults to every
-   * locale declared on `req.payload.config.localization.locales`
-   * **except** the default locale.
-   */
+  
   targetLocales?: string[]
-  /**
-   * Workflow slug the hook queues. Must match the slug of the
-   * workflow registered in
-   * `payload.config.ts → jobs: { workflows: [...] }`.
-   * Default: `'translateEntityToLocales'`.
-   */
+  
   workflowSlug?: string
-  /**
-   * Resolver key the queued task should call. Must match a `key`
-   * declared in `translator({ resolvers: [...] })`. Default: the
-   * first registered resolver's key (resolved at request time),
-   * which the workflow forwards to the per-locale task as the
-   * `resolver` input.
-   */
+  
   resolverKey?: string
 }
 
-/**
- * Build a `GlobalAfterChangeHook` that schedules the
- * auto-translation workflow for every non-default locale.
- *
- * Same skip rules as the collection hook factory **minus** the
- * `_status === 'published'` check (globals have no versioning —
- * every save is the canonical state). See
- * `createAutoTranslateCollectionHook` for the full rule list.
- */
+
 export function createAutoTranslateGlobalHook(
   options: CreateAutoTranslateGlobalHookOptions
 ): GlobalAfterChangeHook {
@@ -111,12 +78,12 @@ export function createAutoTranslateGlobalHook(
   }
 }
 
-// -------- shared helpers --------
-//
-// Duplicated from createAutoTranslateCollectionHook rather than
-// imported — the helpers are four pure functions and the duplication
-// keeps the two hook factories independent (no cross-module
-// dependency, easier to tree-shake).
+
+
+
+
+
+
 
 function shouldSkipAutoTranslate(context: Record<string, unknown> | undefined): boolean {
   return Boolean((context as { disableAutoTranslate?: unknown } | undefined)?.disableAutoTranslate)

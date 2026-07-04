@@ -1,6 +1,6 @@
-import { appearanceOptions, link, type LinkAppearances, type LinkOptions } from '../core/fields/link'
-import { linkGroup } from '../core/fields/linkGroup'
-import { slugField, type SlugFieldOptions } from '../core/fields/slug'
+import { appearanceOptions, link, type LinkAppearances, type LinkOptions } from '../collections/fields/link'
+import { linkGroup } from '../collections/fields/linkGroup'
+import { slugField, type SlugFieldOptions } from '../collections/fields/slug'
 
 export default { link, linkGroup, appearanceOptions, slugField }
 

@@ -1,5 +1,5 @@
-import { getFromImportMap } from '../core/utils/getFromImportMap'
-import { generateImportName } from '../core/utils/generateImportName'
+import { getFromImportMap } from '../render/getFromImportMap'
+import { generateImportName } from '../render/generateImportName'
 import { renderCollectionModule } from '../render/utils/renderCollectionModule'
 
 export default { getFromImportMap, generateImportName, renderCollectionModule }

@@ -41,6 +41,18 @@
         "default": "./dist/fields.js"
       }
     },
+    "./opengraph-image": {
+      "import": {
+        "types": "./dist/opengraph-image.d.ts",
+        "default": "./dist/opengraph-image.js"
+      }
+    },
+    "./next-metadata": {
+      "import": {
+        "types": "./dist/next-metadata.d.ts",
+        "default": "./dist/next-metadata.js"
+      }
+    },
     "./package.json": "./package.json"
   },
   "license": "MIT",

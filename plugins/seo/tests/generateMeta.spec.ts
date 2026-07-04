@@ -2,13 +2,13 @@ import { describe, expect, it } from 'vitest'
 
 import { generateMeta, type SEOMetaShape } from '../src/generateMeta'
 
-// ----------------------------------------------------------------
-// generateMeta — page (Payload `pages` collection with SEO enabled)
-// ----------------------------------------------------------------
-//
-// Typical site page doc with full SEO meta + standard website-shaped
-// metadata. `createCollectionPageExports` calls this with `type:
-// 'website'` for the pages collection (posts default to 'article').
+
+
+
+
+
+
+
 
 describe('generateMeta — page', () => {
   it('maps a fully-populated page meta into Metadata', () => {
@@ -64,7 +64,7 @@ describe('generateMeta — page', () => {
       type: 'website',
       url: 'https://example.com/about',
       siteName: 'Acme',
-      // ogLocale wins over the locale arg.
+      
       locale: 'en_US',
       images: [{ url: 'https://cdn.example.com/og-about.png' }]
     })
@@ -76,15 +76,15 @@ describe('generateMeta — page', () => {
       creator: '@team_acme',
       images: [{ url: 'https://cdn.example.com/tw-about.png' }]
     })
-    // `alternates` is set by the lib's `createCollectionPageExports`
-    // after this returns — must not be touched here.
+    
+    
     expect(out.alternates).toBeUndefined()
   })
 
   it('cascades title: content → og → twitter → fallback (document title only)', () => {
-    // Only twitterTitle is set; document title should pick it up.
-    // OG/Twitter titles cascade independently — see the per-target
-    // cascade tests below.
+    
+    
+    
     const out = generateMeta({
       meta: {
         social: { social: { twitterTitle: 'Twitter-only title' } }
@@ -93,9 +93,9 @@ describe('generateMeta — page', () => {
       fallback: { title: 'fallback title' }
     })
     expect(out.title).toBe('Twitter-only title')
-    // OG title cascades ogTitle → content.title (NOT twitterTitle).
+    
     expect(out.openGraph?.title).toBeUndefined()
-    // Twitter title cascades twitterTitle → ogTitle → content.title.
+    
     expect(out.twitter?.title).toBe('Twitter-only title')
   })
 
@@ -171,7 +171,7 @@ describe('generateMeta — page', () => {
       type: 'website'
     })
     expect(out.openGraph?.images).toEqual([{ url: 'https://cdn.example.com/og.png' }])
-    // Twitter cascades: twitterImage → ogImage → content.image → nothing.
+    
     expect(out.twitter?.images).toEqual([{ url: 'https://cdn.example.com/og.png' }])
   })
 
@@ -275,10 +275,10 @@ describe('generateMeta — page', () => {
   })
 
   it('omits OG/Twitter content when there is nothing meaningful (title-only meta)', () => {
-    // Type arg still populates openGraph.type and twitter.card, and
-    // the title cascades into OG/Twitter titles. The important
-    // assertion here is: no description, no image, no keywords leak
-    // into the output when meta only has a title.
+    
+    
+    
+    
     const out = generateMeta({
       meta: { content: { title: 'just a title' } },
       type: 'website'
@@ -293,16 +293,16 @@ describe('generateMeta — page', () => {
   })
 })
 
-// ----------------------------------------------------------------
-// generateMeta — post (Payload `posts` collection with SEO enabled)
-// ----------------------------------------------------------------
-//
-// Posts are article-shaped — `createCollectionPageExports` defaults
-// `metadataType` to `'article'` for the `posts` collection. The
-// extended `autoGenerate` heuristic maps the doc's top-level
-// `publishedAt` / `modifiedAt` into
-// `meta.advanced.advanced.{publishedAt,modifiedAt}` so the function
-// can surface them on `openGraph.publishedTime` / `modifiedTime`.
+
+
+
+
+
+
+
+
+
+
 
 describe('generateMeta — post', () => {
   it('emits openGraph.publishedTime / modifiedTime for article posts', () => {
@@ -468,17 +468,17 @@ describe('generateMeta — post', () => {
   })
 })
 
-// ----------------------------------------------------------------
-// generateMeta — static-page (Next.js not-found / error / search-empty)
-// ----------------------------------------------------------------
-//
-// `createStaticPageExports` (in `packages/payload-www`) renders
-// `staticPages` rows by `kind`. SEO is NOT enabled on the
-// `static-pages` collection in `createWWWConfig`, so `meta` is
-// typically `null` / `undefined` here. Hosts may still wire the SEO
-// plugin later, which is why we cover the partially-populated case
-// too. The function should produce a sensible `<title>` from the
-// fallback and not invent OG/Twitter blocks from nothing.
+
+
+
+
+
+
+
+
+
+
+
 
 describe('generateMeta — static-page (not-found, error)', () => {
   it('returns `{ title: "Not found" }` when meta is null', () => {
@@ -498,9 +498,9 @@ describe('generateMeta — static-page (not-found, error)', () => {
       fallback: { title: 'Page not found' }
     })
     expect(out.title).toBe('Page not found')
-    // OG/Twitter blocks may exist (type arg gives OG a `type`, the
-    // function defaults `twitter.card`), but no content-specific
-    // fields when meta is empty.
+    
+    
+    
     expect(out.openGraph?.images).toBeUndefined()
     expect(out.openGraph?.description).toBeUndefined()
     expect(out.openGraph?.title).toBeUndefined()
@@ -511,9 +511,9 @@ describe('generateMeta — static-page (not-found, error)', () => {
   })
 
   it('picks up fallback.description when no meta description is available', () => {
-    // The function reads `fallback.description` like any other source,
-    // which lets hosts set a site-wide default for not-found / error
-    // pages that still get indexed.
+    
+    
+    
     const out = generateMeta({
       meta: {},
       type: 'website',
@@ -573,9 +573,9 @@ describe('generateMeta — static-page (not-found, error)', () => {
   })
 
   it('still produces a clean Metadata when a static page has full meta', () => {
-    // If a host later wires the SEO plugin onto the static-pages
-    // collection, `createStaticPageExports` would forward the meta
-    // through. Verify the function behaves the same as for pages.
+    
+    
+    
     const out = generateMeta({
       meta: {
         content: { title: 'Page not found', description: '404' },

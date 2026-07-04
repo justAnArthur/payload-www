@@ -7,7 +7,7 @@ import React, { useMemo } from 'react'
 import type { PluginSEOTranslationKeys, PluginSEOTranslations } from '../translations'
 
 type PreviewProps = {
-  /** Field path prefix the preview should read from. Defaults to `'meta'`. */
+  
   readonly pathPrefix?: string
 } & UIField
 
@@ -43,11 +43,7 @@ const imageUrlOf = (value: unknown): string | undefined => {
 
 const textOf = (value: unknown): string => titleOf(value) ?? ''
 
-/**
- * Live preview of the current SEO meta values — SERP-style snippet plus
- * a compact Open Graph card and a Twitter card mock. Reads from the form
- * state, so it updates on every keystroke.
- */
+
 export const MetaPreview: React.FC<PreviewProps> = ({ pathPrefix = 'meta' }) => {
   const { t } = useTranslation<PluginSEOTranslations, PluginSEOTranslationKeys>()
 
@@ -66,12 +62,12 @@ export const MetaPreview: React.FC<PreviewProps> = ({ pathPrefix = 'meta' }) => 
     return entry?.value
   }
 
-  // Core fields -------------------------------------------------------------
+  
   const title = titleOf(valueAt(`${pathPrefix}.title`))
   const description = titleOf(valueAt(`${pathPrefix}.description`))
   const image = imageUrlOf(valueAt(`${pathPrefix}.image`))
 
-  // Social sub-group --------------------------------------------------------
+  
   const socialPath = `${pathPrefix}.social`
   const social: SocialValues = {
     ogDescription: valueAt(`${socialPath}.ogDescription`),
@@ -94,13 +90,13 @@ export const MetaPreview: React.FC<PreviewProps> = ({ pathPrefix = 'meta' }) => 
   const twitterImage: string = imageUrlOf(social.twitterImage) ?? ogImage
   const twitterCard: string = titleOf(social.twitterCard) ?? 'summary'
 
-  // Advanced sub-group ------------------------------------------------------
+  
   const advanced: AdvancedValues = {
     canonicalUrl: valueAt(`${pathPrefix}.advanced.canonicalUrl`),
     robots: valueAt(`${pathPrefix}.advanced.robots`)
   }
 
-  // Auto-derive the canonical URL from the doc when not set explicitly.
+  
   const data = getData()
   const docSlug = (data && typeof data === 'object' && 'slug' in data
     ? (data as { slug?: unknown }).slug
@@ -121,10 +117,10 @@ export const MetaPreview: React.FC<PreviewProps> = ({ pathPrefix = 'meta' }) => 
 
   const localeCode = typeof locale === 'object' ? locale?.code : locale
 
-  // Render ------------------------------------------------------------------
+  
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-      {/* SERP */}
+      {}
       <section>
         <h4 style={{ margin: '0 0 8px' }}>{t('plugin-seo:previewSerp')}</h4>
         <div
@@ -147,10 +143,10 @@ export const MetaPreview: React.FC<PreviewProps> = ({ pathPrefix = 'meta' }) => 
         </div>
       </section>
 
-      {/* Open Graph */}
+      {}
       <p>OG Preview</p>
 
-      {/* Twitter */}
+      {}
       <section>
         <h4 style={{ margin: '0 0 8px' }}>{t('plugin-seo:previewTwitter')}</h4>
         <div

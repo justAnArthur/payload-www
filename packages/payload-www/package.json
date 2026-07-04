@@ -4,63 +4,23 @@
   "version": "0.3.4",
   "type": "module",
   "private": false,
-  "module": "./dist/index.js",
-  "types": "./dist/index.d.ts",
-  "sideEffects": false,
-  "engines": {
-    "node": ">=20"
-  },
-  "scripts": {
-    "build": "bunup && node scripts/strip-createRequire.mjs",
-    "clean": "rm -rf dist .tsbuildinfo",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "typecheck": "tsc --noEmit",
-    "prepublishOnly": "bun run clean && bun run build"
-  },
-  "dependencies": {
-    "@justanarthur/payload-imagehash-plugin": "workspace:*",
-    "@justanarthur/payload-plugin-seo": "workspace:*",
-    "@justanarthur/payload-plugin-translator": "workspace:*",
-    "@payloadcms/live-preview-react": "3.85.0",
-    "@payloadcms/richtext-lexical": "3.85.0",
-    "@payloadcms/next": "3.85.0",
-    "next": "16.2.6",
-    "next-intl": "^4.0.0",
-    "server-only": "0.0.1"
-  },
-  "devDependencies": {
-    "@types/node": "22.19.9",
-    "@types/react": "19.2.14",
-    "@types/react-dom": "19.2.3",
-    "bunup": "^0.16.32",
-    "payload": "3.85.0",
-    "react": "19.2.6",
-    "react-dom": "19.2.6",
-    "typescript": "5.7.3",
-    "vitest": "4.0.18"
-  },
-  "peerDependencies": {
-    "@payloadcms/live-preview-react": "^3.85.0",
-    "@payloadcms/next": "^3.85.0",
-    "@payloadcms/richtext-lexical": "^3.85.0",
-    "@payloadcms/translations": "^3.85.0",
-    "@payloadcms/ui": "^3.85.0",
-    "next": "^16.2.6",
-    "next-intl": "^4.0.0",
-    "payload": "^3.85.0",
-    "react": "^19.2.6",
-    "react-dom": "^19.2.6"
-  },
   "files": [
     "dist",
     "README.md"
   ],
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
     "./data-seed": {
       "import": {
         "types": "./dist/data-seed.d.ts",
         "default": "./dist/data-seed.js"
+      }
+    },
+    "./data-collections": {
+      "import": {
+        "types": "./dist/data-collections.d.ts",
+        "default": "./dist/data-collections.js"
       }
     },
     "./hooks": {
@@ -93,6 +53,12 @@
         "default": "./dist/imagehash.js"
       }
     },
+    "./globals": {
+      "import": {
+        "types": "./dist/globals.d.ts",
+        "default": "./dist/globals.js"
+      }
+    },
     ".": {
       "import": {
         "types": "./dist/index.d.ts",
@@ -109,12 +75,6 @@
       "import": {
         "types": "./dist/render-pages.d.ts",
         "default": "./dist/render-pages.js"
-      }
-    },
-    "./import-map-provider": {
-      "import": {
-        "types": "./dist/import-map-provider.d.ts",
-        "default": "./dist/import-map-provider.js"
       }
     },
     "./core-access": {
@@ -139,12 +99,6 @@
       "import": {
         "types": "./dist/render-utils.d.ts",
         "default": "./dist/render-utils.js"
-      }
-    },
-    "./data-collections": {
-      "import": {
-        "types": "./dist/data-collections.d.ts",
-        "default": "./dist/data-collections.js"
       }
     },
     "./seed": {
@@ -189,10 +143,10 @@
         "default": "./dist/access.js"
       }
     },
-    "./globals": {
+    "./import-map-provider": {
       "import": {
-        "types": "./dist/globals.d.ts",
-        "default": "./dist/globals.js"
+        "types": "./dist/import-map-provider.d.ts",
+        "default": "./dist/import-map-provider.js"
       }
     },
     "./core-utils": {
@@ -238,6 +192,52 @@
       }
     },
     "./package.json": "./package.json"
+  },
+  "sideEffects": false,
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "bunup && node scripts/strip-createRequire.mjs",
+    "clean": "rm -rf dist .tsbuildinfo",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "bun run clean && bun run build"
+  },
+  "dependencies": {
+    "@justanarthur/payload-imagehash-plugin": "file:../../plugins/imagehash",
+    "@justanarthur/payload-plugin-seo": "file:../../plugins/seo",
+    "@justanarthur/payload-plugin-translator": "file:../../plugins/translate",
+    "@payloadcms/live-preview-react": "3.85.0",
+    "@payloadcms/richtext-lexical": "3.85.0",
+    "@payloadcms/next": "3.85.0",
+    "next": "16.2.6",
+    "next-intl": "^4.0.0",
+    "server-only": "0.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "22.19.9",
+    "@types/react": "19.2.14",
+    "@types/react-dom": "19.2.3",
+    "bunup": "^0.16.32",
+    "payload": "3.85.0",
+    "react": "19.2.6",
+    "react-dom": "19.2.6",
+    "typescript": "5.7.3",
+    "vitest": "4.0.18"
+  },
+  "peerDependencies": {
+    "@payloadcms/live-preview-react": "^3.85.0",
+    "@payloadcms/next": "^3.85.0",
+    "@payloadcms/richtext-lexical": "^3.85.0",
+    "@payloadcms/translations": "^3.85.0",
+    "@payloadcms/ui": "^3.85.0",
+    "next": "^16.2.6",
+    "next-intl": "^4.0.0",
+    "payload": "^3.85.0",
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6"
   },
   "properties": {
     "gitCommitScopeRelatedNames": "payload-www,render,revalidation,www",

@@ -1,10 +1,10 @@
 import {
   createRevalidateCollectionHook,
-  createRevalidatePageHooks,
   type CreateRevalidateCollectionHookOptions,
+  createRevalidatePageHooks,
   type CreateRevalidatePageHooksOptions
-} from '../render/hooks/revalidateCollection'
-import { createRevalidateGlobalHook } from '../render/hooks/revalidateGlobal'
+} from '../collections/hooks/revalidateCollection'
+import { createRevalidateGlobalHook } from '../collections/hooks/revalidateGlobal'
 
 export default {
   createRevalidateCollectionHook,

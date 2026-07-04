@@ -5,28 +5,28 @@ import {
   buildBreadcrumbsLd,
   buildOrganizationLd
 } from '../render/metadata/jsonld'
-import { buildHreflangAlternates } from '../render/metadata/hreflang'
+import { buildLocalizedPaths } from '../render/metadata/hreflang'
 import {
   buildCanonicalUrl,
   getUrlPath,
-  segmentsToStoredSlug,
+  paramsSlugToSlug,
   segmentsToUrlPath,
-  storedSlugToSegments
+  slugToParamsSlug
 } from '../render/metadata/slug'
-import { getRenderModuleExports, queryAllDocs, queryAllLocaleSlugs, queryDocBySlug } from '../render/metadata/query'
+import { queryAllLocaleSlugs, getRenderModuleExports, queryAllDocs, queryDocBySlug } from '../render/metadata/query'
 
 export default {
   buildArticleLd,
   buildBreadcrumbsLd,
   buildOrganizationLd,
-  buildHreflangAlternates,
+  buildHreflangAlternates: buildLocalizedPaths,
   queryDocBySlug,
   queryAllDocs,
-  queryAllLocaleSlugs,
+  queryAllLocaleSlugs: queryAllLocaleSlugs,
   getUrlPath,
-  segmentsToStoredSlug,
+  segmentsToStoredSlug: paramsSlugToSlug,
   segmentsToUrlPath,
-  storedSlugToSegments,
+  storedSlugToSegments: slugToParamsSlug,
   buildCanonicalUrl,
   getRenderModuleExports
 }
@@ -35,16 +35,16 @@ export {
   buildArticleLd,
   buildBreadcrumbsLd,
   buildCanonicalUrl,
-  buildHreflangAlternates,
+  buildLocalizedPaths,
   buildOrganizationLd,
   getRenderModuleExports,
   getUrlPath,
   queryAllDocs,
   queryAllLocaleSlugs,
   queryDocBySlug,
-  segmentsToStoredSlug,
+  paramsSlugToSlug,
   segmentsToUrlPath,
-  storedSlugToSegments,
+  slugToParamsSlug,
   type ArticleLdOptions,
   type BreadcrumbItem
 }

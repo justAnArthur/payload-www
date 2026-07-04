@@ -6,31 +6,28 @@ import { openaiMessage } from '../openai/message'
 import type { DeriveFrom, GenerateSEO, SEOMeta, SEOPluginConfig } from '../types'
 import { extractScalars, lexicalToPlainText, type ExtractedDoc } from './extractScalars'
 
-/**
- * Path-internal — the shape consumers pass in. The public surface
- * (`autoGenerate` on `SEOPluginConfig`) is defined in `types.ts`.
- */
+
 export type RunAutoGenerateOptions = {
-  /** Plugin config; we read `generateSEO`, `openaiApiKey`, `autoGenerate`. */
+  
   pluginConfig: SEOPluginConfig
-  /** Collection whose `beforeChange` is firing (drives the schema walk). */
+  
   collectionConfig: CollectionConfig | undefined
-  /** Global whose `beforeChange` is firing (alternative to `collectionConfig`). */
+  
   globalConfig?: GlobalConfig | undefined
-  /** The doc being saved — mutable. We write back into `data.meta`. */
+  
   data: Record<string, unknown>
-  /** `'create'` on first save, `'update'` on subsequent. */
+  
   operation: 'create' | 'update'
-  /** Active locale for localized fields. Falls back to first-non-empty. */
+  
   locale: string | undefined
-  /** Request context — passed to the user `generateSEO` and OpenAI fallback. */
+  
   req: PayloadRequest
 }
 
-/** Type guard for "is this a non-empty string-like scalar?" */
+
 const isNonEmptyString = (v: unknown): v is string => typeof v === 'string' && v.length > 0
 
-/** Get a value at a dot-separated path. Returns undefined for missing keys. */
+
 const getAtPath = (obj: Record<string, unknown>, path: string): unknown => {
   const parts = path.split('.')
   let cur: unknown = obj
@@ -41,7 +38,7 @@ const getAtPath = (obj: Record<string, unknown>, path: string): unknown => {
   return cur
 }
 
-/** Set a value at a dot-separated path, creating nested objects as needed. */
+
 const setAtPath = (obj: Record<string, unknown>, path: string, value: unknown): void => {
   const parts = path.split('.')
   let cur: Record<string, unknown> = obj
@@ -56,7 +53,7 @@ const setAtPath = (obj: Record<string, unknown>, path: string, value: unknown): 
   cur[parts[parts.length - 1]] = value
 }
 
-/** Tokenize plaintext, drop stopwords + short tokens, return top N by frequency. */
+
 const deriveKeywords = (text: string, limit = 8): string => {
   if (text.length === 0) return ''
   const stop = new Set([
@@ -74,19 +71,13 @@ const deriveKeywords = (text: string, limit = 8): string => {
   return [...counts.entries()].sort((a, b) => b[1] - a[1]).slice(0, limit).map(([w]) => w).join(', ')
 }
 
-/**
- * The mapping rules for `'allScalars'` mode. Each rule returns a value or
- * `undefined` if no match. First non-undefined wins.
- *
- * Field-name matching is intentionally case-insensitive and uses word
- * boundaries — `title` matches `pageTitle`, `seoTitle`, `Title`, etc.
- */
+
 const matchTitle = (extracted: ExtractedDoc): string | undefined => {
   for (const [name, value] of Object.entries(extracted.scalarsByName)) {
     if (typeof value !== 'string') continue
     if (/\btitle\b/i.test(name) && value.length > 0) return value
   }
-  // Fallback: first non-empty text scalar, in document order.
+  
   for (const value of Object.values(extracted.scalarsByName)) {
     if (isNonEmptyString(value)) return value
   }
@@ -100,8 +91,8 @@ const matchDescription = (extracted: ExtractedDoc, maxLen = 155): string | undef
       return value.length > maxLen ? `${value.slice(0, maxLen - 1).trimEnd()}…` : value
     }
   }
-  // Fallback: first 155 chars of any richText body, then first 155 chars of
-  // any non-empty text scalar, then the joined plain text.
+  
+  
   for (const value of Object.values(extracted.scalarsByName)) {
     if (typeof value === 'object' && value !== null && '__lexical' in value) {
       const text = (value as { __lexical: string }).__lexical
@@ -134,11 +125,7 @@ const matchKeywords = (extracted: ExtractedDoc): string | undefined => {
   return deriveKeywords(extracted.allPlainText) || undefined
 }
 
-/**
- * Build a `Partial<SEOMeta>` from the doc using the heuristic mapping rules.
- * Only returns keys that have a value — empty slots are skipped so the
- * merge step can decide whether to keep what's already there or fill in.
- */
+
 const runHeuristic = ({
   data,
   extracted
@@ -148,10 +135,10 @@ const runHeuristic = ({
 }): Partial<SEOMeta> => {
   const out: Partial<SEOMeta> = {}
 
-  // The user can pin a value explicitly via `data.meta.<key>` already
-  // filled in — the heuristic only acts when the active path is empty.
-  // We read those `already filled` slots here so the merge step doesn't
-  // overwrite them later.
+  
+  
+  
+  
 
   const title = matchTitle(extracted)
   if (isNonEmptyString(title)) out.title = title
@@ -168,11 +155,7 @@ const runHeuristic = ({
   return out
 }
 
-/**
- * Read the user-provided `deriveFrom` map against the doc — same shape the
- * existing `generateSEO` returns, but using only the named source fields.
- * Localized fields are flattened to the active locale.
- */
+
 const runExplicitDeriveFrom = ({
   data,
   deriveFrom,
@@ -187,7 +170,7 @@ const runExplicitDeriveFrom = ({
   if (typeof deriveFrom !== 'object' || Array.isArray(deriveFrom)) return {}
   const out: Partial<SEOMeta> = {}
 
-  // Build a lookup: source field name → whether it's localized.
+  
   const isLocalized = (name: string): boolean => {
     if (!collectionConfig) return false
     const find = (fs: Field[] | undefined): boolean => {
@@ -223,7 +206,7 @@ const runExplicitDeriveFrom = ({
     if (value === undefined || value === null) continue
     if (typeof value === 'string' && value.length === 0) continue
 
-    // RichText plaintext path
+    
     if (typeof value === 'object' && value !== null && 'root' in value) {
       const txt = lexicalToPlainText(value)
       if (txt.length > 0) (out as Record<string, unknown>)[slot] = txt
@@ -236,13 +219,7 @@ const runExplicitDeriveFrom = ({
   return out
 }
 
-/**
- * Mirror `meta.content.{title,description,image}` into the
- * `meta.social.social.{ogTitle,ogDescription,ogImage}` and
- * `meta.social.social.{twitterTitle,twitterDescription,twitterImage}` slots
- * when they're empty. This is the "no-API" win — empty social slots get
- * reasonable defaults without calling any generator.
- */
+
 const fillSecondarySlots = ({
   data,
   meta,
@@ -287,7 +264,7 @@ const fillSecondarySlots = ({
   }
 }
 
-/** Apply a `Partial<SEOMeta>` onto `data` at the correct meta paths. */
+
 const applyMeta = ({
   data,
   meta,
@@ -314,7 +291,7 @@ const applyMeta = ({
   }
 }
 
-/** Race a promise against a timeout; resolve to `undefined` on timeout. */
+
 const withTimeout = async <T>(p: Promise<T> | T, ms: number): Promise<T | undefined> => {
   if (typeof (p as Promise<T>)?.then !== 'function') return p as T
   return new Promise<T | undefined>((resolve) => {
@@ -341,12 +318,7 @@ const withTimeout = async <T>(p: Promise<T> | T, ms: number): Promise<T | undefi
   })
 }
 
-/**
- * Build the flat-key → tab-qualified-path mapping used for writing meta
- * values back into `data.meta`. We instantiate `MetaField` once to get the
- * structure (it has no runtime side effects — it's a pure schema builder)
- * and pass the result through `buildFieldPaths`.
- */
+
 const buildMetaFieldPaths = (pluginConfig: SEOPluginConfig): Record<string, string> => {
   const hasGenerateAi = typeof pluginConfig?.openaiApiKey === 'string'
   const hasGenerateFn = typeof pluginConfig?.generateSEO === 'function'
@@ -362,15 +334,11 @@ const buildMetaFieldPaths = (pluginConfig: SEOPluginConfig): Record<string, stri
   return buildFieldPaths((tabsField?.tabs ?? []) as never)
 }
 
-/**
- * The hook body. Reads `pluginConfig.autoGenerate`, runs the heuristic and
- * (if configured) the LLM generator, merges results into `data.meta`,
- * returns the (mutated) data.
- */
+
 export const runAutoGenerate = async (opts: RunAutoGenerateOptions): Promise<Record<string, unknown>> => {
   const { pluginConfig, collectionConfig, globalConfig, data, operation, locale, req } = opts
-  // The extractor reads `fields` from either collection or global — both
-  // shapes expose the same `fields: Field[]` array.
+  
+  
   const schemaConfig = (collectionConfig ?? (globalConfig as CollectionConfig | undefined)) as
     | CollectionConfig
     | undefined
@@ -379,22 +347,22 @@ export const runAutoGenerate = async (opts: RunAutoGenerateOptions): Promise<Rec
   const ag = agRaw
   if (ag.mode === 'off') return data
 
-  // Mode gate.
+  
   if (ag.mode === 'onCreate' && operation !== 'create') return data
   if (ag.mode === 'onUpdate' && operation !== 'update') return data
 
   const onlyFillEmpty = ag.onlyFillEmpty !== false
   const timeoutMs = typeof ag.timeoutMs === 'number' ? ag.timeoutMs : 8000
   const rawFieldPaths = buildMetaFieldPaths(pluginConfig)
-  // `buildFieldPaths` returns paths relative to the `meta` group
-  // (e.g. `content.title`). The client-side `GenerateButton` uses the
-  // same paths with `pathPrefix: 'meta'` to construct `meta.content.title`.
-  // We mirror that here for server-side reads/writes.
+  
+  
+  
+  
   const fieldPaths: Record<string, string> = Object.fromEntries(
     Object.entries(rawFieldPaths).map(([k, v]) => [k, `meta.${v}`])
   )
 
-  // ----- Heuristic / explicit-deriveFrom pass -----
+  
   let heuristicMeta: Partial<SEOMeta> = {}
   const deriveFrom = ag.deriveFrom
 
@@ -406,15 +374,15 @@ export const runAutoGenerate = async (opts: RunAutoGenerateOptions): Promise<Rec
       locale
     })
   } else {
-    // Default: 'allScalars'. Extract everything the schema exposes, then
-    // apply the mapping rules.
+    
+    
     const extracted = extractScalars({ doc: data, collectionConfig: schemaConfig, locale })
     heuristicMeta = runHeuristic({ data, extracted })
   }
 
   applyMeta({ data, meta: heuristicMeta, fieldPaths, onlyFillEmpty })
 
-  // ----- Generator pass (only if user provided one or OpenAI is configured) -----
+  
   const hasGenerator =
     typeof pluginConfig?.generateSEO === 'function' || typeof pluginConfig?.openaiApiKey === 'string'
 
@@ -446,15 +414,15 @@ export const runAutoGenerate = async (opts: RunAutoGenerateOptions): Promise<Rec
           )) as Partial<SEOMeta> | undefined) ?? {}
       }
     } catch (err) {
-      // Never let a generator failure block the save. Log and continue
-      // with whatever the heuristic produced.
+      
+      
       if (err instanceof Error) req.payload.logger.error(`[seo] autoGenerate: ${err.message}`)
     }
 
     applyMeta({ data, meta: generatedMeta, fieldPaths, onlyFillEmpty })
   }
 
-  // ----- Secondary slots: title → ogTitle/twitterTitle, etc. -----
+  
   fillSecondarySlots({ data, meta: heuristicMeta, fieldPaths, onlyFillEmpty })
 
   return data

@@ -33,8 +33,8 @@ export * from './resolvers/types'
 
 export { translateOperation }
 
-// Shared across this file and any host that wants to detect the
-// plugin-attached hook for double-attach prevention.
+
+
 export const AUTO_TRANSLATE_MARKER = Symbol.for(
   '@justanarthur/payload-plugin-translator/auto-translate'
 )
@@ -150,7 +150,7 @@ export const translator: (pluginConfig: TranslatorConfig) => Plugin = (pluginCon
   }
 }
 
-// -------- job helpers --------
+
 
 function ensureJobBySlug<T extends { slug: string }>(existing: T[] | undefined, job: T): T[] {
   const list = existing ?? []
@@ -158,12 +158,12 @@ function ensureJobBySlug<T extends { slug: string }>(existing: T[] | undefined, 
   return [...list, job]
 }
 
-// -------- hook attachment helpers --------
-//
-// `afterChange` may be a single hook or an array in Payload's config
-// shape. We always normalize to an array before prepending, and
-// short-circuit when our marker is already present so a host that
-// runs `translator()` twice (or wraps it) doesn't double-fire.
+
+
+
+
+
+
 
 function attachCollectionHook(
   existing: CollectionConfig['hooks'] | undefined,

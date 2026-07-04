@@ -1,15 +1,15 @@
 import { readFileSync, existsSync } from 'node:fs'
 import { defineConfig } from 'vitest/config'
 
-// Vitest 4 dropped auto-load of `.env.test` and `vite` isn't a direct
-// dep here (pnpm strict resolution). Read it manually and expose the
-// values through `test.env`. This is the same shape `loadEnv` returns.
-//
-// Format:
-//   KEY=value          → string
-//   # comment lines    → ignored
-//   "  KEY = value "   → trimmed
-//   empty value        → empty string (vs unset → undefined)
+
+
+
+
+
+
+
+
+
 const parseEnvFile = (path: string): Record<string, string> => {
   if (!existsSync(path)) return {}
   const out: Record<string, string> = {}

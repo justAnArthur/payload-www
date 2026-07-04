@@ -1,9 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-// Mock `next/cache` BEFORE importing the hooks under test. The
-// memoized `nextCacheImport` in `_shared.ts` would otherwise resolve
-// once for the whole test process — clearing the cache between
-// groups via `vi.resetModules()` keeps each test isolated.
+
+
+
+
 const revalidatePath = vi.fn()
 const revalidateTag = vi.fn()
 
@@ -13,12 +13,12 @@ vi.mock('next/cache', () => ({
 }))
 
 import { allLocales, prefixFor, resolveLocale } from '../src/render/_locale'
-import { shouldSkipRevalidate } from '../src/render/hooks/_shared'
-import { createRevalidateCollectionHook } from '../src/render/hooks/revalidateCollection'
-import { createRevalidatePageHooks } from '../src/render/hooks/revalidateCollection'
-import { createRevalidateGlobalHook } from '../src/render/hooks/revalidateGlobal'
+import { shouldSkipRevalidate } from '../src/collections/hooks/_shared'
+import { createRevalidateCollectionHook } from '../src/collections/hooks/revalidateCollection'
+import { createRevalidatePageHooks } from '../src/collections/hooks/revalidateCollection'
+import { createRevalidateGlobalHook } from '../src/collections/hooks/revalidateGlobal'
 
-// -------- helpers --------
+
 
 type MockPayload = {
   logger: { error: ReturnType<typeof vi.fn>; info: ReturnType<typeof vi.fn> }
@@ -36,10 +36,10 @@ function mockPayload(): MockPayload {
 function buildReq(
   overrides: Partial<{ locale: string; context: Record<string, unknown>; payload: unknown; logger: MockPayload['logger'] }> = {}
 ) {
-  // Default req has a logger so `payload.logger.info?.()` and
-  // `payload.logger.error()` resolve; the tests in this file read
-  // logger calls off the MockPayload the caller holds, so the
-  // helper-level default is a no-op stub.
+
+
+
+
   return {
     payload: {
       config: { localization: { defaultLocale: 'en', locales: ['en', 'uk'] } },
@@ -52,7 +52,7 @@ function buildReq(
   } as unknown as Parameters<ReturnType<typeof createRevalidateGlobalHook>>[0]['req']
 }
 
-// -------- _locale.ts --------
+
 
 describe('render/_locale', () => {
   describe('prefixFor', () => {
@@ -118,7 +118,7 @@ describe('render/_locale', () => {
   })
 })
 
-// -------- _shared.ts --------
+
 
 describe('render/hooks/_shared', () => {
   describe('shouldSkipRevalidate', () => {
@@ -135,7 +135,7 @@ describe('render/hooks/_shared', () => {
   })
 })
 
-// -------- revalidateGlobal --------
+
 
 describe('createRevalidateGlobalHook', () => {
   let payload: MockPayload
@@ -178,7 +178,7 @@ describe('createRevalidateGlobalHook', () => {
   })
 })
 
-// -------- revalidatePage --------
+
 
 describe('createRevalidatePageHooks', () => {
   let payload: MockPayload
@@ -281,7 +281,7 @@ describe('createRevalidatePageHooks', () => {
     expect(revalidatePath).toHaveBeenCalledWith('/en/about')
   })
 
-  // -------- Stage 2: bug fixes --------
+
 
   it('afterChange: fans out revalidatePath across every configured locale', async () => {
     const hooks = createRevalidatePageHooks()
@@ -319,7 +319,7 @@ describe('createRevalidatePageHooks', () => {
     const hooks = createRevalidatePageHooks({ localePrefix: 'as-needed', defaultLocale: 'en' })
     await call(hooks, 'change', { doc: { _status: 'published', slug: '' }, locale: 'en' })
 
-    // The home path with prefix '' + '/' becomes '/' (not '/en/')
+
     expect(revalidatePath).toHaveBeenCalledWith('/')
   })
 
@@ -331,15 +331,15 @@ describe('createRevalidatePageHooks', () => {
       locale: 'en'
     })
 
-    // new path for every locale
+
     expect(revalidatePath).toHaveBeenCalledWith('/en/new-about')
     expect(revalidatePath).toHaveBeenCalledWith('/uk/new-about')
-    // old path for every locale (because slug changed while published)
+
     expect(revalidatePath).toHaveBeenCalledWith('/en/old-about')
     expect(revalidatePath).toHaveBeenCalledWith('/uk/old-about')
   })
 
-  // -------- Stage 3: canonical factory + Posts wiring --------
+
 
   it('createRevalidateCollectionHook with collectionSlug=posts wires through /posts/<slug>', async () => {
     const hooks = createRevalidateCollectionHook({
@@ -377,10 +377,10 @@ describe('createRevalidatePageHooks', () => {
   })
 
   it('createRevalidatePageHooks is a deprecated alias for createRevalidateCollectionHook(pages)', () => {
-    // The alias delegates to the canonical factory. We can't
-    // directly compare hook function identity (closures differ), but
-    // we can verify both factories produce hooks that fire the same
-    // tags for the same inputs.
+
+
+
+
     const pages1 = createRevalidatePageHooks({ localePrefix: 'as-needed', defaultLocale: 'en' })
     const pages2 = createRevalidateCollectionHook({
       collectionSlug: 'pages',

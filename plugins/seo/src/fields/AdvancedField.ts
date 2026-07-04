@@ -6,10 +6,7 @@ export type AdvancedFieldOptions = {
   readonly includeNoindex?: boolean
 }
 
-/**
- * The "Advanced" group: canonical URL, robots, optional author / dates.
- * Toggle which sub-sections are included via the factory options.
- */
+
 export const AdvancedField = (options: AdvancedFieldOptions = {}): GroupField => {
   const { includeAuthor = true, includeDates = true, includeNoindex = true } = options
 

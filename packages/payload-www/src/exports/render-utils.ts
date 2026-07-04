@@ -1,15 +1,16 @@
 import { createPreviewHandler, type CreatePreviewHandlerOptions } from '../render/preview/createPreviewHandler'
-import { createSitemapFile, type CreateSitemapFileOptions, type SitemapFunction } from '../render/sitemap/createSitemapFile'
-import { LocaleSwitcher, type LocaleSwitcherProps } from '../render/components/LocaleSwitcher'
+import {
+  createSitemapFile,
+  type CreateSitemapFileOptions,
+  type SitemapFunction
+} from '../render/sitemap/createSitemapFile'
 
-export default { createPreviewHandler, createSitemapFile, LocaleSwitcher }
+export default { createPreviewHandler, createSitemapFile }
 
 export {
   createPreviewHandler,
   createSitemapFile,
-  LocaleSwitcher,
   type CreatePreviewHandlerOptions,
   type CreateSitemapFileOptions,
-  type SitemapFunction,
-  type LocaleSwitcherProps
+  type SitemapFunction
 }

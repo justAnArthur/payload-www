@@ -1,5 +1,5 @@
-import { createHeaderGlobal, type CreateHeaderGlobalOptions } from '../data/collections/globals/Header/config'
-import { createFooterGlobal, type CreateFooterGlobalOptions } from '../data/collections/globals/Footer/config'
+import { createHeaderGlobal, type CreateHeaderGlobalOptions } from '../collections/globals/Header/config'
+import { createFooterGlobal, type CreateFooterGlobalOptions } from '../collections/globals/Footer/config'
 
 export default { createHeaderGlobal, createFooterGlobal }
 
