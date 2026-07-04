@@ -199,7 +199,7 @@ export const traverseFields = ({
         })
         break
 
-      // long ass cases here we have
+      
       case 'date':
       case 'checkbox':
       case 'code':
@@ -253,7 +253,7 @@ export const traverseFields = ({
         if (!(field.localized || localizedParent) || isEmpty(siblingDataFrom[field.name])) break
         if (emptyOnly && siblingDataTranslated[field.name]) break
 
-        // do not translate the block ID or admin-facing label
+        
         if (field.name === 'blockName' || field.name === 'id') {
           break
         }

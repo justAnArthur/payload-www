@@ -1,7 +1,7 @@
 import type { Block, Field } from 'payload'
 
-// minimal showcase block — single text column + optional link. avoids
-// the lexical/richText chain so the demo's payload-types stay small.
+
+
 const columnFields: Field[] = [
   {
     name: 'text',

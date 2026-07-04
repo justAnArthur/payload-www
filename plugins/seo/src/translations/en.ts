@@ -3,7 +3,7 @@ import type { GenericTranslationsObject } from '@payloadcms/translations'
 export const en: GenericTranslationsObject = {
   $schema: './translation-schema.json',
   'plugin-seo': {
-    // ----- Group / tabs -----
+    
     metaGroupLabel: 'SEO',
     metaGroupDescription: 'Search engine and social share metadata for this entity.',
     tabContent: 'Content',
@@ -11,7 +11,7 @@ export const en: GenericTranslationsObject = {
     tabAdvanced: 'Advanced',
     tabPreview: 'Preview',
 
-    // ----- Core field labels -----
+    
     metaTitleLabel: 'Title',
     metaTitleDescription: 'Shown in search results and the browser tab. ~50–60 chars.',
     metaDescriptionLabel: 'Description',
@@ -22,7 +22,7 @@ export const en: GenericTranslationsObject = {
     metaImageDescription: 'Social share / SERP thumbnail.',
     metaImageUrlDescription: 'Public URL of the social share / SERP image.',
 
-    // ----- Social (OG) -----
+    
     socialLabel: 'Social',
     socialDescription: 'Open Graph and Twitter Card metadata. Falls back to the core fields when empty.',
     ogTitleLabel: 'OG title',
@@ -39,7 +39,7 @@ export const en: GenericTranslationsObject = {
     ogLocaleLabel: 'OG locale',
     ogLocaleDescription: 'Locale tag, e.g. "en_US".',
 
-    // ----- Social (Twitter) -----
+    
     twitterCardLabel: 'Twitter card',
     twitterTitleLabel: 'Twitter title',
     twitterTitleDescription: 'Falls back to OG title, then meta title.',
@@ -50,7 +50,7 @@ export const en: GenericTranslationsObject = {
     twitterCreatorLabel: 'Twitter creator',
     twitterCreatorDescription: 'Author @handle for this entity.',
 
-    // ----- Advanced -----
+    
     advancedLabel: 'Advanced',
     advancedDescription: 'Canonical URL, robots directives, and other low-level meta.',
     canonicalUrlLabel: 'Canonical URL',
@@ -63,7 +63,7 @@ export const en: GenericTranslationsObject = {
     publishedAtLabel: 'Published at',
     modifiedAtLabel: 'Modified at',
 
-    // ----- Generate / preview -----
+    
     autoGenerate: 'Auto-generate',
     generateAi: 'AI-generate',
     generating: 'Generating…',
@@ -77,7 +77,7 @@ export const en: GenericTranslationsObject = {
     previewTitlePlaceholder: 'Add a title to see how it looks in search results.',
     previewDescriptionPlaceholder: 'Add a description to see how it looks in search results.',
 
-    // ----- Length indicator -----
+    
     almostThere: 'Almost there',
     bestPractices: 'best practices',
     characterCount: '{{current}}/{{minLength}}-{{maxLength}} chars, ',

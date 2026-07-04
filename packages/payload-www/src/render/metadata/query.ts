@@ -1,179 +1,149 @@
-import type { DataFromCollectionSlug, DataFromGlobalSlug, ImportMap, SanitizedConfig } from 'payload'
+import type { DataFromCollectionSlug, DataFromGlobalSlug, SanitizedConfig } from 'payload'
 import { getPayload } from 'payload'
-import { cache } from 'react'
+import {
+  type CollectionGlobalLocaleIdentifiersArgs,
+  createCollectionCacheKey
+} from '../../collections/hooks/createRevalidateCollectionGlobalHook'
 
-import { getFromImportMap } from '../../core/utils/getFromImportMap'
+async function withUnstableCache<R>(
+  keyParts: unknown[],
+  tags: string[],
+  fn: () => Promise<R>
+): Promise<R> {
+  const { unstable_cache } = await import('next/cache')
+  return unstable_cache(fn, keyParts.map(String), { tags })()
+}
 
-export const queryDocBySlug = cache(async function queryDocBySlug<S extends string>({
-                                                                                       collectionSlug,
-                                                                                       slug,
-                                                                                       slugField = 'slug',
-                                                                                       locale,
-                                                                                       draft = false,
-                                                                                       config
-                                                                                     }: {
-  collectionSlug: S
-  slug: string
-  slugField?: string
-  locale: string
-  draft?: boolean
-  config: Promise<SanitizedConfig>
-}): Promise<DataFromCollectionSlug<S> | null> {
-  console.log('[WWW] render/metadata:queryDocBySlug collection=', collectionSlug, 'slug=', slug, 'slugField=', slugField, 'locale=', locale, 'draft=', draft)
-  const payload = await getPayload({ config })
-  const result = await payload.find({
-    collection: collectionSlug,
-    draft,
-    limit: 1,
-    pagination: false,
-    overrideAccess: draft,
-    where: { [slugField]: { equals: slug } },
-    locale
-  })
-  const doc = result.docs?.[0] ?? null
-  console.log('[WWW] render/metadata:queryDocBySlug ->', doc ? 'hit' : 'miss')
-  return doc
-})
+export async function queryDoc(
+  args: CollectionGlobalLocaleIdentifiersArgs,
+  { config: configPromise }: { config: Promise<SanitizedConfig> }
+) {
+  return withUnstableCache(
+    Object.values(args),
+    [createCollectionCacheKey(args)],
+    async () => {
+      if ('globalSlug' in args) {
+        return queryGlobal({ ...args, config: configPromise })
+      }
+      return queryDocBySlug({ ...args, config: configPromise })
+    }
+  )
+}
 
-export const queryAllDocs = cache(async function queryAllDocs<S extends string>({
-                                                                                   collectionSlug,
-                                                                                   slugField = 'slug',
-                                                                                   locale,
-                                                                                   config
-                                                                                 }: {
-  collectionSlug: S
-  slugField?: string
-  locale: string
-  config: Promise<SanitizedConfig>
-}): Promise<DataFromCollectionSlug<S>[]> {
-  console.log('[WWW] render/metadata:queryAllDocs collection=', collectionSlug, 'locale=', locale)
-  const payload = await getPayload({ config })
-  const result = await payload.find({
-    collection: collectionSlug,
-    draft: false,
-    limit: 1000,
-    pagination: false,
-    overrideAccess: false,
-    select: { [slugField]: true },
-    locale
-  })
-  const docs = result.docs ?? []
-  console.log('[WWW] render/metadata:queryAllDocs -> count=', docs.length)
-  return docs
-})
-
-export const queryAllLocaleSlugs = cache(async function queryAllLocaleSlugs<S extends string>({
-                                                                                               collectionSlug,
-                                                                                               slug,
-                                                                                               slugField = 'slug',
-                                                                                               locale,
-                                                                                               config
-                                                                                             }: {
-  collectionSlug: S
-  slug: string
-  slugField?: string
-  locale: string
-  config: Promise<SanitizedConfig>
-}): Promise<Record<string, string> | undefined> {
-  console.log('[WWW] render/metadata:queryAllLocaleSlugs collection=', collectionSlug, 'slug=', slug, 'locale=', locale)
-  const payload = await getPayload({ config })
-  // Resolve the doc by its slug in the requested locale to get its id.
-  const result = await payload.find({
-    collection: collectionSlug,
-    draft: false,
-    limit: 1,
-    pagination: false,
-    overrideAccess: false,
+export async function queryDocBySlug<S extends string>(
+  {
+    collectionSlug,
+    slug,
+    slugField = 'slug',
     locale,
-    where: { [slugField]: { equals: slug } },
+    draft = false,
+    config
+  }: {
+    collectionSlug: S
+    slug: string
+    slugField?: string
+    locale: string
+    draft?: boolean
+    config: Promise<SanitizedConfig>
+  }): Promise<DataFromCollectionSlug<S> | null> {
+  return withUnstableCache(
+    [collectionSlug, slug, slugField, locale, draft],
+    [createCollectionCacheKey({ collectionSlug, slug, locale })],
+    async () => {
+      const payload = await getPayload({ config })
+      const result = await payload.find({
+        collection: collectionSlug,
+        draft,
+        limit: 1,
+        pagination: false,
+        overrideAccess: draft,
+        where: { [slugField]: { equals: slug } },
+        locale
+      })
+      return result.docs?.[0] ?? null
+    }
+  )
+}
+
+export async function queryGlobal<G extends string>(
+  {
+    globalSlug,
+    locale,
+    depth = 0,
+    draft = false,
+    config
+  }: {
+    globalSlug: G
+    locale: string
+    depth?: number
+    draft?: boolean
+    config: Promise<SanitizedConfig>
+  }): Promise<DataFromGlobalSlug<G> | null> {
+  return withUnstableCache(
+    [globalSlug, locale, depth, draft],
+    [createCollectionCacheKey({ globalSlug, locale })],
+    async () => {
+      const payload = await getPayload({ config })
+      try {
+        return await payload.findGlobal({ slug: globalSlug, depth, draft, locale })
+      } catch (error) {
+        console.warn('[WWW] queryGlobal failed', { globalSlug, locale, error: String(error) })
+        return null
+      }
+    }
+  )
+}
+
+
+export async function queryAllDocs<S extends string>(
+  {
+    collectionSlug,
+    slugField = 'slug',
+    locale,
+    config
+  }: {
+    collectionSlug: S
+    slugField?: string
+    locale: string
+    config: Promise<SanitizedConfig>
+  }): Promise<DataFromCollectionSlug<S>[]> {
+  return withUnstableCache(
+    [collectionSlug, slugField, locale],
+    [createCollectionCacheKey({ collectionSlug, slug: '__all__', locale })],
+    async () => {
+      const payload = await getPayload({ config })
+      const result = await payload.find({
+        collection: collectionSlug,
+        draft: false,
+        limit: 1000,
+        pagination: false,
+        overrideAccess: false,
+        select: { [slugField]: true },
+        locale
+      })
+      return result.docs ?? []
+    }
+  )
+}
+
+export async function queryAllLocaleSlugs(
+  {
+    collectionSlug,
+    id,
+    slugField = 'slug',
+    config
+  }: {
+    collectionSlug: string
+    id: number | string
+    slugField?: string
+    config: Promise<SanitizedConfig>
+  }): Promise<Record<string, string> | null> {
+  const payload = await getPayload({ config })
+  const doc = await payload.findByID({
+    collection: collectionSlug,
+    id,
+    locale: 'all',
     select: { [slugField]: true }
   })
-  const doc = result.docs?.[0] as (DataFromCollectionSlug<S> & { id?: string | number }) | undefined
-  if (!doc) {
-    console.log('[WWW] render/metadata:queryAllLocaleSlugs -> undefined (no doc)')
-    return undefined
-  }
-
-  // Re-read the doc across ALL locales. A `find`/`findByID` scoped to a
-  // single locale only ever returns the slug string for that locale, so
-  // this `locale: 'all'` pass is what turns a localized slug into its
-  // per-locale map ({ en, sk, ... }) — the basis for hreflang alternates.
-  // A non-localized slug stays a plain string and falls through below.
-  let fieldValue: unknown = (doc as Record<string, unknown>)[slugField]
-  if (doc.id != null) {
-    const allLocales = await payload
-      .findByID({
-        collection: collectionSlug,
-        id: doc.id,
-        locale: 'all',
-        draft: false,
-        overrideAccess: false,
-        select: { [slugField]: true }
-      })
-      .catch(() => null)
-    if (allLocales) fieldValue = (allLocales as Record<string, unknown>)[slugField]
-  }
-
-  if (fieldValue && typeof fieldValue === 'object') {
-    console.log('[WWW] render/metadata:queryAllLocaleSlugs -> localized map=', JSON.stringify(fieldValue))
-    return fieldValue as Record<string, string>
-  }
-  // Non-localized slug — the same value applies to every locale.
-  // Resolve the locale list from the awaited config.
-  const resolved = await config
-  const rawLocales: string[] = Array.isArray((resolved as { localization?: { localeCodes?: string[] } })?.localization?.localeCodes)
-    ? (resolved as { localization: { localeCodes: string[] } }).localization.localeCodes
-    : ((resolved as { localization?: { locales?: Array<{ code: string }> } })?.localization?.locales?.map((l) => l.code) ?? [])
-  const out: Record<string, string> = {}
-  for (const l of rawLocales) out[l] = String(fieldValue ?? slug)
-  console.log('[WWW] render/metadata:queryAllLocaleSlugs -> flat-fanout locales=', rawLocales.length, 'slug=', JSON.stringify(fieldValue ?? slug))
-  return out
-})
-
-export const queryGlobal = cache(async function queryGlobal<G extends string>({
-                                                                                            globalSlug,
-                                                                                            locale,
-                                                                                            depth = 0,
-                                                                                            draft = false,
-                                                                                            config
-                                                                                          }: {
-  globalSlug: G
-  locale: string
-  depth?: number
-  draft?: boolean
-  config: Promise<SanitizedConfig>
-}): Promise<DataFromGlobalSlug<G> | null> {
-  console.log('[WWW] render/metadata:queryGlobal global=', globalSlug, 'locale=', locale, 'depth=', depth, 'draft=', draft)
-  const payload = await getPayload({ config })
-  try {
-    const global = await payload.findGlobal({
-      slug: globalSlug,
-      depth,
-      draft,
-      locale
-    })
-    console.log('[WWW] render/metadata:queryGlobal -> hit')
-    return global as DataFromGlobalSlug<G> | null
-  } catch (error) {
-    console.warn('[WWW] render/metadata:queryGlobal failed for slug=', globalSlug, 'err=', String(error))
-    // Global not configured in the host's Payload — return null so the
-    // layout renders nothing in that slot instead of crashing the page.
-    return null
-  }
-})
-
-export function getRenderModuleExports(
-  exportName: string,
-  collection: { custom?: Record<string, unknown> } | undefined,
-  importMap: ImportMap
-) {
-  const path = collection?.custom?.path as string | undefined
-  if (!path) {
-    console.log('[WWW] render/metadata:getRenderModuleExports no custom.path exportName=', exportName)
-    return undefined
-  }
-  const mod = getFromImportMap(path, importMap)
-  const value = (mod as Record<string, unknown>)?.[exportName] as unknown
-  console.log('[WWW] render/metadata:getRenderModuleExports exportName=', exportName, 'path=', path, 'hit=', Boolean(value))
-  return value
+  return doc?.[slugField]
 }

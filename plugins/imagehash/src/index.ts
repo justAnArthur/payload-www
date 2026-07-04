@@ -3,22 +3,13 @@ import { Minimatch } from 'minimatch'
 import { AlgorithmOptions, defaultAlgorithm, runAlgorithm } from './algorithms'
 
 export type BlurhashPluginOptions = {
-  /*
-   * Array of collection slugs that the plugin should apply to.
-   * By default, the plugin will apply to all collections with `upload` properties.
-   */
+  
   collections?: CollectionConfig['slug'][];
 
-  /*
-   * Pattern to determine which MIME types to target
-   * Default: image/*
-   */
+  
   mimeTypePattern?: string;
 
-  /*
-   * Whether to show the Blurhash field when viewing media items in the admin interface.
-   * Default: false
-   */
+  
   showBlurhashField?: boolean;
 } & AlgorithmOptions;
 

@@ -13,13 +13,7 @@ const isNavItem = (block: NonNullable<HeaderType['nav']>[number]): block is Extr
 const isNavColumn = (block: NonNullable<HeaderType['nav']>[number]): block is Extract<NonNullable<HeaderType['nav']>[number], { blockType: 'navColumn' }> =>
   block.blockType === 'navColumn'
 
-/**
- * Host's header visual. Registered in `payload.config.ts`'s
- * `admin.dependencies` under the importMap key
- * `@/Header/Component#default` so `createRootLayoutExports`'s
- * `renderGlobalModule` resolves it via the header global's
- * `custom.path` (overridden in `globals({ defaultGlobals })`).
- */
+
 export default async function Header() {
   const headerData = await getCachedGlobal(configPromise, 'header', 1)()
   const nav = (headerData?.nav ?? []) as NonNullable<HeaderType['nav']>

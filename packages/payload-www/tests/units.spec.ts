@@ -1,24 +1,24 @@
 import { describe, expect, it } from 'vitest'
 
-import { appearanceOptions, link, linkGroup, slugField } from '../src/core/fields'
-import { anyone, authenticated, authenticatedOrPublished } from '../src/core/access'
-import { createHeaderGlobal } from '../src/data/collections/globals/Header/config'
-import { createFooterGlobal } from '../src/data/collections/globals/Footer/config'
-import { createPagesCollection } from '../src/data/collections/Pages/index'
+import { appearanceOptions, link, linkGroup, slugField } from '../src/collections/fields'
+import { anyone, authenticated, authenticatedOrPublished } from '../src/collections/access'
+import { createHeaderGlobal } from '../src/collections/globals/Header/config'
+import { createFooterGlobal } from '../src/collections/globals/Footer/config'
+import { createPagesCollection } from '../src/collections/Pages/index'
 import {
   buildArticleLd,
   buildBreadcrumbsLd,
   buildCanonicalUrl,
   buildOrganizationLd,
   getUrlPath,
-  segmentsToStoredSlug,
+  paramsSlugToSlug,
   segmentsToUrlPath,
-  storedSlugToSegments
+  slugToParamsSlug
 } from '../src/render/metadata'
 import { generateImportName, getFromImportMap } from '../src/core/utils'
 import { link as linkFromShim, linkGroup as linkGroupFromShim } from '../src/exports/fields'
 import { anyone as anyoneFromShim } from '../src/exports/access'
-import { buildArticleLd as articleFromShim, segmentsToStoredSlug as segFromShim } from '../src/exports/metadata'
+import { buildArticleLd as articleFromShim, paramsSlugToSlug as segFromShim } from '../src/exports/metadata'
 import { getFromImportMap as gimFromShim } from '../src/exports/utils'
 
 describe('fields/link', () => {
@@ -197,13 +197,13 @@ describe('access', () => {
 
 describe('metadata/slug', () => {
   it('segmentsToStoredSlug: nested joins with _', () => {
-    expect(segmentsToStoredSlug(['a', 'b', 'c'], true)).toBe('a_b_c')
+    expect(paramsSlugToSlug(['a', 'b', 'c'], true)).toBe('a_b_c')
   })
   it('segmentsToStoredSlug: flat takes first segment', () => {
-    expect(segmentsToStoredSlug(['a', 'b'], false)).toBe('a')
+    expect(paramsSlugToSlug(['a', 'b'], false)).toBe('a')
   })
   it('segmentsToStoredSlug: non-array passthrough', () => {
-    expect(segmentsToStoredSlug('hello', true)).toBe('hello')
+    expect(paramsSlugToSlug('hello', true)).toBe('hello')
   })
 
   it('segmentsToUrlPath: nested joins with /', () => {
@@ -217,10 +217,10 @@ describe('metadata/slug', () => {
   })
 
   it('storedSlugToSegments: nested splits on _', () => {
-    expect(storedSlugToSegments('a_b_c', true)).toEqual(['a', 'b', 'c'])
+    expect(slugToParamsSlug('a_b_c', true)).toEqual(['a', 'b', 'c'])
   })
   it('storedSlugToSegments: flat returns as-is', () => {
-    expect(storedSlugToSegments('hello', false)).toBe('hello')
+    expect(slugToParamsSlug('hello', false)).toBe('hello')
   })
 
   it('buildCanonicalUrl strips trailing slash from prefix', () => {
@@ -235,7 +235,7 @@ describe('metadata/slug', () => {
   })
 
   it('getUrlPath collapses home slug to /', () => {
-    // matches the lib's HOME_PAGE_SLUG = '' (empty string)
+
     expect(getUrlPath([], true, '')).toBe('/')
     expect(getUrlPath([''], true, '')).toBe('/')
     expect(getUrlPath('home', true, '')).toBe('/home')
@@ -245,7 +245,7 @@ describe('metadata/slug', () => {
   })
 
   it('shim matches src', () => {
-    expect(segFromShim).toBe(segmentsToStoredSlug)
+    expect(segFromShim).toBe(paramsSlugToSlug)
   })
 })
 
@@ -277,7 +277,7 @@ describe('metadata/jsonld', () => {
     expect(ld['@type']).toBe('BreadcrumbList')
     expect((ld as any).itemListElement.length).toBe(3)
     expect((ld as any).itemListElement[0].position).toBe(1)
-    // last item points to currentUrl, others to their own URL
+
     expect((ld as any).itemListElement[2].item).toBe('https://x.com/posts/hello')
     expect((ld as any).itemListElement[0].item).toBe('https://x.com/')
   })
@@ -320,7 +320,7 @@ describe('utils', () => {
   })
 })
 
-// helpers
+
 
 function flattenNames(field: { fields?: unknown[] }): string[] {
   const out: string[] = []

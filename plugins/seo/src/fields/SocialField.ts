@@ -1,7 +1,7 @@
 import type { GroupField, SelectField, TextField, UploadField } from 'payload'
 
 export type SocialFieldOptions = {
-  /** Uploads collection used by ogImage / twitterImage. */
+  
   readonly relationTo?: string
 }
 
@@ -53,11 +53,7 @@ const twitterImage = (relationTo?: string): UploadField | TextField =>
       admin: { description: 'Public URL of the Twitter card image.' }
     } as unknown as TextField)
 
-/**
- * The "Social" group: Open Graph + Twitter Card subfields. All optional —
- * the editor UI is responsible for falling back to `title`/`description`/
- * `image` at render time.
- */
+
 export const SocialField = (options: SocialFieldOptions = {}): GroupField => {
   const { relationTo } = options
 
@@ -70,7 +66,7 @@ export const SocialField = (options: SocialFieldOptions = {}): GroupField => {
         'Open Graph and Twitter Card metadata. Falls back to the core fields when empty.'
     },
     fields: [
-      // ----- Open Graph -----
+      
       {
         name: 'ogTitle',
         type: 'text',
@@ -109,7 +105,7 @@ export const SocialField = (options: SocialFieldOptions = {}): GroupField => {
         label: 'OG locale',
         admin: { description: 'Locale tag, e.g. "en_US".' }
       } as unknown as TextField,
-      // ----- Twitter -----
+      
       {
         name: 'twitterCard',
         type: 'select',

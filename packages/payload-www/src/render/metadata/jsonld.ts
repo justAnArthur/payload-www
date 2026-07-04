@@ -12,16 +12,7 @@ function getImageUrlWithLog(doc: Record<string, any>, siteUrl: string): string |
   return result
 }
 
-/**
- * Resolve a localized field. The lib's collections mark fields
- * with `localized: true`; Payload returns them as a `{ en, uk }`
- * object after locale resolution. Some hosts (notably the demo's
- * SQLite + REST path) re-serialize the object back to a JSON
- * string regardless of the requested locale — the helper handles
- * both shapes. The active locale wins; other locales are joined
- * with ` / ` as a fallback so visitors always see something
- * meaningful.
- */
+
 function resolveLocalizedField(value: unknown, locale: string): string {
   if (value == null) return ''
   if (typeof value === 'string') {
@@ -128,11 +119,11 @@ export function buildBreadcrumbsLd({
 }
 
 export function buildOrganizationLd({
-                                       siteUrl,
-                                       name,
-                                       logo,
-                                       sameAs
-                                     }: {
+                                      siteUrl,
+                                      name,
+                                      logo,
+                                      sameAs
+                                    }: {
   siteUrl: string
   name?: string
   logo?: string

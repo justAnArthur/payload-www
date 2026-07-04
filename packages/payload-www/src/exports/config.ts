@@ -1,5 +1,5 @@
-import type { WWWConfigApi, WWWConfigOptions, WWWInputConfig } from '../config/createWWWConfig'
-import { createWWWConfig } from '../config/createWWWConfig'
+import type { WWWConfigApi, WWWConfigOptions, WWWInputConfig } from '../createWWWConfig'
+import { createWWWConfig } from '../createWWWConfig'
 
 export default createWWWConfig
 

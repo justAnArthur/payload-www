@@ -7,7 +7,7 @@ import { openaiMessage } from './openai/message'
 import { translations } from './translations'
 import type { GenerateSEO, SEOMeta, SEOPluginConfig } from './types'
 
-// Re-export types from the root entry so consumers don't need the /types subpath.
+
 export type { AutoGenerateConfig, DeriveFrom, FieldsOverride, GenerateSEO, SEOMeta, SEOPluginConfig } from './types'
 
 type GenerateRequest = {
@@ -17,11 +17,7 @@ type GenerateRequest = {
   source?: 'fn' | 'ai'
 } & Record<string, unknown>
 
-/**
- * Build a `beforeChange` hook that runs the auto-generate pipeline. Composes
- * with any existing user-supplied `hooks.beforeChange` so the lib's own
- * chains (e.g. Posts' revalidation hook) keep running.
- */
+
 const buildAutoGenerateHook =
   (pluginConfig: SEOPluginConfig, hostConfig: Config) =>
   async (args: {
@@ -49,22 +45,7 @@ const buildAutoGenerateHook =
     })
   }
 
-/**
- * Payload SEO plugin.
- *
- * One `meta` group field, one `/plugin-seo/generate` endpoint, one optional
- * `generateSEO` function in your config. Subfields cover the standard SEO
- * meta (title, description, keywords, image) plus Open Graph, Twitter Card,
- * and Advanced (canonical / robots / noindex / author / dates).
- *
- *   seoPlugin({
- *     collections: ['posts', 'pages'],
- *     generateSEO: async ({ doc }) => {
- *       const { title, description } = await callYourLLM(doc)
- *       return { title, description, keywords: deriveKeywords(doc) }
- *     },
- *   })
- */
+
 export const seoPlugin =
   (pluginConfig: SEOPluginConfig = {}) =>
     (config: Config): Config => {
@@ -85,18 +66,18 @@ export const seoPlugin =
           ? pluginConfig.fields({ defaultFields: [buildMetaField()] })
           : [buildMetaField()]
 
-      // Always wire the auto-generate hook. `runAutoGenerate` is a no-op
-      // when `pluginConfig.autoGenerate` is falsy / off, so disabling it
-      // doesn't require conditional wiring at this layer. The unconditional
-      // reference also keeps the import live under aggressive bundlers
-      // (bunup + `sideEffects: false`).
+      
+      
+      
+      
+      
       const autoGenerateHook = buildAutoGenerateHook(pluginConfig, config)
 
-      // Compose the auto-generate hook with any existing `hooks.beforeChange`
-      // so the lib's own chains (e.g. Posts' revalidation hook) keep running.
-      // Payload expects `hooks.beforeChange` to be an array — it iterates with
-      // `for (const hook of ...)`. Passing a single function throws
-      // "hooks.beforeChange is not iterable" inside `create.ts`.
+      
+      
+      
+      
+      
       const withAutoGenerateHook = <T extends { hooks?: { beforeChange?: unknown } }>(item: T): T => {
         const existing = item.hooks?.beforeChange
         const composed = async (args: unknown): Promise<unknown> => {
@@ -128,8 +109,8 @@ export const seoPlugin =
             if (!isEnabled) return collection
 
             if (pluginConfig?.tabbedUI) {
-              // prevent issues with auth-enabled collections having an email
-              // field that shouldn't be moved to the SEO tab
+              
+              
               const emailField =
                 (collection.auth ||
                   !(
@@ -215,7 +196,7 @@ export const seoPlugin =
                 ;(req as { data?: unknown }).data = data.doc
               }
 
-              // Build the args the user's generateSEO / OpenAI helper expects.
+              
               const collectionConfig = data.collectionSlug
                 ? config.collections?.find((c) => c.slug === data.collectionSlug)
                 : undefined

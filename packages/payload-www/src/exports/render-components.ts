@@ -1,5 +1,5 @@
 import { LivePreviewListener, type LivePreviewListenerProps } from '../render/components/LivePreviewListener'
-import { AdminBar, type AdminBarProps, type AdminBarLabels } from '../render/components/AdminBar'
+import { AdminBar, type AdminBarLabels, type AdminBarProps } from '../render/components/AdminBar'
 
 export default LivePreviewListener
 

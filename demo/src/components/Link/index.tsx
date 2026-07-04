@@ -5,13 +5,7 @@ import React from 'react'
 
 import type { Page, Post } from '@/payload-types'
 
-/**
- * Host's CMS link props. The `relationTo` union reflects whatever
- * collection slugs the lib's Header / Footer nav `link` fields
- * accept — see `createWWWConfig({ linkRelationTo })` in
- * `payload.config.ts`. The default for the lib is `['pages']`;
- * the demo adds `'posts'` so the nav can target blog posts too.
- */
+
 type CMSLinkType = {
   appearance?: 'inline' | ButtonProps['variant']
   children?: React.ReactNode
@@ -55,7 +49,7 @@ export const CMSLink: React.FC<CMSLinkType> = (props) => {
   const size = appearance === 'link' ? 'clear' : sizeFromProps
   const newTabProps = newTab ? { rel: 'noopener noreferrer', target: '_blank' } : {}
 
-  /* Ensure we don't break any styles set by richText */
+  
   if (appearance === 'inline') {
     return (
       <Link className={cn(className)} href={href || url || ''} {...newTabProps}>

@@ -9,30 +9,17 @@ import type { PluginSEOTranslationKeys, PluginSEOTranslations } from '../transla
 import type { SEOMeta } from '../types'
 
 type GenerateButtonProps = {
-  /** Show the OpenAI button (when only `openaiApiKey` is configured). */
+  
   readonly hasGenerateAi: boolean
-  /** Show the custom-function button (when `generateSEO` is configured). */
+  
   readonly hasGenerateFn: boolean
-  /**
-   * Path prefix to dispatch returned meta keys under. Defaults to `'meta'`.
-   * The MetaField factory injects this based on the UI field's own path,
-   * so the button works correctly even if the user nests the field deeper.
-   */
+  
   readonly pathPrefix?: string
-  /**
-   * Map of flat SEOMeta key → tab-qualified relative path, derived at build
-   * time by MetaField from the actual tabs structure (e.g. `title → content.title`).
-   * Falls back to the bare key when a key is not in the map.
-   */
+  
   readonly fieldPaths?: Record<string, string>
 } & UIField
 
-/**
- * Renders the "Generate" button(s) for the SEO group. One button per configured
- * source (`generateSEO` and/or `openaiApiKey`); each one POSTs the current doc
- * to the single `/plugin-seo/generate` endpoint and merges the returned
- * `meta` keys back into the form via `dispatchFields({ type: 'SET' })`.
- */
+
 export const GenerateButton: React.FC<GenerateButtonProps> = ({
                                                                 hasGenerateAi,
                                                                 hasGenerateFn,
@@ -65,7 +52,7 @@ export const GenerateButton: React.FC<GenerateButtonProps> = ({
 
         const response = await fetch(endpoint, {
           body: JSON.stringify({
-            // Hint the server which generator to invoke.
+            
             source,
             collectionSlug: docInfo.collectionSlug,
             doc: getData(),
@@ -94,10 +81,10 @@ export const GenerateButton: React.FC<GenerateButtonProps> = ({
 
         const { meta } = (await response.json()) as { meta: Partial<SEOMeta> }
 
-        // Merge the returned keys into the form, one dispatch per key.
-        // Resolve each flat SEOMeta key to its tab-qualified path via the
-        // fieldPaths map that was derived from the actual field structure in
-        // MetaField.tsx — no hard-coding here.
+        
+        
+        
+        
         for (const [key, value] of Object.entries(meta ?? {})) {
           if (value === undefined) continue
           const tabPath = fieldPaths[key] ?? key

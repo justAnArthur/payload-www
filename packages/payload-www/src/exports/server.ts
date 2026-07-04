@@ -1,45 +1,43 @@
-// @justanarthur/payload-www/server
-// Server-only surface. Anything that transitively imports `next/cache`,
-// `next/headers`, `next/navigation`, `payload` runtime, `@payloadcms/*` runtime,
-// or any `node:*` builtin lives here. The root `@justanarthur/payload-www`
-// entry is kept client-safe so Next.js can analyze it for client bundles
-// without choking on server-only deps.
-
-import { createWWWConfig, type WWWConfigApi, type WWWConfigOptions, type WWWInputConfig } from '../config/createWWWConfig'
-import { anyone, authenticated, authenticatedOrPublished } from '../core/access/index'
+import {
+  createWWWConfig,
+  type WWWConfigApi,
+  type WWWConfigOptions,
+  type WWWInputConfig
+} from '../createWWWConfig'
+import { anyone, authenticated, authenticatedOrPublished } from '../collections/access/index'
 import {
   createRevalidateCollectionHook,
-  createRevalidatePageHooks,
   type CreateRevalidateCollectionHookOptions,
+  createRevalidatePageHooks,
   type CreateRevalidatePageHooksOptions
-} from '../render/hooks/revalidateCollection'
-import { createRevalidateGlobalHook } from '../render/hooks/revalidateGlobal'
-import { appearanceOptions, link, type LinkAppearances, type LinkOptions } from '../core/fields/link'
-import { linkGroup } from '../core/fields/linkGroup'
-import { getFromImportMap } from '../core/utils/getFromImportMap'
-import { generateImportName } from '../core/utils/generateImportName'
+} from '../collections/hooks/revalidateCollection'
+import { createRevalidateGlobalHook } from '../collections/hooks/revalidateGlobal'
+import { appearanceOptions, link, type LinkAppearances, type LinkOptions } from '../collections/fields/link'
+import { linkGroup } from '../collections/fields/linkGroup'
+import { getFromImportMap } from '../render/getFromImportMap'
+import { generateImportName } from '../render/generateImportName'
 import { renderCollectionModule } from '../render/utils/renderCollectionModule'
 import { renderGlobalModule } from '../render/utils/renderGlobalModule'
-import { getCachedGlobal, type CachedGlobal } from '../render/utils/getCachedGlobal'
+import { type CachedGlobal, getCachedGlobal } from '../render/utils/getCachedGlobal'
 import {
+  type ArticleLdOptions,
+  type BreadcrumbItem,
   buildArticleLd,
   buildBreadcrumbsLd,
-  buildOrganizationLd,
-  type ArticleLdOptions,
-  type BreadcrumbItem
+  buildOrganizationLd
 } from '../render/metadata/jsonld'
-import { buildHreflangAlternates } from '../render/metadata/hreflang'
+import { buildLocalizedPaths } from '../render/metadata/hreflang'
 import {
   buildCanonicalUrl,
   getUrlPath,
-  segmentsToStoredSlug,
+  paramsSlugToSlug,
   segmentsToUrlPath,
-  storedSlugToSegments
+  slugToParamsSlug
 } from '../render/metadata/slug'
 import {
+  queryAllLocaleSlugs,
   getRenderModuleExports,
   queryAllDocs,
-  queryAllLocaleSlugs,
   queryDocBySlug,
   queryGlobal
 } from '../render/metadata/query'
@@ -53,7 +51,11 @@ import {
   type SeedPostInput,
   type SeedUserInput
 } from '../data/seed/createBaseSeed'
-import { createTestPayload, type CreateTestPayloadOptions, type CreateTestPayloadResult } from '../data/test/createTestPayload'
+import {
+  createTestPayload,
+  type CreateTestPayloadOptions,
+  type CreateTestPayloadResult
+} from '../data/test/createTestPayload'
 import {
   addCollectionsToSitemap,
   createCollectionPageExports,
@@ -64,29 +66,22 @@ import {
   type MetadataOptions,
   type PageExtendProps
 } from '../render/pages/createCollectionPageExports'
-import {
-  createStaticPageExports,
-  type CreateStaticPageExportsArgs
-} from '../render/pages/createStaticPageExports'
+import { createStaticPageExports, type CreateStaticPageExportsArgs } from '../render/pages/createStaticPageExports'
 import {
   createPagesCollection,
   type CreatePagesCollectionOptions,
   HOME_PAGE_SLUG,
   PAGES_SLUG
-} from '../data/collections/Pages/index'
-import {
-  createPostsCollection,
-  type CreatePostsCollectionOptions,
-  POSTS_SLUG
-} from '../data/collections/Posts/index'
+} from '../collections/Pages/index'
+import { createPostsCollection, type CreatePostsCollectionOptions, POSTS_SLUG } from '../collections/Posts/index'
 import {
   createStaticPagesCollection,
   type CreateStaticPagesCollectionOptions,
   STATIC_PAGES_SLUG
-} from '../data/collections/StaticPages/index'
-import { createHeaderGlobal, type CreateHeaderGlobalOptions } from '../data/collections/globals/Header/config'
-import { createFooterGlobal, type CreateFooterGlobalOptions } from '../data/collections/globals/Footer/config'
-import { generatePreviewPath } from '../data/collections/previewPath'
+} from '../collections/StaticPages/index'
+import { createHeaderGlobal, type CreateHeaderGlobalOptions } from '../collections/globals/Header/config'
+import { createFooterGlobal, type CreateFooterGlobalOptions } from '../collections/globals/Footer/config'
+import { generatePreviewPath } from '../collections/previewPath'
 
 export { createWWWConfig, type WWWConfigOptions, type WWWConfigApi, type WWWInputConfig }
 export { anyone, authenticated, authenticatedOrPublished }
@@ -111,13 +106,13 @@ export {
   type ArticleLdOptions,
   type BreadcrumbItem
 }
-export { buildHreflangAlternates }
+export { buildLocalizedPaths }
 export {
   buildCanonicalUrl,
   getUrlPath,
-  segmentsToStoredSlug,
+  paramsSlugToSlug,
   segmentsToUrlPath,
-  storedSlugToSegments
+  slugToParamsSlug
 }
 export { getRenderModuleExports, queryAllDocs, queryAllLocaleSlugs, queryDocBySlug, queryGlobal }
 export { RenderBlocks, type RenderBlocksProps }

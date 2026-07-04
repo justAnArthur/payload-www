@@ -2,51 +2,24 @@ import type { CollectionSlug, GlobalSlug, TaskConfig, TaskHandler } from 'payloa
 
 import { translateOperation } from '../translate/operation'
 
-// `TaskConfig.handler` is `string | TaskHandler` (Payload supports
-// string-path lazy loading). The factory only ever produces the
-// callable form, so we narrow to that — keeps `task.handler(...)`
-// callable without an `as any` cast at the test/caller site, and
-// stays structurally assignable to `TaskConfig` for
-// `jobs: { tasks: [...] }`.
+
+
+
+
+
+
 export type TranslateTaskConfig = Omit<TaskConfig, 'handler'> & {
   handler: TaskHandler<string, string>
 }
 
 export type CreateTranslateTaskOptions = {
-  /**
-   * Resolver key the upstream `translateOperation` should call.
-   * Must match a `key` declared in the host's
-   * `translator({ resolvers: [{ key: '<X>', resolve: ... }] })`.
-   * Falls back to the first registered resolver's key when omitted.
-   */
+  
   resolverKey?: string
-  /**
-   * Override the task slug. Default:
-   * `'translateEntityToLocale'`.
-   */
+  
   slug?: string
 }
 
-/**
- * Build the per-locale translation task.
- *
- * Behaviour:
- *
- * 1. Call `translateOperation` with
- *    `emptyOnly: false, overrideAccess: true, update: false` so we
- *    get a translated payload without the plugin writing back.
- * 2. Strip the synthetic `_locale` / `_parent_id` keys the plugin
- *    attaches to the result.
- * 3. Persist via `req.payload.update` (collection) or
- *    `req.payload.updateGlobal` (global) at `toLocale`, again with
- *    `overrideAccess: true` so jobs run cleanly outside user
- *    sessions.
- * 4. Fail loudly on any error — Payload retries the task up to
- *    `retries` times before giving up.
- *
- * Hosts wire the returned task into
- * `payload.config.ts → jobs: { tasks: [<task>] }`.
- */
+
 export function createTranslateTask(options: CreateTranslateTaskOptions = {}): TranslateTaskConfig {
   const { slug = 'translateEntityToLocale' } = options
 

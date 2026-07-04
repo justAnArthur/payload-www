@@ -1,32 +1,18 @@
 import 'server-only'
 
 import type { ReactElement } from 'react'
+import { RenderedWWWModule } from "../renderWWWModule"
 
-type FooterPageProps = {
-  /** The resolved Footer global document. `null` if the host hasn't
-   * created a Footer yet. */
-  data: Record<string, any> | null
-  locale: string
-}
 
-/**
- * Default visual for the `footer` global. Renders the footer's
- * `nav` blocks (a flat list of `navItem` and `navColumn` blocks)
- * as a simple `<footer>` element.
- *
- * Hosts can replace this visual by setting a different `custom.path`
- * on their own footer global (via the lib's `createFooterGlobal`
- * factory).
- */
-export function FooterPage({ data, locale: _locale }: FooterPageProps): ReactElement {
-  if (!data) {
-    console.log('[WWW] render/pages:FooterPage no data')
-    return <></>
-  }
-  const nav = (data.nav ?? []) as Array<{ blockType?: string; title?: string; link?: Record<string, any>; links?: Array<{ link?: Record<string, any> }> }>
+export function FooterPage({ data }: RenderedWWWModule): ReactElement {
+  const nav = (data.nav ?? []) as Array<{
+    blockType?: string;
+    title?: string;
+    link?: Record<string, any>;
+    links?: Array<{ link?: Record<string, any> }>
+  }>
   const items = nav.filter((b) => b.blockType === 'navItem')
   const columns = nav.filter((b) => b.blockType === 'navColumn')
-  console.log('[WWW] render/pages:FooterPage items=', items.length, 'columns=', columns.length, 'locale=', _locale)
 
   const renderLink = (link?: Record<string, any>, fallbackHref: string = '#') => {
     if (!link) return <a href={fallbackHref}>{(link as any)?.label ?? ''}</a>

@@ -16,10 +16,7 @@ type DescriptionFieldComponentProps = {
   readonly minLength?: number
 } & TextareaFieldClientProps
 
-/**
- * Client-only editor UI for the meta `description` field — textarea with a
- * length indicator and a Google "best practices" hint.
- */
+
 export const DescriptionFieldComponent: React.FC<DescriptionFieldComponentProps> = ({
                                                                                       field: {
                                                                                         label,

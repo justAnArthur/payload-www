@@ -5,15 +5,15 @@ import { runAutoGenerate } from '../src/autoGenerate/runAutoGenerate'
 import type { CollectionConfig, Field, PayloadRequest } from 'payload'
 import type { SEOPluginConfig } from '../src/types'
 
-// Minimal PayloadRequest stub — runAutoGenerate reads `req.payload.logger`
-// and `req.locale` only.
+
+
 const makeReq = (locale?: string): PayloadRequest =>
   ({
     payload: { logger: { error: () => undefined, info: () => undefined, warn: () => undefined } },
     locale
   }) as unknown as PayloadRequest
 
-// ---------- lexicalToPlainText ----------
+
 
 describe('lexicalToPlainText', () => {
   it('flattens a simple Lexical paragraph', () => {
@@ -74,7 +74,7 @@ describe('lexicalToPlainText', () => {
   })
 })
 
-// ---------- extractScalars ----------
+
 
 describe('extractScalars', () => {
   const collection: CollectionConfig = {
@@ -148,7 +148,7 @@ describe('extractScalars', () => {
   })
 })
 
-// ---------- runAutoGenerate: heuristic mode ----------
+
 
 describe('runAutoGenerate — heuristic mode (allScalars)', () => {
   const collection: CollectionConfig = {
@@ -273,7 +273,7 @@ describe('runAutoGenerate — heuristic mode (allScalars)', () => {
   })
 })
 
-// ---------- runAutoGenerate: onlyFillEmpty ----------
+
 
 describe('runAutoGenerate — onlyFillEmpty', () => {
   const collection: CollectionConfig = {
@@ -322,7 +322,7 @@ describe('runAutoGenerate — onlyFillEmpty', () => {
   })
 })
 
-// ---------- runAutoGenerate: explicit deriveFrom ----------
+
 
 describe('runAutoGenerate — explicit deriveFrom mapping', () => {
   const collection: CollectionConfig = {
@@ -385,7 +385,7 @@ describe('runAutoGenerate — explicit deriveFrom mapping', () => {
   })
 })
 
-// ---------- runAutoGenerate: mode gating ----------
+
 
 describe('runAutoGenerate — mode gating', () => {
   const collection: CollectionConfig = {
@@ -454,7 +454,7 @@ describe('runAutoGenerate — mode gating', () => {
   })
 })
 
-// ---------- runAutoGenerate: generator fallback ----------
+
 
 describe('runAutoGenerate — generator pass', () => {
   const collection: CollectionConfig = {

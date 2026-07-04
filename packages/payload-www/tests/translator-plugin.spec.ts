@@ -109,7 +109,7 @@ describe('translator() — autoTranslate on', () => {
     expect(Array.isArray(posts?.hooks?.afterChange)).toBe(true)
     expect((posts?.hooks?.afterChange as unknown[]).length).toBeGreaterThan(0)
 
-    // media is NOT in collections — no hook
+    
     expect(media?.hooks?.afterChange).toBeUndefined()
   })
 
@@ -151,7 +151,7 @@ describe('translator() — autoTranslate on', () => {
     expect(pagesHooks.length).toBeGreaterThan(0)
     expect(headerHooks.length).toBeGreaterThan(0)
 
-    // every attached hook should be marked
+    
     for (const h of pagesHooks) expect((h as Record<symbol, unknown>)[AUTO_TRANSLATE_MARKER]).toBe(true)
     for (const h of headerHooks) expect((h as Record<symbol, unknown>)[AUTO_TRANSLATE_MARKER]).toBe(true)
   })
@@ -221,7 +221,7 @@ describe('translator() — autoTranslate on', () => {
 
     expect(translateTasks).toHaveLength(1)
     expect(translateWorkflows).toHaveLength(1)
-    // The host's version survives, not the plugin's default.
+    
     expect(translateTasks[0]).toBe(existingTask)
     expect(translateWorkflows[0]).toBe(existingWorkflow)
   })
@@ -272,7 +272,7 @@ describe('translator() — autoTranslate on', () => {
     const base = buildBaseConfig()
     const result = plugin(base) as TestConfig
 
-    // disabled short-circuits the entire plugin — returns input config unchanged
+    
     expect(result).toBe(base)
   })
 })

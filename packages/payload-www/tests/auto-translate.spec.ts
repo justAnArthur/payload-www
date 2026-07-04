@@ -36,11 +36,11 @@ function buildReq(args: BuildReqArgs = {}) {
     defaultLocale: args.defaultLocale ?? 'en',
     locales: args.locales ?? ['en', 'uk', 'de']
   }
-  // Default to a resolver configured — most tests want the happy path.
-  // The "no resolvers" tests opt out by passing `resolvers: []` (which
-  // we treat as "explicitly empty") — `??` falls through on null/
-  // undefined so we can't tell "not passed" from "passed empty".
-  // Same logic for `user` below.
+  
+  
+  
+  
+  
   const resolvers = 'resolvers' in args ? args.resolvers : [{ key: 'openai' }]
   const user = 'user' in args ? args.user : { id: 1, email: 'test@example.com' }
   return {
@@ -57,7 +57,7 @@ function buildReq(args: BuildReqArgs = {}) {
   }
 }
 
-// -------- Collection hook --------
+
 
 describe('createAutoTranslateCollectionHook', () => {
   let payload: MockPayload
@@ -129,10 +129,10 @@ describe('createAutoTranslateCollectionHook', () => {
       collectionSlug: 'pages',
       resolverKey: 'openai'
     })
-    // The hook doesn't read the resolver directly — it queues
-    // jobs and the queued task consumes the key. We assert that
-    // no error is logged when resolverKey is passed (vs. the
-    // "no resolver key available" error path).
+    
+    
+    
+    
     const req = buildReq({ locale: 'en', payload, resolvers: [{ key: 'openai' }, { key: 'google' }] })
 
     await callHook(afterChange, {
@@ -163,7 +163,7 @@ describe('createAutoTranslateCollectionHook', () => {
 
   it('logs an error and bails when no resolvers are configured', async () => {
     const { afterChange } = createAutoTranslateCollectionHook({ collectionSlug: 'pages' })
-    const req = buildReq({ locale: 'en', payload, resolvers: [] }) // explicitly empty
+    const req = buildReq({ locale: 'en', payload, resolvers: [] }) 
 
     await callHook(afterChange, {
       doc: { id: 1, _status: 'published', updatedAt: '2026-06-22T10:00:00.000Z' },
@@ -178,7 +178,7 @@ describe('createAutoTranslateCollectionHook', () => {
 
   it('skips when request locale is missing', async () => {
     const { afterChange } = createAutoTranslateCollectionHook({ collectionSlug: 'pages' })
-    const req = buildReq({ payload }) // no locale
+    const req = buildReq({ payload }) 
 
     await callHook(afterChange, {
       doc: { id: 1, _status: 'published', updatedAt: '2026-06-22T10:00:00.000Z' },
@@ -256,8 +256,8 @@ describe('createAutoTranslateCollectionHook', () => {
       collectionSlug: 'pages',
       defaultLocale: 'de'
     })
-    // req says defaultLocale='en', but the hook is configured for 'de'.
-    // So `locale: 'de'` is the source-of-truth, `locale: 'en'` would NOT fire.
+    
+    
     const reqEn = buildReq({ locale: 'en', defaultLocale: 'en', payload })
 
     await callHook(afterChange, {
@@ -273,7 +273,7 @@ describe('createAutoTranslateCollectionHook', () => {
       req: reqDe
     })
 
-    // Now it fires, targeting the non-de locales.
+    
     expect(payload.jobs.queue).toHaveBeenCalledTimes(2)
     const calls = payload.jobs.queue.mock.calls.map((c) => c[0].input.toLocale)
     expect(calls).toEqual(expect.arrayContaining(['en', 'uk']))
@@ -320,8 +320,8 @@ describe('createAutoTranslateCollectionHook', () => {
       req
     })
 
-    // 2 target locales (uk, de) — one errored, one succeeded. The
-    // hook must NOT short-circuit after the first failure.
+    
+    
     expect(payload.jobs.queue).toHaveBeenCalledTimes(2)
     expect(payload.logger.error).toHaveBeenCalledWith(
       expect.objectContaining({ msg: expect.stringContaining('failed to queue') })
@@ -329,7 +329,7 @@ describe('createAutoTranslateCollectionHook', () => {
   })
 })
 
-// -------- Global hook --------
+
 
 describe('createAutoTranslateGlobalHook', () => {
   let payload: MockPayload
@@ -381,7 +381,7 @@ describe('createAutoTranslateGlobalHook', () => {
     const hook = createAutoTranslateGlobalHook({ globalSlug: 'header' })
     const req = buildReq({ locale: 'en', payload })
 
-    // No _status on the doc — should still fire.
+    
     await callHook(hook, { doc: { updatedAt: 'now' }, req })
 
     expect(payload.jobs.queue).toHaveBeenCalled()

@@ -4,10 +4,7 @@ export type KeywordsFieldOptions = {
   readonly localized?: boolean
 }
 
-/**
- * The meta `keywords` field. Comma-separated, legacy but still useful for
- * some crawlers.
- */
+
 export const KeywordsField = (options: KeywordsFieldOptions = {}): TextField => {
   return {
     name: 'keywords',

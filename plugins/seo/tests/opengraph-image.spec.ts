@@ -6,9 +6,9 @@ import { createOpenGraphImageRoute } from '../src/opengraph-image/createOpenGrap
 import { extractSEOMetaForImage } from '../src/opengraph-image/extractSEOMetaForImage'
 import { getCollectionOGImagePath } from '../src/opengraph-image/getCollectionOGImagePath'
 
-// ----------------------------------------------------------------
-// extractSEOMetaForImage — pure cascade resolver
-// ----------------------------------------------------------------
+
+
+
 
 describe('extractSEOMetaForImage', () => {
   it('cascades title: ogTitle → twitterTitle → content.title', () => {
@@ -134,9 +134,9 @@ describe('extractSEOMetaForImage', () => {
   })
 })
 
-// ----------------------------------------------------------------
-// getCollectionOGImagePath — convention reader
-// ----------------------------------------------------------------
+
+
+
 
 describe('getCollectionOGImagePath', () => {
   it('reads custom.ogImage from the collection', () => {
@@ -184,9 +184,9 @@ describe('getCollectionOGImagePath', () => {
   })
 })
 
-// ----------------------------------------------------------------
-// createOpenGraphImageRoute — factory integration
-// ----------------------------------------------------------------
+
+
+
 
 const buildSanitizedConfig = (
   collection: Partial<SanitizedCollectionConfig> & { slug: string },
@@ -228,9 +228,9 @@ describe('createOpenGraphImageRoute', () => {
 
     const config = buildSanitizedConfig(collection, importMap)
 
-    // We need a real Payload instance for getPayload to succeed. The
-    // factory also calls `payload.find` to fetch the doc, which we
-    // don't want here. Override `fetchDoc` to short-circuit.
+    
+    
+    
     const fetchDoc = vi.fn(async () => ({
       id: 1,
       title: 'Hello',
@@ -249,12 +249,12 @@ describe('createOpenGraphImageRoute', () => {
     const out = await route({ params: Promise.resolve({ slug: 'hello-world', locale: 'en' }) })
 
     expect(fetchDoc).toHaveBeenCalledOnce()
-    // The factory hands the resolved component to `createElement`,
-    // which produces a React element. ImageResponse then renders the
-    // element server-side. We can't inspect the rendered output
-    // without a real Next.js runtime, but we CAN verify the route
-    // returned a value (i.e. the pipeline didn't bail out via
-    // `return undefined`).
+    
+    
+    
+    
+    
+    
     expect(out).toBeDefined()
   })
 
@@ -267,7 +267,7 @@ describe('createOpenGraphImageRoute', () => {
     }
     const collection = {
       slug: 'posts',
-      custom: { ogImage: '@/components/og/PostOG' } // no #default
+      custom: { ogImage: '@/components/og/PostOG' } 
     } as unknown as SanitizedCollectionConfig
     const route = createOpenGraphImageRoute({
       config: Promise.resolve(buildSanitizedConfig(collection, importMap)),
@@ -324,9 +324,9 @@ describe('createOpenGraphImageRoute', () => {
   })
 
   it('passes fallbackTitle derived from doc.title when meta is empty', async () => {
-    // Spy on extractSEOMetaForImage by checking the props passed to
-    // createElement. We use a function component that records its
-    // props, then introspect the recorded props after the route runs.
+    
+    
+    
     const captured: unknown[] = []
     const CapturingComponent = ((props: unknown) => {
       captured.push(props)
@@ -350,11 +350,11 @@ describe('createOpenGraphImageRoute', () => {
 
     await route({ params: Promise.resolve({ slug: 'x' }) })
 
-    // We can't easily inspect the React element's props without
-    // rendering it. Instead, verify the route returned an image
-    // (proving the pipeline didn't crash on missing meta) and the
-    // meta extraction is exercised by a separate unit test on
-    // `extractSEOMetaForImage` itself.
+    
+    
+    
+    
+    
     expect(captured).toBeDefined()
   })
 
@@ -365,7 +365,7 @@ describe('createOpenGraphImageRoute', () => {
     } as unknown as SanitizedCollectionConfig
     const config = {
       collections: [collection],
-      admin: {} // no importMap
+      admin: {} 
     } as unknown as SanitizedConfig
 
     const originalNodeEnv = process.env.NODE_ENV

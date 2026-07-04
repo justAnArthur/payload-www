@@ -1,8 +1,8 @@
-// Local structural alias. Next.js's `Metadata` type is a recursive
-// discriminated union that bunup's dts tree-shaker can't follow
-// (`declare const X: (...) => ;` — drops the return type). Declaring
-// the return as a plain structural object avoids that while remaining
-// assignable to `Metadata` for consumers.
+
+
+
+
+
 type MetadataShape = {
   title?: string | { default: string; template: string } | { absolute: string; template?: string } | null
   description?: string | null
@@ -31,13 +31,7 @@ type MetadataShape = {
   } | null
 }
 
-/**
- * The SEO `meta` group shape the plugin writes via `beforeChange`.
- * Matches the field tree in `MetaField` (`content` / `social.social` /
- * `advanced.advanced` — the cosmetic double-nest is from tab + group
- * names; renaming it would be a breaking schema change so we read it
- * as-is).
- */
+
 export type SEOMetaShape = {
   content?: {
     title?: string | null
@@ -75,22 +69,22 @@ export type SEOMetaShape = {
 } | null | undefined
 
 export type GenerateMetaArgs = {
-  /** The SEO `meta` group (what the plugin writes via `beforeChange`). */
+  
   meta: SEOMetaShape
-  /** Absolute canonical URL passed through from the host (used for OG/Twitter). */
+  
   url?: string
-  /** OG object type — `'article'` for posts, `'website'` otherwise. */
+  
   type?: 'website' | 'article'
-  /** Active locale (used for `ogLocale` defaults). */
+  
   locale?: string
-  /** Fallback title/description when `meta` is empty/null. */
+  
   fallback?: { title?: string; description?: string }
 }
 
 const isNonEmpty = (v: unknown): v is string =>
   typeof v === 'string' && v.length > 0
 
-/** Normalize `string | { url } | null` upload shape to `{ url }` or `undefined`. */
+
 const readImage = (v: unknown): string | undefined => {
   if (isNonEmpty(v)) return v
   if (typeof v === 'object' && v !== null) {
@@ -105,28 +99,14 @@ const pickString = (...candidates: unknown[]): string | undefined => {
   return undefined
 }
 
-/** Split `keywords: 'a, b, c'` into `['a','b','c']`. Drops empties. */
+
 const splitKeywords = (raw: string): string[] =>
   raw
     .split(',')
     .map((s) => s.trim())
     .filter((s) => s.length > 0)
 
-/**
- * Map a Payload SEO `meta` group to a Next.js `Metadata` object. Drop-in
- * replacement for the per-route `generateMeta` callbacks the demo
- * routes used to write by hand.
- *
- * Does NOT set `alternates` — `createCollectionPageExports` writes
- * `alternates.canonical` + `alternates.languages` itself (line 491)
- * after the consumer returns. Setting it here would be overwritten
- * silently.
- *
- *   import { generateMeta } from '@justanarthur/payload-plugin-seo/next-metadata'
- *
- *   const generateMetaForPage = ({ doc, type }) =>
- *     generateMeta({ meta: doc?.meta, type, fallback: { title: 'Untitled' } })
- */
+
 export const generateMeta = ({
   meta,
   url,
@@ -152,8 +132,8 @@ export const generateMeta = ({
     fallback?.description
   )
 
-  // Empty-doc path — keep the output minimal so the route still has
-  // a title. Matches the lib's existing not-found pattern.
+  
+  
   if (!meta) return description ? { title, description } : { title }
 
   const ogTitle = pickString(social.ogTitle, content.title)
@@ -198,12 +178,12 @@ export const generateMeta = ({
     result.robots = advanced.robots
   }
 
-  // Next.js's `Metadata['openGraph']` is a discriminated union
-  // (`OpenGraphWebsite | OpenGraphArticle | ...`); declaring the
-  // intermediate as that union makes TS reject any single property
-  // assignment. Build a structural subset instead and cast at the
-  // boundary — the runtime shape is identical to what Next.js
-  // expects.
+  
+  
+  
+  
+  
+  
   const openGraph: {
     type?: 'website' | 'article' | 'profile' | 'book' | 'music' | 'video'
     title?: string
@@ -238,7 +218,7 @@ export const generateMeta = ({
     result.openGraph = openGraph
   }
 
-  // Same trick for Twitter (discriminated union by `card`).
+  
   const twitter: {
     card: 'summary' | 'summary_large_image' | 'app' | 'player'
     title?: string

@@ -31,8 +31,8 @@ export const imageToBlurhash = async (
     componentY
   )
 
-  // Decode the blurhash back to RGBA pixels and encode as a tiny PNG so
-  // consumers can use it directly as a `blurDataURL` placeholder.
+  
+  
   const decodedPixels = decode(hash, width, height)
   const placeholderPng = await sharp(Buffer.from(decodedPixels.buffer), {
     raw: { channels: 4, width, height }

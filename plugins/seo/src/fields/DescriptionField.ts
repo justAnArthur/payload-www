@@ -6,10 +6,7 @@ export type DescriptionFieldOptions = {
   readonly minLength?: number
 }
 
-/**
- * Server-safe field factory. Builds the `meta.description` textarea config
- * and wires up the client `DescriptionFieldComponent` for the admin UI.
- */
+
 export const DescriptionField = (options: DescriptionFieldOptions = {}): TextareaField => {
   return {
     name: 'description',
