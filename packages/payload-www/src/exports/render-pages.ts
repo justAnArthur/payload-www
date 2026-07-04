@@ -1,56 +1,11 @@
-import {
-  addCollectionsToSitemap,
-  createCollectionPageExports,
-  type CreateCollectionPageExportsArgs,
-  type CreateCollectionPageExportsDeps,
-  type JsonLdEntry,
-  type JsonLdOutput,
-  type MetadataOptions,
-  type PageRouting
-} from '../render/pages/createCollectionPageExports'
-import {
-  createRootLayoutExports,
-  type CreateRootLayoutExportsArgs,
-  type CreateRootLayoutExportsReturn,
-  type CreateRootLayoutProvidersArgs
-} from '../render/pages/createRootLayoutExports'
-import { createStaticPageExports, type CreateStaticPageExportsArgs } from '../render/pages/createStaticPageExports'
-
-
+import { FooterPage } from '../render/pages/FooterPage'
+import { HeaderPage } from '../render/pages/HeaderPage'
 import { PagesPage } from '../render/pages/PagesPage'
 import { PostsPage } from '../render/pages/PostsPage'
-import { HeaderPage } from '../render/pages/HeaderPage'
-import { FooterPage } from '../render/pages/FooterPage'
+import { type CreateCollectionPageExportsArgs, type CreateCollectionPageExportsDeps, createCollectionPageExports } from '../render/pages/createCollectionPageExports'
+import { type CreateRootLayoutExportsArgs, type CreateRootLayoutExportsDeps, type CreateRootLayoutProvidersArgs, createRootLayoutExports } from '../render/pages/createRootLayoutExports'
 
+const renderPages = { createCollectionPageExports, createRootLayoutExports, PagesPage, PostsPage, HeaderPage, FooterPage }
 
-export default {
-  addCollectionsToSitemap,
-  createCollectionPageExports,
-  createRootLayoutExports,
-  createStaticPageExports,
-  HeaderPage,
-  FooterPage,
-  PagesPage,
-  PostsPage
-}
-
-export {
-  addCollectionsToSitemap,
-  createCollectionPageExports,
-  createRootLayoutExports,
-  createStaticPageExports,
-  HeaderPage,
-  FooterPage,
-  PagesPage,
-  PostsPage,
-  type CreateCollectionPageExportsArgs,
-  type CreateCollectionPageExportsDeps,
-  type CreateRootLayoutExportsArgs,
-  type CreateRootLayoutExportsReturn,
-  type CreateRootLayoutProvidersArgs,
-  type CreateStaticPageExportsArgs,
-  type JsonLdEntry,
-  type JsonLdOutput,
-  type MetadataOptions,
-  type PageRouting
-}
+export default renderPages
+export { createCollectionPageExports, createRootLayoutExports, PagesPage, PostsPage, HeaderPage, FooterPage, type CreateCollectionPageExportsArgs, type CreateCollectionPageExportsDeps, type CreateRootLayoutExportsArgs, type CreateRootLayoutExportsDeps, type CreateRootLayoutProvidersArgs }

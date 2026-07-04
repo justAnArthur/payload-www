@@ -1,7 +1,7 @@
-import { createHeaderGlobal, type CreateHeaderGlobalOptions } from '../collections/globals/Header/config'
-import { createFooterGlobal, type CreateFooterGlobalOptions } from '../collections/globals/Footer/config'
+import { createHeaderGlobal } from '../collections/createHeaderGlobal'
+import { createFooterGlobal } from '../collections/createFooterGlobal'
 
-export default { createHeaderGlobal, createFooterGlobal }
+const globals = { createHeaderGlobal, createFooterGlobal }
 
-export { createHeaderGlobal, type CreateHeaderGlobalOptions }
-export { createFooterGlobal, type CreateFooterGlobalOptions }
+export default globals
+export { createHeaderGlobal, createFooterGlobal }
