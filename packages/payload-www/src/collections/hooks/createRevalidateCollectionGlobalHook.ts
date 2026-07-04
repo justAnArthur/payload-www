@@ -14,10 +14,10 @@ export function createRevalidateCollectionGlobalHook() {
 
     if ('collection' in args) {
       ;[
-        doc && doc._status === 'published' && doc.slug,
-        previousDoc && previousDoc._status === 'published' && previousDoc.slug !== doc.slug && previousDoc.slug
+        doc && doc._status !== 'draft' && doc.slug,
+        previousDoc && previousDoc._status === 'published' && previousDoc.slug
       ]
-        .filter(slug => slug !== undefined)
+        .filter(slug => slug !== undefined && slug !== false)
         .map(slug =>
           revalidate({ collectionSlug: args.collection.slug, slug: slug! }))
     } else {

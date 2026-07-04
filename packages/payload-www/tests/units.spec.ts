@@ -1,25 +1,56 @@
 import { describe, expect, it } from 'vitest'
 
-import { appearanceOptions, link, linkGroup, slugField } from '../src/collections/fields'
 import { anyone, authenticated, authenticatedOrPublished } from '../src/collections/access'
-import { createHeaderGlobal } from '../src/collections/globals/Header/config'
-import { createFooterGlobal } from '../src/collections/globals/Footer/config'
-import { createPagesCollection } from '../src/collections/Pages/index'
-import {
-  buildArticleLd,
-  buildBreadcrumbsLd,
-  buildCanonicalUrl,
-  buildOrganizationLd,
-  getUrlPath,
-  paramsSlugToSlug,
-  segmentsToUrlPath,
-  slugToParamsSlug
-} from '../src/render/metadata'
-import { generateImportName, getFromImportMap } from '../src/core/utils'
-import { link as linkFromShim, linkGroup as linkGroupFromShim } from '../src/exports/fields'
+import { createFooterGlobal } from '../src/collections/createFooterGlobal'
+import { createHeaderGlobal } from '../src/collections/createHeaderGlobal'
+import { createPagesCollection, PAGES_SLUG, PAGES_RENDER_PATH } from '../src/collections/createPagesCollection'
+import { createPostsCollection, POSTS_SLUG, POSTS_RENDER_PATH } from '../src/collections/createPostsCollection'
+import { appearanceOptions, link, type LinkAppearances } from '../src/collections/fields/link'
+import { linkGroup } from '../src/collections/fields/linkGroup'
+import { slugField } from '../src/collections/fields/slug'
+import { createWWWConfig } from '../src/createWWWConfig'
+import { generateImportName } from '../src/render/generateImportName'
+import { getFromImportMap } from '../src/render/getFromImportMap'
+import { buildArticleLd, buildBreadcrumbsLd, buildOrganizationLd } from '../src/render/metadata/jsonld'
+import { paramsSlugToSlug, slugToParamsSlug } from '../src/render/metadata/slug'
+
+import { link as linkFromShim, linkGroup as linkGroupFromShim, appearanceOptions as appearanceOptionsFromShim } from '../src/exports/fields'
 import { anyone as anyoneFromShim } from '../src/exports/access'
 import { buildArticleLd as articleFromShim, paramsSlugToSlug as segFromShim } from '../src/exports/metadata'
 import { getFromImportMap as gimFromShim } from '../src/exports/utils'
+import { createWWWConfig as createWWWConfigFromShim } from '../src/exports/config'
+
+function flattenNames(field: { fields?: unknown[] }): string[] {
+  const out: string[] = []
+  const walk = (f: { name?: string; type?: string; fields?: unknown[] }) => {
+    if (f.name) out.push(f.name)
+    if (Array.isArray(f.fields)) {
+      for (const child of f.fields) walk(child as { name?: string; type?: string; fields?: unknown[] })
+    }
+  }
+  walk(field as any)
+  return out
+}
+
+function findField(group: { fields?: unknown[]; tabs?: unknown[] }, name: string): any {
+  const walk = (f: { name?: string; type?: string; fields?: unknown[]; tabs?: unknown[] }): any => {
+    if (f.name === name) return f
+    if (Array.isArray(f.fields)) {
+      for (const child of f.fields) {
+        const found = walk(child as any)
+        if (found) return found
+      }
+    }
+    if (Array.isArray((f as any).tabs)) {
+      for (const tab of (f as any).tabs) {
+        const found = walk(tab as any)
+        if (found) return found
+      }
+    }
+    return null
+  }
+  return walk(group as any)
+}
 
 describe('fields/link', () => {
   it('produces a group with type/newTab/reference/url/label/appearance', () => {
@@ -49,12 +80,11 @@ describe('fields/link', () => {
     expect(ref.relationTo).toEqual(['media', 'categories'])
   })
 
-  it('marks fields as localized when requested', () => {
-    const f = link({ localized: true }) as any
-    const ref = findField(f, 'reference')
-    expect(ref.localized).toBe(true)
-    const url = findField(f, 'url')
-    expect(url.localized).toBe(true)
+  it('marks fields as localized by default and can opt out', () => {
+    const def = findField(link() as any, 'reference')
+    expect(def.localized).toBe(true)
+    const opt = findField(link({ localized: false }) as any, 'reference')
+    expect(opt.localized).toBe(false)
   })
 
   it('appends extraFields to the link group', () => {
@@ -70,31 +100,36 @@ describe('fields/link', () => {
     expect(names).toContain('columns')
   })
 
+  it('respects appearances array override', () => {
+    const f = link({ appearances: ['default'] }) as any
+    const appearance = findField(f, 'appearance')
+    expect(appearance.options).toEqual([appearanceOptions.default])
+  })
+
+  it('defaults relationTo to [pages, posts] slugs', () => {
+    const ref = findField(link() as any, 'reference')
+    expect(ref.relationTo).toEqual([PAGES_SLUG, POSTS_SLUG])
+  })
+
   it('shim re-exports match src exports', () => {
     expect(linkFromShim).toBe(link)
     expect(linkGroupFromShim).toBe(linkGroup)
+    expect(appearanceOptionsFromShim).toBe(appearanceOptions)
   })
 })
 
-describe('globals/header+footer nav extensibility', () => {
-  const extra = [{ name: 'description', type: 'text' as const }]
-
-  it('createHeaderGlobal threads navColumnLinkFields into the column link', () => {
-    const header = createHeaderGlobal({ navColumnLinkFields: extra }) as any
-    const navColumn = header.fields[0].blocks.find((b: any) => b.slug === 'navColumn')
-    expect(flattenNames(navColumn.fields[1])).toContain('description')
+describe('fields/linkGroup', () => {
+  it('produces an array with one link child', () => {
+    const g = linkGroup() as any
+    expect(g.name).toBe('links')
+    expect(g.type).toBe('array')
+    expect(g.fields.length).toBe(1)
+    expect(g.fields[0].name).toBe('link')
   })
 
-  it('createFooterGlobal threads navItemLinkFields into the item link', () => {
-    const footer = createFooterGlobal({ navItemLinkFields: extra }) as any
-    const navItem = footer.fields[0].blocks.find((b: any) => b.slug === 'navItem')
-    expect(flattenNames(navItem)).toContain('description')
-  })
-
-  it('omits extra nav fields by default', () => {
-    const header = createHeaderGlobal() as any
-    const navColumn = header.fields[0].blocks.find((b: any) => b.slug === 'navColumn')
-    expect(flattenNames(navColumn.fields[1])).not.toContain('description')
+  it('forwards link options through to the inner link', () => {
+    const g = linkGroup({ appearances: false }) as any
+    expect(flattenNames(g)).not.toContain('appearance')
   })
 })
 
@@ -108,64 +143,29 @@ describe('fields/slug', () => {
     expect(f.index).toBe(true)
   })
 
-  it('is localized by default, and can opt out', () => {
+  it('is localized by default', () => {
     expect((slugField() as any).localized).toBe(true)
-    expect((slugField({ localized: false }) as any).localized).toBe(false)
   })
 
-  it('flat validation rejects `_`; nested accepts it; empty always allowed', () => {
-    const flat = (slugField() as any).validate as (v: unknown) => true | string
-    expect(flat('about-us')).toBe(true)
-    expect(flat('about_us')).not.toBe(true)
-    expect(flat('')).toBe(true)
-
-    const nested = (slugField({ nested: true }) as any).validate as (v: unknown) => true | string
-    expect(nested('about_us')).toBe(true)
-    expect(nested('About Us')).not.toBe(true)
-  })
-
-  it('honors a custom field name', () => {
-    expect((slugField({ name: 'path' }) as any).name).toBe('path')
-  })
-})
-
-describe('collections/Pages slug', () => {
-  const slugFieldOf = (opts?: { nested?: boolean }) =>
-    findField(createPagesCollection([], opts) as any, 'slug')
-
-  it('localizes the slug by default (per-locale URLs)', () => {
-    expect(slugFieldOf().localized).toBe(true)
-  })
-
-  it('flat (default) rejects the `_` nesting divider', () => {
-    const validate = slugFieldOf().validate as (v: unknown) => true | string
+  it('rejects invalid characters (uppercase, spaces, special chars)', () => {
+    const validate = (slugField() as any).validate as (v: unknown) => true | string
     expect(validate('about-us')).toBe(true)
-    expect(validate('about_us')).not.toBe(true)
-    expect(validate('')).toBe(true)
-  })
-
-  it('nested accepts the `_` nesting divider', () => {
-    const validate = slugFieldOf({ nested: true }).validate as (v: unknown) => true | string
     expect(validate('about_us')).toBe(true)
-    expect(validate('about-us')).toBe(true)
     expect(validate('')).toBe(true)
     expect(validate('About Us')).not.toBe(true)
-  })
-})
-
-describe('fields/linkGroup', () => {
-  it('produces an array with one link child', () => {
-    const g = linkGroup() as any
-    expect(g.name).toBe('links')
-    expect(g.type).toBe('array')
-    expect(g.fields.length).toBe(1)
-    expect(g.fields[0].name).toBe('link')
+    expect(validate('about us')).not.toBe(true)
+    expect(validate('about@us')).not.toBe(true)
   })
 })
 
 describe('fields/appearanceOptions', () => {
   it('exposes the two standard appearances', () => {
     expect(Object.keys(appearanceOptions).sort()).toEqual(['default', 'outline'])
+  })
+
+  it('LinkAppearances is the union of the two keys', () => {
+    const keys: LinkAppearances[] = ['default', 'outline']
+    for (const k of keys) expect(appearanceOptions[k].value).toBe(k)
   })
 })
 
@@ -195,53 +195,115 @@ describe('access', () => {
   })
 })
 
+describe('collections/createHeaderGlobal', () => {
+  it('produces a GlobalConfig with header slug', () => {
+    const header = createHeaderGlobal() as any
+    expect(header.slug).toBe('header')
+  })
+
+  it('exposes nav block with navItem and navColumn', () => {
+    const header = createHeaderGlobal() as any
+    const nav = header.fields[2]
+    expect(nav.type).toBe('blocks')
+    const slugs = nav.blocks.map((b: { slug: string }) => b.slug).sort()
+    expect(slugs).toEqual(['navColumn', 'navItem'])
+  })
+})
+
+describe('collections/createFooterGlobal', () => {
+  it('produces a GlobalConfig with footer slug', () => {
+    const footer = createFooterGlobal() as any
+    expect(footer.slug).toBe('footer')
+  })
+})
+
+describe('collections/createPagesCollection', () => {
+  it('exposes PAGES_SLUG constant', () => {
+    expect(PAGES_SLUG).toBe('pages')
+  })
+
+  it('exposes PAGES_RENDER_PATH pointing at the render-pages entry', () => {
+    expect(PAGES_RENDER_PATH).toBe('@justanarthur/payload-www/render-pages#PagesPage')
+  })
+
+  it('produces a CollectionConfig with the right slug', () => {
+    const pages = createPagesCollection([]) as any
+    expect(pages.slug).toBe(PAGES_SLUG)
+  })
+
+  it('includes a localized title field and a blocks field', () => {
+    const pages = createPagesCollection([]) as any
+    const title = findField(pages, 'title')
+    expect(title).toBeTruthy()
+    expect(title.localized).toBe(true)
+    const blocks = findField(pages, 'blocks')
+    expect(blocks).toBeTruthy()
+    expect(blocks.type).toBe('blocks')
+  })
+})
+
+describe('collections/createPostsCollection', () => {
+  it('exposes POSTS_SLUG constant', () => {
+    expect(POSTS_SLUG).toBe('posts')
+  })
+
+  it('exposes POSTS_RENDER_PATH pointing at the render-pages entry', () => {
+    expect(POSTS_RENDER_PATH).toBe('@justanarthur/payload-www/render-pages#PostsPage')
+  })
+
+  it('produces a CollectionConfig with the right slug', () => {
+    const posts = createPostsCollection() as any
+    expect(posts.slug).toBe(POSTS_SLUG)
+  })
+})
+
+describe('createWWWConfig', () => {
+  it('returns an object with a withWWWConfig function', () => {
+    const api = createWWWConfig()
+    expect(typeof api.withWWWConfig).toBe('function')
+  })
+
+  it('withWWWConfig builds a config with pages + posts collections and header + footer globals', async () => {
+    const { withWWWConfig } = createWWWConfig()
+    const cfg = await withWWWConfig({
+      collections: [],
+      globals: []
+    } as never)
+
+    const collectionSlugs = (cfg.collections ?? []).map((c: { slug: string }) => c.slug).sort()
+    expect(collectionSlugs).toContain(PAGES_SLUG)
+    expect(collectionSlugs).toContain(POSTS_SLUG)
+
+    const globalSlugs = (cfg.globals ?? []).map((g: { slug: string }) => g.slug).sort()
+    expect(globalSlugs).toContain('header')
+    expect(globalSlugs).toContain('footer')
+  })
+
+  it('shim re-export matches src', () => {
+    expect(createWWWConfigFromShim).toBe(createWWWConfig)
+  })
+})
+
 describe('metadata/slug', () => {
-  it('segmentsToStoredSlug: nested joins with _', () => {
-    expect(paramsSlugToSlug(['a', 'b', 'c'], true)).toBe('a_b_c')
-  })
-  it('segmentsToStoredSlug: flat takes first segment', () => {
-    expect(paramsSlugToSlug(['a', 'b'], false)).toBe('a')
-  })
-  it('segmentsToStoredSlug: non-array passthrough', () => {
-    expect(paramsSlugToSlug('hello', true)).toBe('hello')
+  it('paramsSlugToSlug joins an array of segments with _', () => {
+    expect(paramsSlugToSlug(['a', 'b', 'c'])).toBe('a_b_c')
   })
 
-  it('segmentsToUrlPath: nested joins with /', () => {
-    expect(segmentsToUrlPath(['a', 'b', 'c'], true)).toBe('/a/b/c')
-  })
-  it('segmentsToUrlPath: flat takes first segment', () => {
-    expect(segmentsToUrlPath(['a', 'b'], false)).toBe('/a')
-  })
-  it('segmentsToUrlPath: non-array passthrough', () => {
-    expect(segmentsToUrlPath('hello', true)).toBe('/hello')
+  it('paramsSlugToSlug passes a string through unchanged', () => {
+    expect(paramsSlugToSlug('hello')).toBe('hello')
   })
 
-  it('storedSlugToSegments: nested splits on _', () => {
-    expect(slugToParamsSlug('a_b_c', true)).toEqual(['a', 'b', 'c'])
-  })
-  it('storedSlugToSegments: flat returns as-is', () => {
-    expect(slugToParamsSlug('hello', false)).toBe('hello')
+  it('paramsSlugToSlug returns empty for empty input', () => {
+    expect(paramsSlugToSlug([])).toBe('')
+    expect(paramsSlugToSlug('')).toBe('')
   })
 
-  it('buildCanonicalUrl strips trailing slash from prefix', () => {
-    expect(
-      buildCanonicalUrl({ siteUrl: 'https://x.com', locale: 'en', urlPrefix: '/posts/', urlPath: '/foo' })
-    ).toBe('https://x.com/en/posts/foo')
-  })
-  it('buildCanonicalUrl keeps prefix when no trailing slash', () => {
-    expect(
-      buildCanonicalUrl({ siteUrl: 'https://x.com', locale: 'en', urlPrefix: '', urlPath: '/foo' })
-    ).toBe('https://x.com/en/foo')
+  it('slugToParamsSlug splits on _', () => {
+    expect(slugToParamsSlug('a_b_c')).toEqual(['a', 'b', 'c'])
   })
 
-  it('getUrlPath collapses home slug to /', () => {
-
-    expect(getUrlPath([], true, '')).toBe('/')
-    expect(getUrlPath([''], true, '')).toBe('/')
-    expect(getUrlPath('home', true, '')).toBe('/home')
-  })
-  it('getUrlPath passes through non-home slug', () => {
-    expect(getUrlPath(['about', 'us'], true, '')).toBe('/about/us')
+  it('slugToParamsSlug returns undefined for empty input', () => {
+    expect(slugToParamsSlug('')).toBeUndefined()
   })
 
   it('shim matches src', () => {
@@ -265,6 +327,17 @@ describe('metadata/jsonld', () => {
     expect((ld.publisher as any)['@type']).toBe('Organization')
   })
 
+  it('buildArticleLd respects explicit type override', () => {
+    const ld = buildArticleLd({
+      doc: { title: 'X' },
+      url: 'https://x.com/x',
+      locale: 'en',
+      siteUrl: 'https://x.com',
+      type: 'NewsArticle'
+    })
+    expect(ld['@type']).toBe('NewsArticle')
+  })
+
   it('buildBreadcrumbsLd produces BreadcrumbList with positions', () => {
     const ld = buildBreadcrumbsLd({
       items: [
@@ -277,7 +350,6 @@ describe('metadata/jsonld', () => {
     expect(ld['@type']).toBe('BreadcrumbList')
     expect((ld as any).itemListElement.length).toBe(3)
     expect((ld as any).itemListElement[0].position).toBe(1)
-
     expect((ld as any).itemListElement[2].item).toBe('https://x.com/posts/hello')
     expect((ld as any).itemListElement[0].item).toBe('https://x.com/')
   })
@@ -286,6 +358,11 @@ describe('metadata/jsonld', () => {
     const ld = buildOrganizationLd({ siteUrl: 'https://x.com', name: 'X' })
     expect(ld['@type']).toBe('Organization')
     expect((ld as any).name).toBe('X')
+  })
+
+  it('buildOrganizationLd omits name when not provided', () => {
+    const ld = buildOrganizationLd({ siteUrl: 'https://x.com' })
+    expect((ld as any).name).toBeUndefined()
   })
 
   it('shim re-export matches src', () => {
@@ -298,7 +375,6 @@ describe('utils', () => {
     expect(generateImportName('block', 'cta')).toBe('BlockCta#default')
     expect(generateImportName('block', 'cta-small')).toBe('BlockCtaSmall#default')
     expect(generateImportName('page', 'home')).toBe('PageHome#default')
-    expect(generateImportName('page' as any, 'x')).toBe('PageX#default')
   })
 
   it('generateImportName throws for unknown type', () => {
@@ -319,31 +395,3 @@ describe('utils', () => {
     expect(gimFromShim).toBe(getFromImportMap)
   })
 })
-
-
-
-function flattenNames(field: { fields?: unknown[] }): string[] {
-  const out: string[] = []
-  const walk = (f: { name?: string; type?: string; fields?: unknown[] }) => {
-    if (f.name) out.push(f.name)
-    if (Array.isArray(f.fields)) {
-      for (const child of f.fields) walk(child as { name?: string; type?: string; fields?: unknown[] })
-    }
-  }
-  walk(field as any)
-  return out
-}
-
-function findField(group: { fields?: unknown[] }, name: string): any {
-  const walk = (f: { name?: string; type?: string; fields?: unknown[] }): any => {
-    if (f.name === name) return f
-    if (Array.isArray(f.fields)) {
-      for (const child of f.fields) {
-        const found = walk(child as any)
-        if (found) return found
-      }
-    }
-    return null
-  }
-  return walk(group as any)
-}
