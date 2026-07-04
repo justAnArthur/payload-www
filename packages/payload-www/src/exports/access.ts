@@ -1,5 +1,6 @@
 import { anyone, authenticated, authenticatedOrPublished } from '../collections/access/index'
 
-export default { anyone, authenticated, authenticatedOrPublished }
+const access = { anyone, authenticated, authenticatedOrPublished }
 
+export default access
 export { anyone, authenticated, authenticatedOrPublished }

@@ -1,7 +1,7 @@
-import { getFromImportMap } from '../render/getFromImportMap'
 import { generateImportName } from '../render/generateImportName'
-import { renderCollectionModule } from '../render/utils/renderCollectionModule'
+import { getFromImportMap } from '../render/getFromImportMap'
 
-export default { getFromImportMap, generateImportName, renderCollectionModule }
+const utils = { getFromImportMap, generateImportName }
 
-export { generateImportName, getFromImportMap, renderCollectionModule }
+export default utils
+export { generateImportName, getFromImportMap }

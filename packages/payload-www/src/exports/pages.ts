@@ -1,35 +1,9 @@
-import { PagesPage } from '../render/pages/PagesPage'
-import { HeaderPage } from '../render/pages/HeaderPage'
 import { FooterPage } from '../render/pages/FooterPage'
-import {
-  addCollectionsToSitemap,
-  createCollectionPageExports,
-  type CreateCollectionPageExportsArgs,
-  type CreateCollectionPageExportsDeps,
-  type JsonLdEntry,
-  type JsonLdOutput,
-  type MetadataOptions,
-  type PageExtendProps
-} from '../render/pages/createCollectionPageExports'
+import { HeaderPage } from '../render/pages/HeaderPage'
+import { PagesPage } from '../render/pages/PagesPage'
+import { type CreateCollectionPageExportsArgs, type CreateCollectionPageExportsDeps, createCollectionPageExports } from '../render/pages/createCollectionPageExports'
 
-export default {
-  createCollectionPageExports,
-  addCollectionsToSitemap,
-  PagesPage,
-  HeaderPage,
-  FooterPage
-}
+const pages = { createCollectionPageExports, PagesPage, HeaderPage, FooterPage }
 
-export {
-  addCollectionsToSitemap,
-  createCollectionPageExports,
-  PagesPage,
-  HeaderPage,
-  FooterPage,
-  type CreateCollectionPageExportsArgs,
-  type CreateCollectionPageExportsDeps,
-  type JsonLdEntry,
-  type JsonLdOutput,
-  type MetadataOptions,
-  type PageExtendProps
-}
+export default pages
+export { createCollectionPageExports, PagesPage, HeaderPage, FooterPage, type CreateCollectionPageExportsArgs, type CreateCollectionPageExportsDeps }

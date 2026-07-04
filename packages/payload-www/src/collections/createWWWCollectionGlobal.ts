@@ -2,7 +2,7 @@ import { name } from "../../package.json"
 import { type CollectionConfig, Field, GlobalConfig } from "payload"
 import { populatePublishedAt } from "./hooks/populatePublishedAt"
 import { createRevalidateCollectionGlobalHook } from "./hooks/createRevalidateCollectionGlobalHook"
-import { slugField } from "./fields"
+import { slugField } from "./fields/slug"
 import { authenticated, authenticatedOrPublished } from "./access"
 
 export type CreateWWWCollectionArgs = {

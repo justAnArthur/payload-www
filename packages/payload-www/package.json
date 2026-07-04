@@ -8,79 +8,17 @@
     "dist",
     "README.md"
   ],
-  "module": "./dist/index.js",
-  "types": "./dist/index.d.ts",
   "exports": {
-    "./data-seed": {
+    "./translator": {
       "import": {
-        "types": "./dist/data-seed.d.ts",
-        "default": "./dist/data-seed.js"
-      }
-    },
-    "./data-collections": {
-      "import": {
-        "types": "./dist/data-collections.d.ts",
-        "default": "./dist/data-collections.js"
-      }
-    },
-    "./hooks": {
-      "import": {
-        "types": "./dist/hooks.d.ts",
-        "default": "./dist/hooks.js"
-      }
-    },
-    "./server": {
-      "import": {
-        "types": "./dist/server.d.ts",
-        "default": "./dist/server.js"
-      }
-    },
-    "./data-test": {
-      "import": {
-        "types": "./dist/data-test.d.ts",
-        "default": "./dist/data-test.js"
-      }
-    },
-    "./with-www-config": {
-      "import": {
-        "types": "./dist/with-www-config.d.ts",
-        "default": "./dist/with-www-config.js"
-      }
-    },
-    "./imagehash": {
-      "import": {
-        "types": "./dist/imagehash.d.ts",
-        "default": "./dist/imagehash.js"
-      }
-    },
-    "./globals": {
-      "import": {
-        "types": "./dist/globals.d.ts",
-        "default": "./dist/globals.js"
-      }
-    },
-    ".": {
-      "import": {
-        "types": "./dist/index.d.ts",
-        "default": "./dist/index.js"
-      }
-    },
-    "./fields": {
-      "import": {
-        "types": "./dist/fields.d.ts",
-        "default": "./dist/fields.js"
+        "types": "./dist/translator.d.ts",
+        "default": "./dist/translator.js"
       }
     },
     "./render-pages": {
       "import": {
         "types": "./dist/render-pages.d.ts",
         "default": "./dist/render-pages.js"
-      }
-    },
-    "./core-access": {
-      "import": {
-        "types": "./dist/core-access.d.ts",
-        "default": "./dist/core-access.js"
       }
     },
     "./metadata": {
@@ -95,46 +33,28 @@
         "default": "./dist/config.js"
       }
     },
-    "./render-utils": {
+    "./imagehash": {
       "import": {
-        "types": "./dist/render-utils.d.ts",
-        "default": "./dist/render-utils.js"
+        "types": "./dist/imagehash.d.ts",
+        "default": "./dist/imagehash.js"
       }
     },
-    "./seed": {
+    "./blocks": {
       "import": {
-        "types": "./dist/seed.d.ts",
-        "default": "./dist/seed.js"
+        "types": "./dist/blocks.d.ts",
+        "default": "./dist/blocks.js"
+      }
+    },
+    "./utils": {
+      "import": {
+        "types": "./dist/utils.d.ts",
+        "default": "./dist/utils.js"
       }
     },
     "./pages": {
       "import": {
         "types": "./dist/pages.d.ts",
         "default": "./dist/pages.js"
-      }
-    },
-    "./render-metadata": {
-      "import": {
-        "types": "./dist/render-metadata.d.ts",
-        "default": "./dist/render-metadata.js"
-      }
-    },
-    "./core-fields": {
-      "import": {
-        "types": "./dist/core-fields.d.ts",
-        "default": "./dist/core-fields.js"
-      }
-    },
-    "./test": {
-      "import": {
-        "types": "./dist/test.d.ts",
-        "default": "./dist/test.js"
-      }
-    },
-    "./render-components": {
-      "import": {
-        "types": "./dist/render-components.d.ts",
-        "default": "./dist/render-components.js"
       }
     },
     "./access": {
@@ -149,46 +69,16 @@
         "default": "./dist/import-map-provider.js"
       }
     },
-    "./core-utils": {
+    "./globals": {
       "import": {
-        "types": "./dist/core-utils.d.ts",
-        "default": "./dist/core-utils.js"
+        "types": "./dist/globals.d.ts",
+        "default": "./dist/globals.js"
       }
     },
-    "./translator": {
+    "./fields": {
       "import": {
-        "types": "./dist/translator.d.ts",
-        "default": "./dist/translator.js"
-      }
-    },
-    "./blocks": {
-      "import": {
-        "types": "./dist/blocks.d.ts",
-        "default": "./dist/blocks.js"
-      }
-    },
-    "./components": {
-      "import": {
-        "types": "./dist/components.d.ts",
-        "default": "./dist/components.js"
-      }
-    },
-    "./core-blocks": {
-      "import": {
-        "types": "./dist/core-blocks.d.ts",
-        "default": "./dist/core-blocks.js"
-      }
-    },
-    "./collections": {
-      "import": {
-        "types": "./dist/collections.d.ts",
-        "default": "./dist/collections.js"
-      }
-    },
-    "./utils": {
-      "import": {
-        "types": "./dist/utils.d.ts",
-        "default": "./dist/utils.js"
+        "types": "./dist/fields.d.ts",
+        "default": "./dist/fields.js"
       }
     },
     "./package.json": "./package.json"
