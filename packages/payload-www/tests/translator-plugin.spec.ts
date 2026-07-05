@@ -21,8 +21,8 @@ function buildBaseConfig(overrides: Partial<TestConfig> = {}): TestConfig {
   } as TestConfig
 }
 
-describe('translator() — autoTranslate off (default)', () => {
-  it('leaves config.jobs untouched when autoTranslate is not set', () => {
+describe('translator() — autoTranslate on (default)', () => {
+  it('registers the task + workflow in config.jobs when autoTranslate is not set', () => {
     const plugin = translator({
       collections: ['pages'],
       globals: ['header'],
@@ -36,15 +36,61 @@ describe('translator() — autoTranslate off (default)', () => {
     } as TestConfig
     const result = plugin(configWithJobs) as TestConfig
 
-    expect((result.jobs?.tasks ?? []).map((t) => t.slug)).toEqual(['existingTask'])
-    expect((result.jobs?.workflows ?? []).map((w) => w.slug)).toEqual(['existingWorkflow'])
+    const taskSlugs = (result.jobs?.tasks ?? []).map((t) => t.slug)
+    const workflowSlugs = (result.jobs?.workflows ?? []).map((w) => w.slug)
+
+    expect(taskSlugs).toContain('translateEntityToLocale')
+    expect(workflowSlugs).toContain('translateEntityToLocales')
+    expect(taskSlugs).toContain('existingTask')
+    expect(workflowSlugs).toContain('existingWorkflow')
   })
 
-  it('does not attach afterChange hooks when autoTranslate is not set', () => {
+  it('attaches afterChange hooks when autoTranslate is not set', () => {
     const plugin = translator({
       collections: ['pages'],
       globals: ['header'],
       resolvers: [copyResolver()]
+    } as never)
+
+    const base = buildBaseConfig()
+    const result = plugin(base) as typeof base
+
+    const pages = result.collections?.find((c) => c.slug === 'pages')
+    const header = result.globals?.find((g) => g.slug === 'header')
+
+    expect(Array.isArray(pages?.hooks?.afterChange)).toBe(true)
+    expect((pages?.hooks?.afterChange as unknown[]).length).toBeGreaterThan(0)
+    expect(Array.isArray(header?.hooks?.afterChange)).toBe(true)
+    expect((header?.hooks?.afterChange as unknown[]).length).toBeGreaterThan(0)
+  })
+})
+
+describe('translator() — autoTranslate off (explicit)', () => {
+  it('leaves config.jobs untouched when autoTranslate is explicitly false', () => {
+    const plugin = translator({
+      collections: ['pages'],
+      globals: ['header'],
+      resolvers: [copyResolver()],
+      autoTranslate: false
+    } as never)
+
+    const base = buildBaseConfig()
+    const configWithJobs = {
+      ...base,
+      jobs: { tasks: [{ slug: 'existingTask' }], workflows: [{ slug: 'existingWorkflow' }] }
+    } as TestConfig
+    const result = plugin(configWithJobs) as TestConfig
+
+    expect((result.jobs?.tasks ?? []).map((t) => t.slug)).toEqual(['existingTask'])
+    expect((result.jobs?.workflows ?? []).map((w) => w.slug)).toEqual(['existingWorkflow'])
+  })
+
+  it('does not attach afterChange hooks when autoTranslate is explicitly false', () => {
+    const plugin = translator({
+      collections: ['pages'],
+      globals: ['header'],
+      resolvers: [copyResolver()],
+      autoTranslate: false
     } as never)
 
     const base = buildBaseConfig()

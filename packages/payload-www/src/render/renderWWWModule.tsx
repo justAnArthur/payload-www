@@ -1,5 +1,5 @@
 import type { ImportMap, SanitizedConfig } from 'payload'
-import { name } from "../../../../package.json"
+import { name } from "../../package.json"
 import { getFromImportMap } from "./getFromImportMap"
 
 export async function renderWWWDataModule(

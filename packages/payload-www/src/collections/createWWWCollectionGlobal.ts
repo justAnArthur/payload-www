@@ -5,28 +5,32 @@ import { createRevalidateCollectionGlobalHook } from "./hooks/createRevalidateCo
 import { slugField } from "./fields/slug"
 import { authenticated, authenticatedOrPublished } from "./access"
 
-export type CreateWWWCollectionArgs = {
-  slug: string
-  renderPath: string
+export type CreateWWWCollectionArgs<IsGlobalConfig extends boolean> = {
+  slug: string,
+  renderPath: string,
+  isGlobalConfig?: IsGlobalConfig
 }
 
-export function createWWWCollectionGlobal<Config extends CollectionConfig | GlobalConfig = CollectionConfig>(
+export function createWWWCollectionGlobal<IsGlobalConfig extends boolean, Config = IsGlobalConfig extends true ? GlobalConfig : CollectionConfig>(
   fields: Field[],
   {
     slug: collectionSlug,
-    renderPath
-  }: CreateWWWCollectionArgs): Config {
+    renderPath,
+    isGlobalConfig
+  }: CreateWWWCollectionArgs<IsGlobalConfig>): Config {
   return ({
     slug: collectionSlug,
-    fields: [
-      slugField(),
-      {
-        name: 'publishedAt',
-        type: 'date',
-        admin: { position: 'sidebar' }
-      },
-      ...fields
-    ],
+    fields: isGlobalConfig
+      ? fields
+      : [
+        slugField(),
+        {
+          name: 'publishedAt',
+          type: 'date',
+          admin: { position: 'sidebar' }
+        },
+        ...fields
+      ],
 
     custom: { [name]: { path: renderPath } },
 
@@ -42,7 +46,7 @@ export function createWWWCollectionGlobal<Config extends CollectionConfig | Glob
       return ({
         afterChange: [afterChange],
         beforeChange: [populatePublishedAt],
-        afterDelete: [afterDelete]
+        afterDelete: [afterDelete] // @ts-expect-error
       }) as Config['hooks']
     })(),
     versions: { drafts: { autosave: { interval: 3000 } } }

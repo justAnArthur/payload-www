@@ -37,5 +37,6 @@ export const createFooterGlobal =
       {
         slug: FOOTER_SLUG,
         renderPath: FOOTER_RENDER_PATH,
+        isGlobalConfig: true
       }
     )

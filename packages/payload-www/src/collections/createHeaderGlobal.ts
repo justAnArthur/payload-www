@@ -37,6 +37,7 @@ export const createHeaderGlobal =
       {
         slug: HEADER_SLUG,
         renderPath: HEADER_RENDER_PATH,
+        isGlobalConfig: true
       }
     )
 
