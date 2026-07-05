@@ -3,7 +3,7 @@ import { type CollectionConfig, Field, GlobalConfig } from "payload"
 import { populatePublishedAt } from "./hooks/populatePublishedAt"
 import { createRevalidateCollectionGlobalHook } from "./hooks/createRevalidateCollectionGlobalHook"
 import { slugField } from "./fields/slug"
-import { authenticated, authenticatedOrPublished } from "./access"
+import { anyone, authenticated, authenticatedOrPublished } from "./access"
 
 export type CreateWWWCollectionArgs<IsGlobalConfig extends boolean> = {
   slug: string,
@@ -39,7 +39,7 @@ export function createWWWCollectionGlobal<IsGlobalConfig extends boolean, Config
     access: {
       create: authenticated,
       delete: authenticated,
-      read: authenticatedOrPublished,
+      read: isDraft ? authenticatedOrPublished : anyone,
       update: authenticated
     },
     hooks: (() => {
