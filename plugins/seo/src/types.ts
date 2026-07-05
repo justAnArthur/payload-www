@@ -21,45 +21,38 @@ export type PartialDocumentInfoContext = Pick<
 >
 
 
-export type SEOMeta = {
-  
-  
-  title?: string
-  
-  description?: string
-  
-  keywords?: string
-  
-  image?: any 
+export type SiteDefaults = {
 
-  
+  siteName?: string
+
+  twitterSite?: string
+
+  twitterCreator?: string
+}
+
+
+export type SEOMeta = {
+
+
+  title?: string
+
+  description?: string
+
+  keywords?: string
+
+  image?: any
+
+
   ogTitle?: string
   ogDescription?: string
   ogImage?: any
   ogType?: 'website' | 'article' | 'profile' | 'book' | 'music' | 'video'
-  ogUrl?: string
-  ogSiteName?: string
-  ogLocale?: string
 
-  
+
   twitterCard?: 'summary' | 'summary_large_image' | 'app' | 'player'
   twitterTitle?: string
   twitterDescription?: string
   twitterImage?: any
-  twitterSite?: string
-  twitterCreator?: string
-
-  
-  
-  canonicalUrl?: string
-  
-  robots?: string
-  
-  author?: string
-  
-  publishedAt?: string
-  
-  modifiedAt?: string
 }
 
 

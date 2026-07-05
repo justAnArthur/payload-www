@@ -516,24 +516,10 @@ describe('static-page (not-found, error) — what the page looks like when meta 
     expect(rendered.description).toBe('Something went wrong on our end.')
   })
 
-  it('emits noindex when the static-page routes set it explicitly', () => {
-    
-    
-    
-    const meta: SEOMetaShape = {
-      advanced: { advanced: { noindex: true } }
-    }
-    const rendered = generateMeta({ meta, type: 'website' })
-    expect(rendered.robots).toEqual({ index: false, follow: false })
-  })
-
-  it('emits noindex for an unconfigured / unknown route (404) by convention', () => {
-    
-    
-    
+  it('static-page 404 has no `robots` directive (noindex feature is gone)', () => {
     const rendered = generateMeta({ meta: undefined, type: 'website', fallback: { title: '404' } })
     expect(rendered.title).toBe('404')
-    
+
     expect(rendered.robots).toBeUndefined()
   })
 

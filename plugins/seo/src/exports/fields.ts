@@ -1,6 +1,4 @@
-
 import { MetaField } from '../fields/MetaField'
-import { AdvancedField } from '../fields/AdvancedField'
 import { DescriptionField } from '../fields/DescriptionField'
 import { ImageField } from '../fields/ImageField'
 import { KeywordsField } from '../fields/KeywordsField'
@@ -9,7 +7,6 @@ import { TitleField } from '../fields/TitleField'
 
 export default {
   MetaField,
-  AdvancedField,
   DescriptionField,
   ImageField,
   KeywordsField,
@@ -17,4 +14,4 @@ export default {
   TitleField
 }
 
-export { MetaField, AdvancedField, DescriptionField, ImageField, KeywordsField, SocialField, TitleField }
+export { MetaField, DescriptionField, ImageField, KeywordsField, SocialField, TitleField }

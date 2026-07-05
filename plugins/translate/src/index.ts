@@ -46,6 +46,8 @@ export const translator: (pluginConfig: TranslatorConfig) => Plugin = (pluginCon
     if (pluginConfig.disabled || !config.localization || config.localization.locales.length < 2)
       return config
 
+    const autoTranslate = pluginConfig.autoTranslate ?? true
+
     const updatedConfig: Config = {
       ...config,
       admin: {
@@ -75,7 +77,7 @@ export const translator: (pluginConfig: TranslatorConfig) => Plugin = (pluginCon
                 }
               }
             },
-            ...(pluginConfig.autoTranslate
+            ...(autoTranslate
               ? {
                   hooks: attachCollectionHook(
                     collection.hooks,
@@ -116,7 +118,7 @@ export const translator: (pluginConfig: TranslatorConfig) => Plugin = (pluginCon
                 }
               }
             },
-            ...(pluginConfig.autoTranslate
+            ...(autoTranslate
               ? {
                   hooks: attachGlobalHook(
                     global.hooks,
@@ -132,7 +134,7 @@ export const translator: (pluginConfig: TranslatorConfig) => Plugin = (pluginCon
           ...deepMerge(config.i18n?.translations ?? {}, translations)
         }
       },
-      ...(pluginConfig.autoTranslate
+      ...(autoTranslate
         ? {
             jobs: {
               ...(config.jobs ?? {}),

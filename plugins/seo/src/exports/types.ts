@@ -3,5 +3,6 @@ export type {
   GenerateSEO,
   PartialDocumentInfoContext,
   SEOMeta,
-  SEOPluginConfig
+  SEOPluginConfig,
+  SiteDefaults
 } from '../types'

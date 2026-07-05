@@ -1,3 +1,4 @@
+import type { SiteDefaults } from '../types'
 import type { SEOMetaShape } from '../generateMeta'
 
 
@@ -5,9 +6,6 @@ export type SEOMetaImageProps = {
   title: string
   description?: string
   image?: string
-  author?: string
-  publishedAt?: string
-  modifiedAt?: string
   locale?: string
   type?: 'website' | 'article'
 }
@@ -36,11 +34,11 @@ export const extractSEOMetaForImage = (input: {
   fallback?: { title?: string; description?: string; image?: string }
   locale?: string
   type?: 'website' | 'article'
+  siteDefaults?: SiteDefaults
 }): SEOMetaImageProps => {
   const meta = input.meta ?? null
   const content = meta?.content ?? {}
   const social = meta?.social?.social ?? {}
-  const advanced = meta?.advanced?.advanced ?? {}
 
   const title = pickString(
     social.ogTitle,
@@ -63,23 +61,9 @@ export const extractSEOMetaForImage = (input: {
     readImage(content.image) ??
     readImage(input.fallback?.image)
 
-  const author = pickString(advanced.author)
-
-  const publishedAt = pickString(advanced.publishedAt)
-  const modifiedAt = pickString(advanced.modifiedAt)
-
   const out: SEOMetaImageProps = { title }
   if (description) out.description = description
   if (image) out.image = image
-  if (author) out.author = author
-  
-  
-  
-  
-  if (input.type === 'article') {
-    if (publishedAt) out.publishedAt = publishedAt
-    if (modifiedAt) out.modifiedAt = modifiedAt
-  }
   if (input.locale) out.locale = input.locale
   if (input.type) out.type = input.type
 

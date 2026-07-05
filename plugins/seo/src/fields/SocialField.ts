@@ -88,24 +88,7 @@ export const SocialField = (options: SocialFieldOptions = {}): GroupField => {
         options: OG_TYPES,
         defaultValue: 'website'
       } as unknown as SelectField,
-      {
-        name: 'ogUrl',
-        type: 'text',
-        label: 'OG url',
-        admin: { description: 'Canonical URL surfaced in OG shares (often auto-derived).' }
-      } as unknown as TextField,
-      {
-        name: 'ogSiteName',
-        type: 'text',
-        label: 'OG site name'
-      } as unknown as TextField,
-      {
-        name: 'ogLocale',
-        type: 'text',
-        label: 'OG locale',
-        admin: { description: 'Locale tag, e.g. "en_US".' }
-      } as unknown as TextField,
-      
+
       {
         name: 'twitterCard',
         type: 'select',
@@ -124,19 +107,7 @@ export const SocialField = (options: SocialFieldOptions = {}): GroupField => {
         type: 'textarea',
         label: 'Twitter description'
       } as unknown as TextField,
-      twitterImage(relationTo),
-      {
-        name: 'twitterSite',
-        type: 'text',
-        label: 'Twitter site',
-        admin: { description: 'Site @handle, e.g. "@yourbrand".' }
-      } as unknown as TextField,
-      {
-        name: 'twitterCreator',
-        type: 'text',
-        label: 'Twitter creator',
-        admin: { description: 'Author @handle for this entity.' }
-      } as unknown as TextField
+      twitterImage(relationTo)
     ]
   } as unknown as GroupField
 }

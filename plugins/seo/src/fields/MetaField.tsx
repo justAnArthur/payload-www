@@ -1,6 +1,5 @@
 import type { Field, GroupField, Tab, TabsField, UIField } from 'payload'
 
-import { AdvancedField } from './AdvancedField'
 import { buildFieldPaths } from './buildFieldPaths'
 import { DescriptionField } from './DescriptionField'
 import { ImageField } from './ImageField'
@@ -9,15 +8,15 @@ import { SocialField } from './SocialField'
 import { TitleField } from './TitleField'
 
 export type MetaFieldOptions = {
-  
+
   readonly hasGenerateAi?: boolean
-  
+
   readonly hasGenerateFn?: boolean
-  
+
   readonly relationTo?: string
-  
+
   readonly hidePreview?: boolean
-  
+
   readonly interfaceName?: string
 }
 
@@ -31,7 +30,7 @@ export const MetaField = (options: MetaFieldOptions = {}): GroupField => {
     hidePreview = false
   } = options
 
-  
+
   const tabs: TabsField = {
     type: 'tabs',
     tabs: [
@@ -50,39 +49,33 @@ export const MetaField = (options: MetaFieldOptions = {}): GroupField => {
         label: 'Social',
         fields: [SocialField({ relationTo }) as unknown as Field]
       },
-      {
-        name: 'advanced',
-        label: 'Advanced',
-        fields: [AdvancedField() as unknown as Field]
-      },
       ...(hidePreview
         ? []
         : [
-          {
-            name: 'preview',
-            label: 'Preview',
-            fields: [
-              {
-                type: 'ui',
-                name: '_preview',
-                admin: {
-                  components: {
-                    Field: {
-                      clientProps: { pathPrefix: 'meta' },
-                      path: '@justanarthur/payload-plugin-seo/client#MetaPreview'
+            {
+              name: 'preview',
+              label: 'Preview',
+              fields: [
+                {
+                  type: 'ui',
+                  name: '_preview',
+                  admin: {
+                    components: {
+                      Field: {
+                        clientProps: { pathPrefix: 'meta' },
+                        path: '@justanarthur/payload-plugin-seo/client#MetaPreview'
+                      }
                     }
                   }
-                }
-              } as unknown as UIField
-            ]
-          }
-        ])
+                } as unknown as UIField
+              ]
+            }
+          ])
     ]
   }
 
-  
-  
-  
+
+
   const fieldPaths = buildFieldPaths(tabs.tabs as Tab[])
 
   const generateUi: UIField = {
@@ -114,4 +107,3 @@ export const MetaField = (options: MetaFieldOptions = {}): GroupField => {
     interfaceName
   } as unknown as GroupField
 }
-

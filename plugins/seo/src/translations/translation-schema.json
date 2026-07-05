@@ -25,9 +25,6 @@
         "tabSocial": {
           "type": "string"
         },
-        "tabAdvanced": {
-          "type": "string"
-        },
         "tabPreview": {
           "type": "string"
         },
@@ -88,21 +85,6 @@
         "ogTypeDescription": {
           "type": "string"
         },
-        "ogUrlLabel": {
-          "type": "string"
-        },
-        "ogUrlDescription": {
-          "type": "string"
-        },
-        "ogSiteNameLabel": {
-          "type": "string"
-        },
-        "ogLocaleLabel": {
-          "type": "string"
-        },
-        "ogLocaleDescription": {
-          "type": "string"
-        },
         "twitterCardLabel": {
           "type": "string"
         },
@@ -118,6 +100,18 @@
         "twitterImageLabel": {
           "type": "string"
         },
+        "metadataGroupLabel": {
+          "type": "string"
+        },
+        "metadataGroupDescription": {
+          "type": "string"
+        },
+        "siteNameLabel": {
+          "type": "string"
+        },
+        "siteNameDescription": {
+          "type": "string"
+        },
         "twitterSiteLabel": {
           "type": "string"
         },
@@ -128,39 +122,6 @@
           "type": "string"
         },
         "twitterCreatorDescription": {
-          "type": "string"
-        },
-        "advancedLabel": {
-          "type": "string"
-        },
-        "advancedDescription": {
-          "type": "string"
-        },
-        "canonicalUrlLabel": {
-          "type": "string"
-        },
-        "canonicalUrlDescription": {
-          "type": "string"
-        },
-        "robotsLabel": {
-          "type": "string"
-        },
-        "robotsDescription": {
-          "type": "string"
-        },
-        "noindexLabel": {
-          "type": "string"
-        },
-        "noindexDescription": {
-          "type": "string"
-        },
-        "authorLabel": {
-          "type": "string"
-        },
-        "publishedAtLabel": {
-          "type": "string"
-        },
-        "modifiedAtLabel": {
           "type": "string"
         },
         "autoGenerate": {
@@ -249,7 +210,6 @@
         "metaGroupLabel",
         "tabContent",
         "tabSocial",
-        "tabAdvanced",
         "tabPreview",
         "metaTitleLabel",
         "metaDescriptionLabel",

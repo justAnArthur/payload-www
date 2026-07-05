@@ -7,7 +7,7 @@ import React, { useMemo } from 'react'
 import type { PluginSEOTranslationKeys, PluginSEOTranslations } from '../translations'
 
 type PreviewProps = {
-  
+
   readonly pathPrefix?: string
 } & UIField
 
@@ -21,11 +21,6 @@ type SocialValues = {
   twitterDescription?: unknown
   twitterImage?: unknown
   twitterTitle?: unknown
-}
-
-type AdvancedValues = {
-  canonicalUrl?: unknown
-  robots?: unknown
 }
 
 const titleOf = (value: unknown): string | undefined =>
@@ -62,12 +57,12 @@ export const MetaPreview: React.FC<PreviewProps> = ({ pathPrefix = 'meta' }) => 
     return entry?.value
   }
 
-  
+
   const title = titleOf(valueAt(`${pathPrefix}.title`))
   const description = titleOf(valueAt(`${pathPrefix}.description`))
   const image = imageUrlOf(valueAt(`${pathPrefix}.image`))
 
-  
+
   const socialPath = `${pathPrefix}.social`
   const social: SocialValues = {
     ogDescription: valueAt(`${socialPath}.ogDescription`),
@@ -90,34 +85,28 @@ export const MetaPreview: React.FC<PreviewProps> = ({ pathPrefix = 'meta' }) => 
   const twitterImage: string = imageUrlOf(social.twitterImage) ?? ogImage
   const twitterCard: string = titleOf(social.twitterCard) ?? 'summary'
 
-  
-  const advanced: AdvancedValues = {
-    canonicalUrl: valueAt(`${pathPrefix}.advanced.canonicalUrl`),
-    robots: valueAt(`${pathPrefix}.advanced.robots`)
-  }
+  const robots = valueAt(`${pathPrefix}.robots`)
 
-  
+
   const data = getData()
   const docSlug = (data && typeof data === 'object' && 'slug' in data
     ? (data as { slug?: unknown }).slug
     : undefined) as string | undefined
 
   const canonicalUrl = useMemo(() => {
-    const explicit = titleOf(advanced.canonicalUrl)
-    if (explicit) return explicit
     if (typeof serverURL === 'string' && docSlug) {
       try {
         return new URL(`/${docSlug}`, serverURL).toString()
       } catch {
-        return explicit
+        return undefined
       }
     }
-    return explicit
-  }, [advanced.canonicalUrl, docSlug, serverURL])
+    return undefined
+  }, [docSlug, serverURL])
 
   const localeCode = typeof locale === 'object' ? locale?.code : locale
 
-  
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       {}
@@ -170,10 +159,10 @@ export const MetaPreview: React.FC<PreviewProps> = ({ pathPrefix = 'meta' }) => 
             <div style={{ fontSize: '15px', fontWeight: 600 }}>
               {twitterTitle ?? t('plugin-seo:previewTitlePlaceholder')}
             </div>
-            <div style={{ color: '#606770', fontSize: '14px' }}>
+            <div style={{ color: '#606060', fontSize: '14px' }}>
               {twitterDescription ?? t('plugin-seo:previewDescriptionPlaceholder')}
             </div>
-            <div style={{ color: '#606770', fontSize: '12px', marginTop: '4px' }}>
+            <div style={{ color: '#606060', fontSize: '12px', marginTop: '4px' }}>
               {canonicalUrl ?? 'https://…'}
               {localeCode ? ` · ${localeCode.toUpperCase()}` : ''}
             </div>
@@ -181,7 +170,7 @@ export const MetaPreview: React.FC<PreviewProps> = ({ pathPrefix = 'meta' }) => 
         </div>
       </section>
 
-      {typeof advanced.robots === 'string' && advanced.robots && (
+      {typeof robots === 'string' && robots && (
         <section>
           <h4 style={{ margin: '0 0 8px' }}>{t('plugin-seo:robotsLabel')}</h4>
           <code
@@ -193,7 +182,7 @@ export const MetaPreview: React.FC<PreviewProps> = ({ pathPrefix = 'meta' }) => 
               padding: '4px 8px'
             }}
           >
-            {advanced.robots}
+            {robots}
           </code>
         </section>
       )}
