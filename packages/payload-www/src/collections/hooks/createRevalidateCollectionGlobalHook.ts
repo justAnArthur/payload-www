@@ -9,7 +9,11 @@ export function createRevalidateCollectionGlobalHook() {
       locale = req.locale as string
 
     function revalidate(args: Omit<CollectionGlobalLocaleIdentifiersArgs, 'locale'>) { // @ts-ignore
-      revalidateTag(createCollectionCacheKey({ ...args, locale }), 'max')
+      try {
+        revalidateTag(createCollectionCacheKey({ ...args, locale }), 'max')
+      } catch (error) {
+        console.error(error)
+      }
     }
 
     if ('collection' in args) {
