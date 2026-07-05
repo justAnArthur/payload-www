@@ -97,29 +97,14 @@ describe('extractSEOMetaForImage', () => {
     expect(extractSEOMetaForImage({ meta: null, locale: 'sk' }).locale).toBe('sk')
   })
 
-  it('only surfaces publishedAt / modifiedAt when type === "article"', () => {
-    const meta: SEOMetaShape = {
-      advanced: {
-        advanced: {
-          publishedAt: '2024-01-01',
-          modifiedAt: '2024-06-01'
-        }
-      }
-    }
-    const website = extractSEOMetaForImage({ meta, type: 'website' })
-    expect(website.publishedAt).toBeUndefined()
-    expect(website.modifiedAt).toBeUndefined()
-
-    const article = extractSEOMetaForImage({ meta, type: 'article' })
-    expect(article.publishedAt).toBe('2024-01-01')
-    expect(article.modifiedAt).toBe('2024-06-01')
-  })
-
-  it('pulls author from advanced.advanced.author', () => {
-    const meta: SEOMetaShape = {
-      advanced: { advanced: { author: 'Artur K.' } }
-    }
-    expect(extractSEOMetaForImage({ meta }).author).toBe('Artur K.')
+  it('does not surface author / publishedAt / modifiedAt (doc-level fields are gone)', () => {
+    const article = extractSEOMetaForImage({
+      meta: { content: { title: 't' } },
+      type: 'article'
+    } as never)
+    expect((article as Record<string, unknown>).author).toBeUndefined()
+    expect((article as Record<string, unknown>).publishedAt).toBeUndefined()
+    expect((article as Record<string, unknown>).modifiedAt).toBeUndefined()
   })
 
   it('drops empty-string fields from the result (not just nullish)', () => {

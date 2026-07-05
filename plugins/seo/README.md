@@ -1,7 +1,7 @@
 # @justanarthur/payload-plugin-seo
 
 SEO plugin for Payload CMS — adds a `meta` group field (title, description,
-keywords, image, Open Graph, Twitter Card, advanced) and a `/plugin-seo/generate`
+keywords, image, Open Graph, Twitter Card, robots, noindex) and a `/plugin-seo/generate`
 HTTP endpoint for AI-assisted meta generation.
 
 ## Install

@@ -1,2 +1,5 @@
-export { generateMeta } from './generateMeta'
-export type { GenerateMetaArgs, SEOMetaShape } from './generateMeta'
+export { generateMeta } from '../generateMeta'
+export type { GenerateMetaArgs, SEOMetaShape } from '../generateMeta'
+export type { SiteDefaults } from '../types'
+export { createSiteDefaults } from '../siteDefaults/createSiteDefaults'
+export type { CreateSiteDefaultsArgs } from '../siteDefaults/createSiteDefaults'

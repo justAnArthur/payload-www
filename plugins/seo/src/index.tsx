@@ -3,6 +3,10 @@ import { deepMergeSimple } from 'payload/shared'
 
 import { runAutoGenerate } from './autoGenerate'
 import { MetaField } from './fields/MetaField'
+import {
+  createMetadataGlobal,
+  METADATA_GLOBAL_DEFAULT_SLUG
+} from './globals/createMetadataGlobal'
 import { openaiMessage } from './openai/message'
 import { translations } from './translations'
 import type { GenerateSEO, SEOMeta, SEOPluginConfig } from './types'
@@ -20,30 +24,30 @@ type GenerateRequest = {
 
 const buildAutoGenerateHook =
   (pluginConfig: SEOPluginConfig, hostConfig: Config) =>
-  async (args: {
-    collection?: { slug: string }
-    data: Record<string, unknown>
-    global?: { slug: string }
-    operation: 'create' | 'update'
-    originalDoc?: Record<string, unknown>
-    req: import('payload').PayloadRequest
-  }): Promise<Record<string, unknown>> => {
-    const collectionConfig = args.collection
-      ? hostConfig.collections?.find((c) => c.slug === args.collection?.slug)
-      : undefined
-    const globalConfig = args.global
-      ? hostConfig.globals?.find((g) => g.slug === args.global?.slug)
-      : undefined
-    return runAutoGenerate({
-      pluginConfig,
-      collectionConfig,
-      globalConfig,
-      data: args.data,
-      operation: args.operation,
-      locale: typeof args.req.locale === 'string' ? args.req.locale : undefined,
-      req: args.req
-    })
-  }
+    async (args: {
+      collection?: { slug: string }
+      data: Record<string, unknown>
+      global?: { slug: string }
+      operation: 'create' | 'update'
+      originalDoc?: Record<string, unknown>
+      req: import('payload').PayloadRequest
+    }): Promise<Record<string, unknown>> => {
+      const collectionConfig = args.collection
+        ? hostConfig.collections?.find((c) => c.slug === args.collection?.slug)
+        : undefined
+      const globalConfig = args.global
+        ? hostConfig.globals?.find((g) => g.slug === args.global?.slug)
+        : undefined
+      return runAutoGenerate({
+        pluginConfig,
+        collectionConfig,
+        globalConfig,
+        data: args.data,
+        operation: args.operation,
+        locale: typeof args.req.locale === 'string' ? args.req.locale : undefined,
+        req: args.req
+      })
+    }
 
 
 export const seoPlugin =
@@ -66,18 +70,8 @@ export const seoPlugin =
           ? pluginConfig.fields({ defaultFields: [buildMetaField()] })
           : [buildMetaField()]
 
-      
-      
-      
-      
-      
       const autoGenerateHook = buildAutoGenerateHook(pluginConfig, config)
 
-      
-      
-      
-      
-      
       const withAutoGenerateHook = <T extends { hooks?: { beforeChange?: unknown } }>(item: T): T => {
         const existing = item.hooks?.beforeChange
         const composed = async (args: unknown): Promise<unknown> => {
@@ -98,6 +92,10 @@ export const seoPlugin =
         return { ...item, hooks: { ...(item.hooks ?? {}), beforeChange: [composed] } }
       }
 
+      const hostHasMetadataGlobal = (config.globals ?? []).some(
+        (g) => g.slug === METADATA_GLOBAL_DEFAULT_SLUG
+      )
+
       return {
         ...config,
         collections:
@@ -109,8 +107,8 @@ export const seoPlugin =
             if (!isEnabled) return collection
 
             if (pluginConfig?.tabbedUI) {
-              
-              
+
+
               const emailField =
                 (collection.auth ||
                   !(
@@ -196,7 +194,7 @@ export const seoPlugin =
                 ;(req as { data?: unknown }).data = data.doc
               }
 
-              
+
               const collectionConfig = data.collectionSlug
                 ? config.collections?.find((c) => c.slug === data.collectionSlug)
                 : undefined
@@ -249,8 +247,8 @@ export const seoPlugin =
             path: '/plugin-seo/generate'
           }
         ],
-        globals:
-          config.globals?.map((global) => {
+        globals: hostHasMetadataGlobal
+          ? config.globals?.map((global) => {
             const { slug } = global
 
             const isEnabled = pluginConfig?.globals?.includes(slug as never)
@@ -300,7 +298,8 @@ export const seoPlugin =
               ...global,
               fields: [...(global?.fields || []), ...seoFields]
             })
-          }) || [],
+          }) || []
+          : [createMetadataGlobal()],
         i18n: {
           ...config.i18n,
           translations: config.i18n?.translations

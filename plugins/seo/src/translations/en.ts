@@ -8,7 +8,6 @@ export const en: GenericTranslationsObject = {
     metaGroupDescription: 'Search engine and social share metadata for this entity.',
     tabContent: 'Content',
     tabSocial: 'Social',
-    tabAdvanced: 'Advanced',
     tabPreview: 'Preview',
 
     
@@ -33,11 +32,6 @@ export const en: GenericTranslationsObject = {
     ogImageUrlDescription: 'Public URL of the Open Graph image.',
     ogTypeLabel: 'OG type',
     ogTypeDescription: 'Open Graph object type — usually "website" or "article".',
-    ogUrlLabel: 'OG url',
-    ogUrlDescription: 'Canonical URL surfaced in OG shares (often auto-derived).',
-    ogSiteNameLabel: 'OG site name',
-    ogLocaleLabel: 'OG locale',
-    ogLocaleDescription: 'Locale tag, e.g. "en_US".',
 
     
     twitterCardLabel: 'Twitter card',
@@ -45,23 +39,19 @@ export const en: GenericTranslationsObject = {
     twitterTitleDescription: 'Falls back to OG title, then meta title.',
     twitterDescriptionLabel: 'Twitter description',
     twitterImageLabel: 'Twitter image',
-    twitterSiteLabel: 'Twitter site',
-    twitterSiteDescription: 'Site @handle, e.g. "@yourbrand".',
-    twitterCreatorLabel: 'Twitter creator',
-    twitterCreatorDescription: 'Author @handle for this entity.',
 
     
-    advancedLabel: 'Advanced',
-    advancedDescription: 'Canonical URL, robots directives, and other low-level meta.',
-    canonicalUrlLabel: 'Canonical URL',
-    canonicalUrlDescription: 'Overrides the auto-derived canonical. Use absolute URLs.',
-    robotsLabel: 'Robots',
-    robotsDescription: 'Free-form `meta robots` content, e.g. "index, follow" or "noindex, nofollow".',
-    noindexLabel: 'No-index',
-    noindexDescription: 'When on, sets `robots` to "noindex, nofollow" and ignores the manual robots field.',
-    authorLabel: 'Author',
-    publishedAtLabel: 'Published at',
-    modifiedAtLabel: 'Modified at',
+    metadataGroupLabel: 'Site metadata',
+    metadataGroupDescription:
+      'Site-wide SEO defaults — site name and Twitter handles. Locale comes from next-intl routing; per-doc fields override these.',
+    siteNameLabel: 'Site name',
+    siteNameDescription:
+      'Brand name as it should appear in OG shares. Per-doc fallback.',
+    twitterSiteLabel: 'Twitter site',
+    twitterSiteDescription: 'Site @handle, e.g. "@yourbrand". Surfaces as twitter:site.',
+    twitterCreatorLabel: 'Twitter creator',
+    twitterCreatorDescription:
+      'Default author @handle. Surfaces as twitter:creator.',
 
     
     autoGenerate: 'Auto-generate',

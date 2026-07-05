@@ -5,11 +5,6 @@ import { generateMeta, type SEOMetaShape } from '../src/generateMeta'
 
 
 
-
-
-
-
-
 describe('generateMeta — page', () => {
   it('maps a fully-populated page meta into Metadata', () => {
     const meta: SEOMetaShape = {
@@ -25,22 +20,10 @@ describe('generateMeta — page', () => {
           ogDescription: 'A team that builds useful things.',
           ogImage: { url: 'https://cdn.example.com/og-about.png' },
           ogType: 'website',
-          ogUrl: 'https://example.com/about',
-          ogSiteName: 'Acme',
-          ogLocale: 'en_US',
           twitterCard: 'summary_large_image',
           twitterTitle: 'About us',
           twitterDescription: 'A team that builds useful things.',
-          twitterImage: 'https://cdn.example.com/tw-about.png',
-          twitterSite: '@acme',
-          twitterCreator: '@team_acme'
-        }
-      },
-      advanced: {
-        advanced: {
-          canonicalUrl: 'https://example.com/about',
-          robots: 'index, follow',
-          author: 'Acme Team'
+          twitterImage: 'https://cdn.example.com/tw-about.png'
         }
       }
     }
@@ -56,35 +39,24 @@ describe('generateMeta — page', () => {
     expect(out.title).toBe('About us')
     expect(out.description).toBe('Learn about the team and what we build.')
     expect(out.keywords).toEqual(['cms', 'payload', 'seo'])
-    expect(out.authors).toEqual([{ name: 'Acme Team' }])
-    expect(out.robots).toBe('index, follow')
     expect(out.openGraph).toMatchObject({
       title: 'About us | Acme',
       description: 'A team that builds useful things.',
       type: 'website',
       url: 'https://example.com/about',
-      siteName: 'Acme',
-      
-      locale: 'en_US',
       images: [{ url: 'https://cdn.example.com/og-about.png' }]
     })
     expect(out.twitter).toMatchObject({
       card: 'summary_large_image',
       title: 'About us',
       description: 'A team that builds useful things.',
-      site: '@acme',
-      creator: '@team_acme',
       images: [{ url: 'https://cdn.example.com/tw-about.png' }]
     })
-    
-    
+
     expect(out.alternates).toBeUndefined()
   })
 
   it('cascades title: content → og → twitter → fallback (document title only)', () => {
-    
-    
-    
     const out = generateMeta({
       meta: {
         social: { social: { twitterTitle: 'Twitter-only title' } }
@@ -93,9 +65,9 @@ describe('generateMeta — page', () => {
       fallback: { title: 'fallback title' }
     })
     expect(out.title).toBe('Twitter-only title')
-    
+
     expect(out.openGraph?.title).toBeUndefined()
-    
+
     expect(out.twitter?.title).toBe('Twitter-only title')
   })
 
@@ -171,7 +143,7 @@ describe('generateMeta — page', () => {
       type: 'website'
     })
     expect(out.openGraph?.images).toEqual([{ url: 'https://cdn.example.com/og.png' }])
-    
+
     expect(out.twitter?.images).toEqual([{ url: 'https://cdn.example.com/og.png' }])
   })
 
@@ -192,7 +164,7 @@ describe('generateMeta — page', () => {
     expect(out.openGraph?.images).toEqual([{ url: 'https://cdn.example.com/og.png' }])
   })
 
-  it('uses url arg as openGraph.url when ogUrl is not set', () => {
+  it('uses url arg as openGraph.url when nothing else sets it', () => {
     const out = generateMeta({
       meta: { content: { title: 't' } },
       url: 'https://example.com/x',
@@ -201,19 +173,7 @@ describe('generateMeta — page', () => {
     expect(out.openGraph?.url).toBe('https://example.com/x')
   })
 
-  it('ogUrl wins over the url arg', () => {
-    const out = generateMeta({
-      meta: {
-        content: { title: 't' },
-        social: { social: { ogUrl: 'https://canonical.example.com/x' } }
-      },
-      url: 'https://example.com/x',
-      type: 'website'
-    })
-    expect(out.openGraph?.url).toBe('https://canonical.example.com/x')
-  })
-
-  it('uses locale arg as openGraph.locale when ogLocale is not set', () => {
+  it('uses locale arg as openGraph.locale', () => {
     const out = generateMeta({
       meta: { content: { title: 't' } },
       locale: 'sk',
@@ -241,44 +201,7 @@ describe('generateMeta — page', () => {
     expect(out.openGraph?.type).toBe('article')
   })
 
-  it('passes robots string through when noindex is false', () => {
-    const out = generateMeta({
-      meta: {
-        content: { title: 't' },
-        advanced: { advanced: { robots: 'noindex, nofollow', noindex: false } }
-      },
-      type: 'website'
-    })
-    expect(out.robots).toBe('noindex, nofollow')
-  })
-
-  it('noindex: true forces `robots: { index: false, follow: false }`', () => {
-    const out = generateMeta({
-      meta: {
-        content: { title: 't' },
-        advanced: { advanced: { noindex: true, robots: 'index, follow' } }
-      },
-      type: 'website'
-    })
-    expect(out.robots).toEqual({ index: false, follow: false })
-  })
-
-  it('maps author to authors: [{ name }]', () => {
-    const out = generateMeta({
-      meta: {
-        content: { title: 't' },
-        advanced: { advanced: { author: 'Jane Doe' } }
-      },
-      type: 'website'
-    })
-    expect(out.authors).toEqual([{ name: 'Jane Doe' }])
-  })
-
   it('omits OG/Twitter content when there is nothing meaningful (title-only meta)', () => {
-    
-    
-    
-    
     const out = generateMeta({
       meta: { content: { title: 'just a title' } },
       type: 'website'
@@ -296,16 +219,76 @@ describe('generateMeta — page', () => {
 
 
 
+describe('generateMeta — siteDefaults cascade', () => {
+  it('siteDefaults.siteName fills openGraph.siteName', () => {
+    const out = generateMeta({
+      meta: { content: { title: 't' } },
+      type: 'website',
+      siteDefaults: { siteName: 'Acme' }
+    })
+    expect(out.openGraph?.siteName).toBe('Acme')
+  })
 
+  it('siteDefaults.twitterSite fills twitter.site', () => {
+    const out = generateMeta({
+      meta: { content: { title: 't' } },
+      type: 'website',
+      siteDefaults: { twitterSite: '@acme' }
+    })
+    expect(out.twitter?.site).toBe('@acme')
+  })
 
+  it('siteDefaults.twitterCreator fills twitter.creator', () => {
+    const out = generateMeta({
+      meta: { content: { title: 't' } },
+      type: 'website',
+      siteDefaults: { twitterCreator: '@team' }
+    })
+    expect(out.twitter?.creator).toBe('@team')
+  })
 
+  it('full siteDefaults cascade for an article post', () => {
+    const out = generateMeta({
+      meta: { content: { title: 'How we shipped' } },
+      url: 'https://example.com/posts/seo-rollout',
+      type: 'article',
+      locale: 'en',
+      siteDefaults: {
+        siteName: 'Acme',
+        twitterSite: '@acme',
+        twitterCreator: '@engteam'
+      }
+    })
+    expect(out.openGraph).toMatchObject({
+      type: 'article',
+      title: 'How we shipped',
+      url: 'https://example.com/posts/seo-rollout',
+      siteName: 'Acme',
+      locale: 'en'
+    })
+    expect(out.twitter).toMatchObject({
+      card: 'summary_large_image',
+      site: '@acme',
+      creator: '@engteam'
+    })
+  })
 
+  it('absent siteDefaults leaves site-name / twitter handles unset', () => {
+    const out = generateMeta({
+      meta: { content: { title: 't' } },
+      type: 'website'
+    })
+    expect(out.openGraph?.siteName).toBeUndefined()
+    expect(out.twitter?.site).toBeUndefined()
+    expect(out.twitter?.creator).toBeUndefined()
+  })
+})
 
 
 
 
 describe('generateMeta — post', () => {
-  it('emits openGraph.publishedTime / modifiedTime for article posts', () => {
+  it('emits an OG article object with title and image for a post', () => {
     const meta: SEOMetaShape = {
       content: {
         title: 'How we shipped the SEO plugin',
@@ -314,15 +297,7 @@ describe('generateMeta — post', () => {
       },
       social: {
         social: {
-          ogType: 'article',
-          ogUrl: 'https://example.com/posts/seo-rollout'
-        }
-      },
-      advanced: {
-        advanced: {
-          publishedAt: '2026-01-15T10:00:00.000Z',
-          modifiedAt: '2026-02-01T12:30:00.000Z',
-          author: 'Eng Team'
+          ogType: 'article'
         }
       }
     }
@@ -332,12 +307,9 @@ describe('generateMeta — post', () => {
       type: 'article'
     })
     expect(out.openGraph?.type).toBe('article')
-    expect(out.openGraph?.publishedTime).toBe('2026-01-15T10:00:00.000Z')
-    expect(out.openGraph?.modifiedTime).toBe('2026-02-01T12:30:00.000Z')
     expect(out.openGraph?.title).toBe('How we shipped the SEO plugin')
     expect(out.openGraph?.description).toBe('A short write-up of the SEO plugin rollout.')
     expect(out.openGraph?.images).toEqual([{ url: 'https://cdn.example.com/post.png' }])
-    expect(out.authors).toEqual([{ name: 'Eng Team' }])
   })
 
   it('falls back to type arg when ogType is unset on a post', () => {
@@ -348,37 +320,25 @@ describe('generateMeta — post', () => {
     expect(out.openGraph?.type).toBe('article')
   })
 
-  it('does NOT set publishedTime / modifiedTime when type is "website"', () => {
+  it('does NOT set publishedTime / modifiedTime on the OG object', () => {
     const out = generateMeta({
-      meta: {
-        content: { title: 't' },
-        advanced: {
-          advanced: {
-            publishedAt: '2026-01-15T10:00:00.000Z',
-            modifiedAt: '2026-02-01T12:30:00.000Z'
-          }
-        }
-      },
-      type: 'website'
+      meta: { content: { title: 't' } },
+      type: 'article'
     })
-    expect(out.openGraph?.type).toBe('website')
-    expect(out.openGraph?.publishedTime).toBeUndefined()
-    expect(out.openGraph?.modifiedTime).toBeUndefined()
+    expect(out.openGraph?.type).toBe('article')
+    expect((out.openGraph as Record<string, unknown>)?.publishedTime).toBeUndefined()
+    expect((out.openGraph as Record<string, unknown>)?.modifiedTime).toBeUndefined()
   })
 
   it('ogType: "article" overrides type: "website" (post misconfigured as website)', () => {
     const out = generateMeta({
       meta: {
         content: { title: 't' },
-        social: { social: { ogType: 'article' } },
-        advanced: {
-          advanced: { publishedAt: '2026-01-15T10:00:00.000Z' }
-        }
+        social: { social: { ogType: 'article' } }
       },
       type: 'website'
     })
     expect(out.openGraph?.type).toBe('article')
-    expect(out.openGraph?.publishedTime).toBe('2026-01-15T10:00:00.000Z')
   })
 
   it('defaults twitterCard to summary_large_image when unset', () => {
@@ -398,23 +358,6 @@ describe('generateMeta — post', () => {
       type: 'article'
     })
     expect(out.twitter?.card).toBe('summary')
-  })
-
-  it('maps twitterSite and twitterCreator', () => {
-    const out = generateMeta({
-      meta: {
-        content: { title: 't' },
-        social: {
-          social: {
-            twitterSite: '@acme',
-            twitterCreator: '@jane'
-          }
-        }
-      },
-      type: 'article'
-    })
-    expect(out.twitter?.site).toBe('@acme')
-    expect(out.twitter?.creator).toBe('@jane')
   })
 
   it('twitterTitle cascade: twitter → og → content', () => {
@@ -471,15 +414,6 @@ describe('generateMeta — post', () => {
 
 
 
-
-
-
-
-
-
-
-
-
 describe('generateMeta — static-page (not-found, error)', () => {
   it('returns `{ title: "Not found" }` when meta is null', () => {
     const out = generateMeta({ meta: null, type: 'website' })
@@ -498,9 +432,8 @@ describe('generateMeta — static-page (not-found, error)', () => {
       fallback: { title: 'Page not found' }
     })
     expect(out.title).toBe('Page not found')
-    
-    
-    
+
+
     expect(out.openGraph?.images).toBeUndefined()
     expect(out.openGraph?.description).toBeUndefined()
     expect(out.openGraph?.title).toBeUndefined()
@@ -511,9 +444,6 @@ describe('generateMeta — static-page (not-found, error)', () => {
   })
 
   it('picks up fallback.description when no meta description is available', () => {
-    
-    
-    
     const out = generateMeta({
       meta: {},
       type: 'website',
@@ -559,34 +489,16 @@ describe('generateMeta — static-page (not-found, error)', () => {
     expect(out.title).toBe('Server error')
   })
 
-  it('honors noindex on a not-found meta (search engines should not index)', () => {
-    const out = generateMeta({
-      meta: {
-        content: { title: 'Not found' },
-        advanced: { advanced: { noindex: true } }
-      },
-      type: 'website',
-      fallback: { title: 'Not found' }
-    })
-    expect(out.title).toBe('Not found')
-    expect(out.robots).toEqual({ index: false, follow: false })
-  })
-
   it('still produces a clean Metadata when a static page has full meta', () => {
-    
-    
-    
     const out = generateMeta({
       meta: {
         content: { title: 'Page not found', description: '404' },
-        social: { social: { ogType: 'website' } },
-        advanced: { advanced: { robots: 'noindex, follow' } }
+        social: { social: { ogType: 'website' } }
       },
       type: 'website'
     })
     expect(out.title).toBe('Page not found')
     expect(out.description).toBe('404')
-    expect(out.robots).toBe('noindex, follow')
     expect(out.openGraph?.type).toBe('website')
     expect(out.openGraph?.title).toBe('Page not found')
   })

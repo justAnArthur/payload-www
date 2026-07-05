@@ -4,6 +4,7 @@ import { createElement } from 'react'
 import type { ImportMap, SanitizedCollectionConfig, SanitizedConfig } from 'payload'
 import { getPayload } from 'payload'
 
+import type { SiteDefaults } from '../types'
 import { extractSEOMetaForImage, type SEOMetaImageProps } from './extractSEOMetaForImage'
 import { getCollectionOGImagePath } from './getCollectionOGImagePath'
 
@@ -94,6 +95,9 @@ export type CreateOpenGraphImageRouteArgs = {
     collectionSlug: string
     slugField: string
   }) => Promise<Record<string, unknown> | null>
+
+
+  siteDefaults?: SiteDefaults
 }
 
 
@@ -210,7 +214,8 @@ export const createOpenGraphImageRoute =
         image: args.fallbackImage
       },
       locale,
-      type: args.type
+      type: args.type,
+      siteDefaults: args.siteDefaults
     })
 
     const ImageResponseCtor = await loadImageResponse()
