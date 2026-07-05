@@ -8,7 +8,8 @@ import { authenticated, authenticatedOrPublished } from "./access"
 export type CreateWWWCollectionArgs<IsGlobalConfig extends boolean> = {
   slug: string,
   renderPath: string,
-  isGlobalConfig?: IsGlobalConfig
+  isGlobalConfig?: IsGlobalConfig,
+  isDraft?: boolean,
 }
 
 export function createWWWCollectionGlobal<IsGlobalConfig extends boolean, Config = IsGlobalConfig extends true ? GlobalConfig : CollectionConfig>(
@@ -16,7 +17,8 @@ export function createWWWCollectionGlobal<IsGlobalConfig extends boolean, Config
   {
     slug: collectionSlug,
     renderPath,
-    isGlobalConfig
+    isGlobalConfig = false as IsGlobalConfig,
+    isDraft = true
   }: CreateWWWCollectionArgs<IsGlobalConfig>): Config {
   return ({
     slug: collectionSlug,
@@ -49,7 +51,10 @@ export function createWWWCollectionGlobal<IsGlobalConfig extends boolean, Config
         afterDelete: [afterDelete] // @ts-expect-error
       }) as Config['hooks']
     })(),
-    versions: { drafts: { autosave: { interval: 3000 } } }
+
+    ...(isDraft && {
+      versions: { drafts: { autosave: { interval: 3000 } } }
+    })
   }) as Config
 }
 
