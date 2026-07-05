@@ -1,5 +1,9 @@
-export { generateMeta } from '../generateMeta'
-export type { GenerateMetaArgs, SEOMetaShape } from '../generateMeta'
-export type { SiteDefaults } from '../types'
-export { createSiteDefaults } from '../siteDefaults/createSiteDefaults'
-export type { CreateSiteDefaultsArgs } from '../siteDefaults/createSiteDefaults'
+import { generateMeta, type GenerateMetaArgs, type SEOMetaShape } from '../generateMeta'
+import { createSiteDefaults, type CreateSiteDefaultsArgs } from '../siteDefaults/createSiteDefaults'
+import type { SiteDefaults } from '../types'
+
+const nextMetadata = { generateMeta, createSiteDefaults }
+
+export default nextMetadata
+export { createSiteDefaults, generateMeta }
+export type { CreateSiteDefaultsArgs, GenerateMetaArgs, SEOMetaShape, SiteDefaults }

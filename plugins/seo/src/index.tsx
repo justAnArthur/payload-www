@@ -247,8 +247,8 @@ export const seoPlugin =
             path: '/plugin-seo/generate'
           }
         ],
-        globals: hostHasMetadataGlobal
-          ? config.globals?.map((global) => {
+        globals: [
+          ...(config.globals?.map((global) => {
             const { slug } = global
 
             const isEnabled = pluginConfig?.globals?.includes(slug as never)
@@ -298,8 +298,9 @@ export const seoPlugin =
               ...global,
               fields: [...(global?.fields || []), ...seoFields]
             })
-          }) || []
-          : [createMetadataGlobal()],
+          }) || []),
+          ...(hostHasMetadataGlobal ? [] : [createMetadataGlobal()])
+        ],
         i18n: {
           ...config.i18n,
           translations: config.i18n?.translations
