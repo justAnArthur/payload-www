@@ -6,5 +6,16 @@ export default defineConfig({
   ],
   format: ['esm'],
   clean: true,
-  dts: { inferTypes: true }
+  dts: { inferTypes: true },
+  external: [
+    /node:/,
+    /@payloadcms/,
+    /^next/,
+    /^@vercel\//,
+    /^react$/,
+    /^react\//,
+    /^react-dom/,
+    /^payload$/,
+    /^payload\//,
+  ],
 }) as DefineConfigItem
