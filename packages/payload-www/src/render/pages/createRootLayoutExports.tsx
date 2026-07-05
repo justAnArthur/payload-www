@@ -4,7 +4,7 @@ import 'server-only'
 import type { ImportMap, SanitizedConfig } from 'payload'
 import type { HTMLAttributes, ReactNode } from 'react'
 import { queryDoc } from '../metadata/query'
-import { checkParams, NextLayoutProps } from "./utils/checkParams"
+import { NextLayoutProps } from "./utils/checkParams"
 import { setRequestLocale } from "next-intl/server"
 import { NextIntlClientProvider } from "next-intl"
 import { RoutingConfig } from "./utils/buildLocalizedPath"
@@ -41,7 +41,7 @@ export function createRootLayoutExports(
 ) {
 
   async function RootLayout(props: NextLayoutProps) {
-    const params = checkParams(await props.params, ['locale'])
+    const params = await props.params
 
     const locale = params.locale as string
     if (!routing.locales.includes(locale)) {

@@ -203,7 +203,7 @@ describe('collections/createHeaderGlobal', () => {
 
   it('exposes nav block with navItem and navColumn', () => {
     const header = createHeaderGlobal() as any
-    const nav = header.fields[2]
+    const nav = header.fields[0]
     expect(nav.type).toBe('blocks')
     const slugs = nav.blocks.map((b: { slug: string }) => b.slug).sort()
     expect(slugs).toEqual(['navColumn', 'navItem'])
@@ -265,10 +265,7 @@ describe('createWWWConfig', () => {
 
   it('withWWWConfig builds a config with pages + posts collections and header + footer globals', async () => {
     const { withWWWConfig } = createWWWConfig()
-    const cfg = await withWWWConfig({
-      collections: [],
-      globals: []
-    } as never)
+    const cfg = await withWWWConfig({} as never)
 
     const collectionSlugs = (cfg.collections ?? []).map((c: { slug: string }) => c.slug).sort()
     expect(collectionSlugs).toContain(PAGES_SLUG)

@@ -4,11 +4,14 @@ import type { ImportMap, SanitizedConfig } from 'payload'
 import type { ReactNode } from 'react'
 import * as React from 'react'
 import { paramsSlugToSlug, slugToParamsSlug } from '../metadata/slug'
-import { queryAllLocaleSlugs, queryAllDocs, queryDoc } from '../metadata/query'
+import { queryAllDocs, queryAllLocaleSlugs, queryDoc } from '../metadata/query'
 import { setRequestLocale } from "next-intl/server"
-import { checkParams, NextPageProps } from "./utils/checkParams"
+import { NextPageProps } from "./utils/checkParams"
 import { buildAlternates, RoutingConfig } from "./utils/buildLocalizedPath"
-import { generateMeta } from "@justanarthur/payload-plugin-seo/next-metadata"
+import {
+  createSiteDefaults,
+  generateMeta
+} from "@justanarthur/payload-plugin-seo/next-metadata"
 import { renderWWWDataModule } from "../renderWWWModule"
 
 export type CreateCollectionPageExportsArgs<S extends string = 'pages'> = {
@@ -52,7 +55,7 @@ export function createCollectionPageExports<S extends string = 'pages'>(
   }
 
   const default_ = async (props: NextPageProps): Promise<ReactNode> => {
-    const params = checkParams(await props.params, ['slug', 'locale'])
+    const params = await props.params
 
     const locale = params.locale as string
     if (!routing.locales.includes(locale)) {
@@ -79,36 +82,41 @@ export function createCollectionPageExports<S extends string = 'pages'>(
   }
 
   async function generateMetadata(props: NextPageProps): Promise<Metadata> {
-    const params = checkParams(await props.params, ['slug', 'locale'])
+    const params = await props.params
+
     const locale = params.locale as string,
       slug = paramsSlugToSlug(params.slug)
 
     const doc = await fetchDoc(locale, slug)
 
+    const [localesSlug, siteDefaults] = await Promise.all([
+      doc
+        ? queryAllLocaleSlugs({
+            id: doc.id,
+            collectionSlug,
+            config: configPromise
+          })
+        : Promise.resolve({} as Record<string, string> | null),
+      createSiteDefaults({ config: configPromise, locale })
+    ])
+
     if (!doc) return {}
 
-    const localesSlug = (await queryAllLocaleSlugs({
-      id: doc.id,
-      collectionSlug,
-      config: configPromise
-    })) ?? {}
-
-    const alternates = buildAlternates(locale, localesSlug, pagePathPrefix, { routing })
+    const alternates = buildAlternates(locale, localesSlug ?? {}, pagePathPrefix, { routing })
 
     const meta = await generateMeta({
-      doc,
+      meta: doc.meta,
       url: alternates.canonical,
       type: 'website',
-      locale
+      locale,
+      siteDefaults
     })
 
-    meta.alternates = alternates
-
-    return meta
+    return { ...meta, alternates }
   }
 
   async function generateStaticParams(props: NextPageProps) {
-    const locale = checkParams(await props.params, ['locale']).locale as string
+    const locale = (await props.params).locale as string
 
     const docs = await queryAllDocs({ locale, collectionSlug, config: configPromise })
 

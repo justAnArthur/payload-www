@@ -1,5 +1,5 @@
 import type { AdminComponent, CollectionConfig, Config, GlobalConfig, Plugin } from 'payload'
-import { name } from "../../../package.json"
+import { name as packageName } from "../package.json"
 import openAIResolver from "@justanarthur/payload-plugin-translator/resolvers/openAI"
 import { createPostsCollection, POSTS_SLUG } from "./collections/createPostsCollection"
 import { createPagesCollection, PAGES_SLUG } from "./collections/createPagesCollection"
@@ -28,8 +28,8 @@ export type WWWInputConfig = Omit<Config, 'collections' | 'globals' | 'plugins'>
 }
 
 export function createWWWConfig(): WWWConfigApi {
-
-  async function withWWWConfig(config: WWWInputConfig): Promise<Config> {
+  async function withWWWConfig(input: WWWInputConfig): Promise<Config> {
+    const { defaultPluginsConfigs, ...config } = input
     const blocks = config.blocks || []
 
     const collections = mergeOrOverride([
@@ -44,11 +44,11 @@ export function createWWWConfig(): WWWConfigApi {
 
     const renderDependencies: Record<string, AdminComponent> = {}
     for (const { slug, custom } of blocks) {
-      const path = custom?.[name]?.path
+      const path = custom?.[packageName]?.path
       if (typeof path === 'string' && slug) renderDependencies[slug] = { path, type: 'component' }
     }
     for (const { custom } of [...collections, ...globals]) {
-      const path = custom?.[name]?.path
+      const path = custom?.[packageName]?.path
       if (typeof path === 'string') renderDependencies[path] = { path, type: 'component' }
     }
 
@@ -57,10 +57,10 @@ export function createWWWConfig(): WWWConfigApi {
         seoPlugin(mergeOrOverride({
           collections: [PAGES_SLUG, POSTS_SLUG],
           autoGenerate: { mode: 'onCreate', deriveFrom: 'allScalars' }
-        }, config.defaultPluginsConfigs?.seo)),
+        }, defaultPluginsConfigs?.seo)),
         imageHashPlugin(mergeOrOverride({
           algorithm: 'lqip-modern'
-        }, config.defaultPluginsConfigs?.imageHash)),
+        }, defaultPluginsConfigs?.imageHash)),
         translator(mergeOrOverride({
           collections: [PAGES_SLUG, POSTS_SLUG],
           globals: [HEADER_SLUG, FOOTER_SLUG],
@@ -71,7 +71,7 @@ export function createWWWConfig(): WWWConfigApi {
               model: 'gpt-5-mini'
             })
           ]
-        }, config.defaultPluginsConfigs?.translator))
+        }, defaultPluginsConfigs?.translator))
       ],
       config.plugins)
 
@@ -95,11 +95,8 @@ export function createWWWConfig(): WWWConfigApi {
 
 type MergeOrOverride<T> = T | ((defaultValue: T) => T)
 
-function mergeOrOverride<T>(defaultValue: T, overrideValue?: MergeOrOverride<T>): T {
-  if (typeof !overrideValue)
-    return defaultValue
-  else if (typeof overrideValue === 'function') // @ts-ignore
-    return overrideValue(defaultValue)
-  else
-    return overrideValue ?? defaultValue
+function mergeOrOverride<T>(defaultValue: T, overrideValue?: T | ((d: T) => T)) {
+  if (typeof overrideValue === 'function') return (overrideValue as (d: T) => T)(defaultValue)
+  if (overrideValue !== undefined) return overrideValue
+  return defaultValue
 }
