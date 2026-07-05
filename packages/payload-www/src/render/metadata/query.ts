@@ -22,10 +22,10 @@ export async function queryDoc(
     Object.values(args),
     [createCollectionCacheKey(args)],
     async () => {
-      if ('globalSlug' in args) {
+      if ('globalSlug' in args)
         return queryGlobal({ ...args, config: configPromise })
-      }
-      return queryDocBySlug({ ...args, config: configPromise })
+      else
+        return queryDocBySlug({ ...args, config: configPromise })
     }
   )
 }

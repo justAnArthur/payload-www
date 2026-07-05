@@ -34,8 +34,8 @@ export const RenderBlocks: FC<RenderBlocksProps> = ({
     const { blockType } = block
 
 
-    const importMapPath: string | undefined =
-      config.admin?.dependencies?.[blockType]?.path ?? generateImportName('block', blockType)
+    const importMapPath =
+      config.admin?.dependencies?.[blockType]?.path || generateImportName('block', blockType)
 
     const Block = getFromImportMap(importMapPath, importMap)
     if (!Block) {

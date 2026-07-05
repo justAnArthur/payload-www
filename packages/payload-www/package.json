@@ -45,6 +45,12 @@
         "default": "./dist/blocks.js"
       }
     },
+    "./collections": {
+      "import": {
+        "types": "./dist/collections.d.ts",
+        "default": "./dist/collections.js"
+      }
+    },
     "./utils": {
       "import": {
         "types": "./dist/utils.d.ts",
@@ -67,12 +73,6 @@
       "import": {
         "types": "./dist/import-map-provider.d.ts",
         "default": "./dist/import-map-provider.js"
-      }
-    },
-    "./globals": {
-      "import": {
-        "types": "./dist/globals.d.ts",
-        "default": "./dist/globals.js"
       }
     },
     "./fields": {
