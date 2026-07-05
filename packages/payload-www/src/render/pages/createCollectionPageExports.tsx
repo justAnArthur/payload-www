@@ -3,15 +3,12 @@ import type { Metadata, MetadataRoute } from 'next'
 import type { ImportMap, SanitizedConfig } from 'payload'
 import type { ReactNode } from 'react'
 import * as React from 'react'
-import { paramsSlugToSlug, slugToParamsSlug } from '../metadata/slug'
+import { paramsSlugToSlug, type SlugShape, slugToParamsSlug } from '../metadata/slug'
 import { queryAllDocs, queryAllLocaleSlugs, queryDoc } from '../metadata/query'
 import { setRequestLocale } from "next-intl/server"
 import { NextPageProps } from "./utils/checkParams"
 import { buildAlternates, RoutingConfig } from "./utils/buildLocalizedPath"
-import {
-  createSiteDefaults,
-  generateMeta
-} from "@justanarthur/payload-plugin-seo/next-metadata"
+import { createSiteDefaults, generateMeta } from "@justanarthur/payload-plugin-seo/next-metadata"
 import { renderWWWDataModule } from "../renderWWWModule"
 
 export type CreateCollectionPageExportsArgs<S extends string = 'pages'> = {
@@ -21,6 +18,8 @@ export type CreateCollectionPageExportsArgs<S extends string = 'pages'> = {
   importMap: ImportMap
 
   routing: RoutingConfig
+
+  slugShape?: SlugShape
 }
 
 export type CreateCollectionPageExportsDeps<S extends string> = {
@@ -35,7 +34,8 @@ export function createCollectionPageExports<S extends string = 'pages'>(
     config: configPromise,
     importMap,
 
-    routing
+    routing,
+    slugShape = 'single'
   }: CreateCollectionPageExportsArgs<S>,
   {
     getServerSideURL,
@@ -64,7 +64,7 @@ export function createCollectionPageExports<S extends string = 'pages'>(
     } else
       setRequestLocale(locale)
 
-    const slug = paramsSlugToSlug(params.slug)
+    const slug = paramsSlugToSlug(params.slug, slugShape)
 
     const doc = await fetchDoc(locale, slug)
     if (!doc) {
@@ -85,17 +85,17 @@ export function createCollectionPageExports<S extends string = 'pages'>(
     const params = await props.params
 
     const locale = params.locale as string,
-      slug = paramsSlugToSlug(params.slug)
+      slug = paramsSlugToSlug(params.slug, slugShape)
 
     const doc = await fetchDoc(locale, slug)
 
     const [localesSlug, siteDefaults] = await Promise.all([
       doc
         ? queryAllLocaleSlugs({
-            id: doc.id,
-            collectionSlug,
-            config: configPromise
-          })
+          id: doc.id,
+          collectionSlug,
+          config: configPromise
+        })
         : Promise.resolve({} as Record<string, string> | null),
       createSiteDefaults({ config: configPromise, locale })
     ])
@@ -120,7 +120,9 @@ export function createCollectionPageExports<S extends string = 'pages'>(
 
     const docs = await queryAllDocs({ locale, collectionSlug, config: configPromise })
 
-    return docs.map(doc => ({ slug: slugToParamsSlug(doc.slug) }))
+    return docs
+      .filter(doc => typeof doc.slug === 'string' && doc.slug.length > 0)
+      .map(doc => ({ slug: slugToParamsSlug(doc.slug, slugShape) }))
   }
 
   async function generateSitemap(): Promise<MetadataRoute.Sitemap> {
