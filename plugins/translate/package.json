@@ -73,7 +73,7 @@
     "node": ">=20"
   },
   "scripts": {
-    "build": "bunup",
+    "build": "NODE_ENV=production bunup",
     "clean": "rm -rf dist .tsbuildinfo",
     "prepublishOnly": "bun run clean && bun run build"
   },
