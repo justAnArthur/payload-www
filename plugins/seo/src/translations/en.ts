@@ -43,15 +43,43 @@ export const en: GenericTranslationsObject = {
     
     metadataGroupLabel: 'Site metadata',
     metadataGroupDescription:
-      'Site-wide SEO defaults — site name and Twitter handles. Locale comes from next-intl routing; per-doc fields override these.',
+      'Site-wide SEO defaults — grouped by JSON-LD schema role. Locale comes from next-intl routing; per-doc fields override these. Drives Organization / WebSite / Product JSON-LD on every page.',
+    sharedGroupLabel: 'Shared (Organization + WebSite + Product)',
+    sharedGroupDescription:
+      'Fields reused across all 3 JSON-LD schemas. Name drives Organization.name, WebSite.name, Product.name and Product.brand.name; logo drives Organization.logo and Product.image.',
+    organizationGroupLabel: 'Organization',
+    organizationGroupDescription: 'Fields unique to the Organization JSON-LD schema.',
+    productGroupLabel: 'Product',
+    productGroupDescription: 'Fields unique to the Product JSON-LD schema.',
     siteNameLabel: 'Site name',
     siteNameDescription:
-      'Brand name as it should appear in OG shares. Per-doc fallback.',
+      'Brand name as it should appear in OG shares. Drives Organization.name, WebSite.name, Product.name and Product.brand.name in JSON-LD.',
+    siteDescriptionLabel: 'Site description',
+    siteDescriptionDescription:
+      'One-paragraph description of the product. Drives Organization.description, WebSite.description, and Product.description in JSON-LD. ~150-200 chars.',
+    siteLogoLabel: 'Logo URL',
+    siteLogoDescription:
+      'Absolute URL of the brand logo (PNG/SVG). Drives Organization.logo and Product.image in JSON-LD.',
+    siteSameAsLabel: 'Social profile URLs',
+    siteSameAsDescription:
+      'Canonical social profile URLs (LinkedIn, Twitter, Facebook, Instagram, YouTube, …). Surfaces as Organization.sameAs in JSON-LD — one row per profile.',
+    siteOffersLabel: 'Product offer',
+    siteOffersDescription:
+      'Single Offer description for Product JSON-LD. Camasys uses a "contact us" placeholder by default (price 0, InStock); operators should edit for real pricing.',
+    siteOffersPriceLabel: 'Price',
+    siteOffersPriceDescription: 'Numeric price as a string (e.g. "0" or "99.00"). Use "0" for contact-sales / free SaaS placeholders.',
+    siteOffersCurrencyLabel: 'Currency',
+    siteOffersCurrencyDescription: 'ISO 4217 currency code, e.g. "EUR".',
+    siteOffersAvailabilityLabel: 'Availability',
+    siteOffersAvailabilityDescription: 'schema.org availability URL. Most B2B SaaS should use InStock + price 0 for "contact us" pricing.',
     twitterSiteLabel: 'Twitter site',
     twitterSiteDescription: 'Site @handle, e.g. "@yourbrand". Surfaces as twitter:site.',
     twitterCreatorLabel: 'Twitter creator',
     twitterCreatorDescription:
       'Default author @handle. Surfaces as twitter:creator.',
+    defaultOgImageLabel: 'Default Open Graph image',
+    defaultOgImageDescription:
+      'Absolute URL of the default og:image / twitter:image (1200x630 recommended). Used as fallback when per-page meta fields have no image set.',
 
     
     autoGenerate: 'Auto-generate',

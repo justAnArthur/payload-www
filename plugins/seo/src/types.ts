@@ -23,11 +23,45 @@ export type PartialDocumentInfoContext = Pick<
 
 export type SiteDefaults = {
 
-  siteName?: string
+  shared?: {
+
+    name?: string
+
+
+    description?: string
+
+
+    logo?: string
+  }
+
+
+  organization?: {
+
+    sameAs?: string[]
+  }
+
+
+  product?: {
+
+    offers?: {
+
+      price?: string
+
+
+      priceCurrency?: string
+
+
+      availability?: string
+    }
+  }
+
 
   twitterSite?: string
 
   twitterCreator?: string
+
+
+  defaultOgImage?: string
 }
 
 

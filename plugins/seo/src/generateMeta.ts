@@ -87,13 +87,13 @@ const splitKeywords = (raw: string): string[] =>
 
 
 export const generateMeta = ({
-  meta,
-  url,
-  type,
-  locale,
-  fallback,
-  siteDefaults
-}: GenerateMetaArgs): MetadataShape => {
+                               meta,
+                               url,
+                               type,
+                               locale,
+                               fallback,
+                               siteDefaults
+                             }: GenerateMetaArgs): MetadataShape => {
   const content = meta?.content ?? {}
   const social = meta?.social?.social ?? {}
 
@@ -102,7 +102,7 @@ export const generateMeta = ({
     social.ogTitle,
     social.twitterTitle,
     fallback?.title,
-    'Not found'
+    fallback?.['name']
   )
   const description = pickString(
     content.description,
@@ -115,7 +115,8 @@ export const generateMeta = ({
 
   const ogTitle = pickString(social.ogTitle, content.title)
   const ogDescription = pickString(social.ogDescription, content.description)
-  const ogImage = readImage(social.ogImage) ?? readImage(content.image)
+  const ogImage =
+    readImage(social.ogImage) ?? readImage(content.image) ?? siteDefaults?.defaultOgImage
   const ogType = (social.ogType ?? type ?? 'website') as
     | 'website'
     | 'article'
@@ -135,7 +136,8 @@ export const generateMeta = ({
   const twitterImage =
     readImage(social.twitterImage) ??
     readImage(social.ogImage) ??
-    readImage(content.image)
+    readImage(content.image) ??
+    siteDefaults?.defaultOgImage
   const twitterCard: 'summary' | 'summary_large_image' | 'app' | 'player' =
     social.twitterCard ?? 'summary_large_image'
 
