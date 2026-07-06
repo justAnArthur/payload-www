@@ -42,6 +42,7 @@ export function createWWWCollectionGlobal<IsGlobalConfig extends boolean, Config
       read: isDraft ? authenticatedOrPublished : anyone,
       update: authenticated
     },
+
     hooks: (() => {
       const { afterChange, afterDelete } = createRevalidateCollectionGlobalHook()
 

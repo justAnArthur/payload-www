@@ -47,7 +47,7 @@ export async function queryDocBySlug<S extends string>(
     config: Promise<SanitizedConfig>
   }): Promise<DataFromCollectionSlug<S> | null> {
   return withUnstableCache(
-    [collectionSlug, slug, slugField, locale, draft],
+    [collectionSlug, slug, locale, draft],
     [createCollectionCacheKey({ collectionSlug, slug, locale })],
     async () => {
       const payload = await getPayload({ config })
@@ -69,7 +69,6 @@ export async function queryGlobal<G extends string>(
   {
     globalSlug,
     locale,
-    depth = 0,
     draft = false,
     config
   }: {
@@ -80,12 +79,12 @@ export async function queryGlobal<G extends string>(
     config: Promise<SanitizedConfig>
   }): Promise<DataFromGlobalSlug<G> | null> {
   return withUnstableCache(
-    [globalSlug, locale, depth, draft],
+    [globalSlug, locale, draft],
     [createCollectionCacheKey({ globalSlug, locale })],
     async () => {
       const payload = await getPayload({ config })
       try {
-        return await payload.findGlobal({ slug: globalSlug, depth, draft, locale })
+        return await payload.findGlobal({ slug: globalSlug, draft, locale })
       } catch (error) {
         console.warn('[WWW] queryGlobal failed', { globalSlug, locale, error: String(error) })
         return null

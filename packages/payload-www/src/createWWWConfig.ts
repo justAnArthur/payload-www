@@ -28,7 +28,7 @@ export type WWWInputConfig = Omit<Config, 'collections' | 'globals' | 'plugins'>
 }
 
 export function createWWWConfig(): WWWConfigApi {
-  function withWWWConfig(input: WWWInputConfig): Promise<Config> {
+  function withWWWConfig(input: WWWInputConfig) {
     const { defaultPluginsConfigs, ...config } = input
     const blocks = config.blocks || []
 
