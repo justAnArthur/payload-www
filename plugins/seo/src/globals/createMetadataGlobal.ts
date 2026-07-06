@@ -171,6 +171,15 @@ export const createMetadataGlobal = (
         admin: {
           description: 'Absolute URL of the default og:image / twitter:image (1200x630 recommended). Used as fallback when per-page meta fields have no image set.'
         }
+      },
+      {
+        name: 'keywords',
+        type: 'text',
+        localized: true,
+        label: 'Default keywords',
+        admin: {
+          description: 'Comma-separated keywords used as <meta name="keywords"> when a page does not set its own. Drives global SEO keyword tag across the site.'
+        }
       }
     ],
     interfaceName: interfaceName ?? 'MetadataSiteDefaults'

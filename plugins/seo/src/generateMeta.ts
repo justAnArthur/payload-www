@@ -55,6 +55,9 @@ export type GenerateMetaArgs = {
 
   locale?: string
 
+
+  availableLocales?: string[]
+
   fallback?: { title?: string; description?: string }
 
   siteDefaults?: SiteDefaults
@@ -91,6 +94,7 @@ export const generateMeta = ({
                                url,
                                type,
                                locale,
+                               availableLocales,
                                fallback,
                                siteDefaults
                              }: GenerateMetaArgs): MetadataShape => {
@@ -125,7 +129,9 @@ export const generateMeta = ({
     | 'music'
     | 'video'
 
-  const ogSiteName = pickString(siteDefaults?.siteName)
+  const ogSiteName = pickString(siteDefaults?.shared?.name)
+  const ogImageAlt = pickString(ogSiteName, ogTitle)
+  const ogAlternateLocale = availableLocales?.filter((l) => l !== locale)
 
   const twitterTitle = pickString(social.twitterTitle, social.ogTitle, content.title)
   const twitterDescription = pickString(
@@ -147,6 +153,8 @@ export const generateMeta = ({
 
   if (isNonEmpty(content.keywords)) {
     result.keywords = splitKeywords(content.keywords)
+  } else if (isNonEmpty(siteDefaults?.keywords)) {
+    result.keywords = splitKeywords(siteDefaults!.keywords!)
   }
 
   const openGraph: {
@@ -156,7 +164,8 @@ export const generateMeta = ({
     url?: string
     siteName?: string
     locale?: string
-    images?: Array<{ url: string }>
+    alternateLocale?: string[]
+    images?: Array<{ url: string; width?: number; height?: number; alt?: string }>
   } = {}
   if (ogTitle) openGraph.title = ogTitle
   if (ogDescription) openGraph.description = ogDescription
@@ -164,7 +173,8 @@ export const generateMeta = ({
   if (isNonEmpty(url)) openGraph.url = url
   if (ogSiteName) openGraph.siteName = ogSiteName
   if (isNonEmpty(locale)) openGraph.locale = locale
-  if (ogImage) openGraph.images = [{ url: ogImage }]
+  if (ogAlternateLocale && ogAlternateLocale.length > 0) openGraph.alternateLocale = ogAlternateLocale
+  if (ogImage) openGraph.images = [{ url: ogImage, width: 1200, height: 630, alt: ogImageAlt }]
   if (Object.keys(openGraph).length > 0) {
     result.openGraph = openGraph
   }
@@ -178,13 +188,13 @@ export const generateMeta = ({
     description?: string
     site?: string
     creator?: string
-    images?: Array<{ url: string }>
+    images?: Array<{ url: string; alt?: string }>
   } = { card: twitterCard }
   if (twitterTitle) twitter.title = twitterTitle
   if (twitterDescription) twitter.description = twitterDescription
   if (twitterSite) twitter.site = twitterSite
   if (twitterCreator) twitter.creator = twitterCreator
-  if (twitterImage) twitter.images = [{ url: twitterImage }]
+  if (twitterImage) twitter.images = [{ url: twitterImage, alt: ogImageAlt }]
   if (Object.keys(twitter).length > 0) {
     result.twitter = twitter
   }
