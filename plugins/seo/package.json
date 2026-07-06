@@ -65,6 +65,12 @@
         "default": "./dist/src/exports/next-metadata.js"
       }
     },
+    "./root-jsonld": {
+      "import": {
+        "types": "./dist/src/exports/root-jsonld.d.ts",
+        "default": "./dist/src/exports/root-jsonld.js"
+      }
+    },
     "./package.json": "./package.json"
   },
   "license": "MIT",
@@ -73,14 +79,15 @@
     "node": ">=20"
   },
   "scripts": {
-    "build": "bunup",
+    "build": "NODE_ENV=production bunup",
     "clean": "rm -rf dist .tsbuildinfo",
     "prepublishOnly": "bun run clean && bun run build",
     "test": "vitest run",
     "test:watch": "vitest"
   },
   "dependencies": {
-    "bson-objectid": "^2.0.4"
+    "bson-objectid": "^2.0.4",
+    "server-only": "0.0.1"
   },
   "devDependencies": {
     "@payloadcms/translations": "3.85.0",
