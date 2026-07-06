@@ -142,7 +142,15 @@ export const translator: (pluginConfig: TranslatorConfig) => Plugin = (pluginCon
               workflows: ensureJobBySlug<WorkflowConfig>(
                 config.jobs?.workflows,
                 createTranslateWorkflow()
-              )
+               ),
+              jobsCollectionOverrides: ({ defaultJobsCollection }) => {
+                defaultJobsCollection.admin = {
+                  ...defaultJobsCollection.admin,
+                  hidden: false,
+                  group: 'System'
+                }
+                return defaultJobsCollection
+              }
             }
           }
         : {})
