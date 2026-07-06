@@ -62,6 +62,9 @@ export type SiteDefaults = {
 
 
   defaultOgImage?: string
+
+
+  keywords?: string
 }
 
 

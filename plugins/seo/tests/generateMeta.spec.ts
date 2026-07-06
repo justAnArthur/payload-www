@@ -116,8 +116,8 @@ describe('generateMeta — page', () => {
       },
       type: 'website'
     })
-    expect(out.openGraph?.images).toEqual([{ url: 'https://cdn.example.com/x.png' }])
-    expect(out.twitter?.images).toEqual([{ url: 'https://cdn.example.com/x.png' }])
+    expect(out.openGraph?.images).toEqual([{ url: 'https://cdn.example.com/x.png', width: 1200, height: 630, alt: 't' }])
+    expect(out.twitter?.images).toEqual([{ url: 'https://cdn.example.com/x.png', alt: 't' }])
   })
 
   it('accepts `content.image` as a Payload `{ url }` upload shape', () => {
@@ -130,8 +130,8 @@ describe('generateMeta — page', () => {
       },
       type: 'website'
     })
-    expect(out.openGraph?.images).toEqual([{ url: 'https://cdn.example.com/uploaded.png' }])
-    expect(out.twitter?.images).toEqual([{ url: 'https://cdn.example.com/uploaded.png' }])
+    expect(out.openGraph?.images).toEqual([{ url: 'https://cdn.example.com/uploaded.png', width: 1200, height: 630, alt: 't' }])
+    expect(out.twitter?.images).toEqual([{ url: 'https://cdn.example.com/uploaded.png', alt: 't' }])
   })
 
   it('ogImage wins over content.image for openGraph.images', () => {
@@ -142,9 +142,9 @@ describe('generateMeta — page', () => {
       },
       type: 'website'
     })
-    expect(out.openGraph?.images).toEqual([{ url: 'https://cdn.example.com/og.png' }])
+    expect(out.openGraph?.images).toEqual([{ url: 'https://cdn.example.com/og.png', width: 1200, height: 630, alt: 't' }])
 
-    expect(out.twitter?.images).toEqual([{ url: 'https://cdn.example.com/og.png' }])
+    expect(out.twitter?.images).toEqual([{ url: 'https://cdn.example.com/og.png', alt: 't' }])
   })
 
   it('twitterImage wins over ogImage for twitter.images', () => {
@@ -160,8 +160,8 @@ describe('generateMeta — page', () => {
       },
       type: 'website'
     })
-    expect(out.twitter?.images).toEqual([{ url: 'https://cdn.example.com/tw.png' }])
-    expect(out.openGraph?.images).toEqual([{ url: 'https://cdn.example.com/og.png' }])
+    expect(out.twitter?.images).toEqual([{ url: 'https://cdn.example.com/tw.png', alt: 't' }])
+    expect(out.openGraph?.images).toEqual([{ url: 'https://cdn.example.com/og.png', width: 1200, height: 630, alt: 't' }])
   })
 
   it('uses url arg as openGraph.url when nothing else sets it', () => {
@@ -220,11 +220,11 @@ describe('generateMeta — page', () => {
 
 
 describe('generateMeta — siteDefaults cascade', () => {
-  it('siteDefaults.siteName fills openGraph.siteName', () => {
+  it('siteDefaults.shared.name fills openGraph.siteName', () => {
     const out = generateMeta({
       meta: { content: { title: 't' } },
       type: 'website',
-      siteDefaults: { siteName: 'Acme' }
+      siteDefaults: { shared: { name: 'Acme' } }
     })
     expect(out.openGraph?.siteName).toBe('Acme')
   })
@@ -254,7 +254,7 @@ describe('generateMeta — siteDefaults cascade', () => {
       type: 'article',
       locale: 'en',
       siteDefaults: {
-        siteName: 'Acme',
+        shared: { name: 'Acme' },
         twitterSite: '@acme',
         twitterCreator: '@engteam'
       }
@@ -281,6 +281,51 @@ describe('generateMeta — siteDefaults cascade', () => {
     expect(out.openGraph?.siteName).toBeUndefined()
     expect(out.twitter?.site).toBeUndefined()
     expect(out.twitter?.creator).toBeUndefined()
+  })
+
+  it('availableLocales populates openGraph.alternateLocale (current locale excluded)', () => {
+    const out = generateMeta({
+      meta: { content: { title: 't' } },
+      type: 'website',
+      locale: 'en',
+      availableLocales: ['en', 'sk', 'cs', 'de']
+    })
+    expect(out.openGraph?.locale).toBe('en')
+    expect(out.openGraph?.alternateLocale).toEqual(['sk', 'cs', 'de'])
+  })
+
+  it('openGraph.images carries width/height/alt derived from siteDefaults.shared.name', () => {
+    const out = generateMeta({
+      meta: {
+        content: { title: 't', image: 'https://cdn.example.com/x.png' }
+      },
+      type: 'website',
+      siteDefaults: { shared: { name: 'Acme' } }
+    })
+    expect(out.openGraph?.images).toEqual([{
+      url: 'https://cdn.example.com/x.png',
+      width: 1200,
+      height: 630,
+      alt: 'Acme'
+    }])
+  })
+
+  it('siteDefaults.keywords falls back when page has none', () => {
+    const out = generateMeta({
+      meta: { content: { title: 't' } },
+      type: 'website',
+      siteDefaults: { keywords: 'cms, payload, seo' }
+    })
+    expect(out.keywords).toEqual(['cms', 'payload', 'seo'])
+  })
+
+  it('page content.keywords wins over siteDefaults.keywords', () => {
+    const out = generateMeta({
+      meta: { content: { title: 't', keywords: 'page, level' } },
+      type: 'website',
+      siteDefaults: { keywords: 'site, level' }
+    })
+    expect(out.keywords).toEqual(['page', 'level'])
   })
 })
 
@@ -309,7 +354,7 @@ describe('generateMeta — post', () => {
     expect(out.openGraph?.type).toBe('article')
     expect(out.openGraph?.title).toBe('How we shipped the SEO plugin')
     expect(out.openGraph?.description).toBe('A short write-up of the SEO plugin rollout.')
-    expect(out.openGraph?.images).toEqual([{ url: 'https://cdn.example.com/post.png' }])
+    expect(out.openGraph?.images).toEqual([{ url: 'https://cdn.example.com/post.png', width: 1200, height: 630, alt: 'How we shipped the SEO plugin' }])
   })
 
   it('falls back to type arg when ogType is unset on a post', () => {
@@ -406,7 +451,7 @@ describe('generateMeta — post', () => {
       },
       type: 'article'
     })
-    expect(out.twitter?.images).toEqual([{ url: 'https://cdn.example.com/tw.png' }])
+    expect(out.twitter?.images).toEqual([{ url: 'https://cdn.example.com/tw.png', alt: 't' }])
     expect(out.openGraph?.images).toBeUndefined()
   })
 })

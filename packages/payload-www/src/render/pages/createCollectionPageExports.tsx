@@ -110,6 +110,7 @@ export function createCollectionPageExports<S extends string = 'pages'>(
       url: alternates.canonical,
       type: 'website',
       locale,
+      availableLocales: routing.locales,
       fallback: doc,
       siteDefaults
     })

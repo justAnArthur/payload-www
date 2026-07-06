@@ -46,6 +46,7 @@ export const createSiteDefaults = async (
           twitterSite?: string | null
           twitterCreator?: string | null
           defaultOgImage?: string | null
+          keywords?: string | Record<string, string | undefined> | null
         }
       | null
 
@@ -120,6 +121,13 @@ export const createSiteDefaults = async (
     if (typeof raw.defaultOgImage === 'string' && raw.defaultOgImage.length > 0) {
       out.defaultOgImage = raw.defaultOgImage
     }
+
+    // keywords: localized (operator can ship a per-locale keyword set)
+    const keywords = resolveLocalizedString(raw.keywords)
+    if (keywords) {
+      out.keywords = keywords
+    }
+
     return Object.keys(out).length > 0 ? out : undefined
   } catch {
     return undefined

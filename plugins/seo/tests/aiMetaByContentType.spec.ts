@@ -382,7 +382,7 @@ describe('post — what AI generates and how it lands on a web page', () => {
       url: 'https://example.com/en/posts/seo-plugin',
       locale: 'en'
     })
-    expect(rendered.openGraph?.images).toEqual([{ url: 'media-cover-1' }])
+    expect(rendered.openGraph?.images).toEqual([{ url: 'media-cover-1', width: 1200, height: 630, alt: 'How we built Payload SEO' }])
     expect(rendered.twitter).toMatchObject({
       card: 'summary_large_image',
       title: 'How we built Payload SEO',
