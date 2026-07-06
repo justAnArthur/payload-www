@@ -81,6 +81,12 @@
         "default": "./dist/fields.js"
       }
     },
+    "./sitemap": {
+      "import": {
+        "types": "./dist/sitemap.d.ts",
+        "default": "./dist/sitemap.js"
+      }
+    },
     "./package.json": "./package.json"
   },
   "sideEffects": false,
@@ -88,7 +94,7 @@
     "node": ">=20"
   },
   "scripts": {
-    "build": "bunup && node scripts/strip-createRequire.mjs",
+    "build": "NODE_ENV=production bunup && node scripts/strip-createRequire.mjs",
     "clean": "rm -rf dist .tsbuildinfo",
     "test": "vitest run",
     "test:watch": "vitest",

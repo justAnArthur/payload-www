@@ -9,6 +9,7 @@ import { setRequestLocale } from "next-intl/server"
 import { NextIntlClientProvider } from "next-intl"
 import { RoutingConfig } from "./utils/buildLocalizedPath"
 import { renderWWWDataModule } from "../renderWWWModule"
+import { RootJsonLd } from "@justanarthur/payload-plugin-seo/root-jsonld"
 
 export type CreateRootLayoutExportsArgs = {
   config: Promise<SanitizedConfig>
@@ -25,6 +26,10 @@ export type CreateRootLayoutProvidersArgs = {
 export type CreateRootLayoutExportsDeps = {
   providers?: (args: CreateRootLayoutProvidersArgs) => ReactNode
   htmlAttrs?: (locale: string) => HTMLAttributes<HTMLHtmlElement>
+
+  // Pass to auto-inject the site-wide Organization / WebSite / Product JSON-LD
+  // `<script>` tag into the root layout. Omit (or pass `undefined`) to skip JSON-LD.
+  getServerSideURL?: () => string
 }
 
 export function createRootLayoutExports(
@@ -36,7 +41,8 @@ export function createRootLayoutExports(
   }: CreateRootLayoutExportsArgs,
   {
     providers,
-    htmlAttrs
+    htmlAttrs,
+    getServerSideURL
   }: CreateRootLayoutExportsDeps = {}
 ) {
 
@@ -74,10 +80,23 @@ export function createRootLayoutExports(
       ...(htmlAttrs?.(locale) ?? {})
     })
 
+    // Auto-inject the seo plugin's RootJsonLd when getServerSideURL is provided.
+    // Lives as the first child so it ships in the initial HTML (SEO crawlers
+    // don't execute JS to read it).
+    const rootJsonLd = getServerSideURL ? (
+      <RootJsonLd
+        config={configPromise}
+        locale={locale as never}
+        getServerSideURL={getServerSideURL}
+        locales={routing.locales}
+      />
+    ) : null
+
     return (
       <html {...mergedHtmlAttrs}>
       <body>
       <NextIntlClientProvider>
+        {rootJsonLd}
         {renderedHeader}
         {providers ? providers({ children: props.children, locale }) : props.children}
         {renderedFooter}
