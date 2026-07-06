@@ -42,6 +42,7 @@ export function createCollectionPageExports<S extends string = 'pages'>(
     pagePathPrefix
   }: CreateCollectionPageExportsDeps<S>
 ) {
+  const siteUrl = getServerSideURL()
 
   async function fetchDoc(locale: string, slug: string) {
     return queryDoc({
@@ -102,15 +103,18 @@ export function createCollectionPageExports<S extends string = 'pages'>(
 
     if (!doc) return {}
 
-    const alternates = buildAlternates(locale, localesSlug ?? {}, pagePathPrefix, { routing })
+    const alternates = buildAlternates(locale, localesSlug ?? {}, pagePathPrefix, { routing, siteUrl })
 
     const meta = await generateMeta({
       meta: doc.meta,
       url: alternates.canonical,
       type: 'website',
       locale,
+      fallback: doc,
       siteDefaults
     })
+
+    console.log('[www#generateMetadata]', { alternates, meta, locale, localesSlug, doc })
 
     return { ...meta, alternates }
   }
@@ -126,8 +130,7 @@ export function createCollectionPageExports<S extends string = 'pages'>(
   }
 
   async function generateSitemap(): Promise<MetadataRoute.Sitemap> {
-    const siteUrl = getServerSideURL(),
-      locale = routing.defaultLocale
+    const locale = routing.defaultLocale
 
     const docs = await queryAllDocs({
       collectionSlug,
@@ -142,10 +145,10 @@ export function createCollectionPageExports<S extends string = 'pages'>(
         config: configPromise
       })) ?? {}
 
-      const alternates = buildAlternates(locale, localesSlug, pagePathPrefix, { routing })
+      const alternates = buildAlternates(locale, localesSlug, pagePathPrefix, { routing, siteUrl })
 
       return ({
-        url: `${siteUrl}${alternates.canonical}`,
+        url: alternates.canonical,
         alternates,
         lastModified: doc.updatedAt || new Date()
       })
@@ -168,15 +171,17 @@ type GenerateSitemapPageExportsArgs = CreateCollectionPageExportsDeps<any>
 export function createSitemapFromCollections(...args: GenerateSitemapPageExportsArgs[]) {
   const baseUrl = args[0].getServerSideURL()
 
-  const sitemaps = args.map(arg =>
-    `${baseUrl}${arg.pagePathPrefix}/sitemap.xml`
-  )
-  const xml = `<?xml version="1.0" encoding="UTF-8"?>
+  return function sitemap() {
+    const sitemaps = args.map(arg =>
+      `${baseUrl}/${arg.pagePathPrefix}/sitemap.xml`
+    )
+    const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${sitemaps.map((url) => `  <sitemap><loc>${url}</loc></sitemap>`).join('\n')}
 </sitemapindex>`
 
-  return new Response(xml, {
-    headers: { 'Content-Type': 'application/xml' }
-  })
+    return new Response(xml, {
+      headers: { 'Content-Type': 'application/xml' }
+    })
+  }
 }
