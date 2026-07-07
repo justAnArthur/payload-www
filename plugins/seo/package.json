@@ -1,7 +1,7 @@
 {
   "name": "@justanarthur/payload-plugin-seo",
   "description": "SEO plugin for Payload CMS — adds meta title, description, image and preview fields.",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "type": "module",
   "private": false,
   "files": [
