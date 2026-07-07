@@ -20,7 +20,7 @@ You're in a Bun-workspace monorepo that ships a reusable Payload CMS website too
 ## Hard rules for editing this monorepo
 
 - **Source of truth is `package.json#exports`**, not the README's "Public API" table. If a symbol isn't in `exports`, it's not importable from a host app.
-- **Plugin packages ship via `file:` links from the main package** (`packages/payload-www/package.json`). When you bump a plugin's version, run `bun install` from the repo root so the main package's `file:` link still resolves the fresh dist.
+- **Cross-plugin deps are `peerDependencies`, not `dependencies` with `file:` links.** The three sibling plugins (`seo`, `translate`, `imagehash`) are listed in `packages/payload-www/package.json#peerDependencies` with version ranges — not in `dependencies` with `file:` paths. Why: `file:` deps in a published package.json break downstream npm installs (npm tries to resolve `file:../../plugins/X` relative to the user's project root, not the published package's origin). Local monorepo dev still resolves them via Bun's workspace symlinks. When you bump a plugin version, update the matching `peerDependencies` range in `packages/payload-www/package.json` to match.
 - **Each plugin builds before `payload-www`** — enforced by `properties.priority` in `package.json`. Don't reorder the build.
 - **The CHANGELOG is updated per package.** When you ship a behaviour change, edit `packages/payload-www/CHANGELOG.md` (and the plugin's `CHANGELOG.md` if it has one), not the README's prose.
 - **`bunup.config.ts` + `src/exports/*.ts` is the build pattern.** Each subpath in `package.json#exports` has a matching `src/exports/<name>.ts` shim that re-exports from `src/`. When you add a new public subpath, add the shim in the same PR.
