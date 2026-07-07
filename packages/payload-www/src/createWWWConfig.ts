@@ -78,20 +78,20 @@ export function createWWWConfig(): WWWConfigApi {
             })
           ]
         }, defaultPluginsConfigs?.translator)),
-        mcpPlugin(mergeOrOverride<MCPPluginConfig>({
-          collections: Object.fromEntries(
-            collections.map(({ slug, admin }) => [slug, {
-              enabled: { find: true, create: true, update: true, delete: true },
-              description: typeof admin?.description === 'string' ? admin.description : undefined
-            }])
-          ),
-          globals: Object.fromEntries(
-            globals.map(({ slug, admin }) => [slug, {
-              enabled: { find: true, update: true },
-              description: typeof admin?.description === 'string' ? admin.description : undefined
-            }])
-          )
-        }, defaultPluginsConfigs?.mcp))
+        // mcpPlugin(mergeOrOverride<MCPPluginConfig>({
+        //   collections: Object.fromEntries(
+        //     collections.map(({ slug, admin }) => [slug, {
+        //       enabled: { find: true, create: true, update: true, delete: true },
+        //       description: typeof admin?.description === 'string' ? admin.description : undefined
+        //     }])
+        //   ),
+        //   globals: Object.fromEntries(
+        //     globals.map(({ slug, admin }) => [slug, {
+        //       enabled: { find: true, update: true },
+        //       description: typeof admin?.description === 'string' ? admin.description : undefined
+        //     }])
+        //   )
+        // }, defaultPluginsConfigs?.mcp))
       ],
       config.plugins)
 
