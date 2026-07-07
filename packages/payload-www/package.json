@@ -102,9 +102,6 @@
     "prepublishOnly": "bun run clean && bun run build"
   },
   "dependencies": {
-    "@justanarthur/payload-imagehash-plugin": "file:../../plugins/imagehash",
-    "@justanarthur/payload-plugin-seo": "file:../../plugins/seo",
-    "@justanarthur/payload-plugin-translator": "file:../../plugins/translate",
     "@payloadcms/live-preview-react": "3.85.0",
     "@payloadcms/plugin-mcp": "3.85.0",
     "@payloadcms/richtext-lexical": "3.85.0",
@@ -134,7 +131,10 @@
     "next-intl": "^4.0.0",
     "payload": "^3.85.0",
     "react": "^19.2.6",
-    "react-dom": "^19.2.6"
+    "react-dom": "^19.2.6",
+    "@justanarthur/payload-plugin-seo": "^3.0.0",
+    "@justanarthur/payload-plugin-translator": "^3.0.0",
+    "@justanarthur/payload-imagehash-plugin": "^3.3.0"
   },
   "properties": {
     "gitCommitScopeRelatedNames": "payload-www,render,revalidation,www",
