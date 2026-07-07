@@ -13,7 +13,7 @@ import { BlurhashPluginOptions } from "@justanarthur/payload-imagehash-plugin/ty
 import { TranslatorConfig } from "@justanarthur/payload-plugin-translator/types"
 
 export type WWWConfigApi = {
-  withWWWConfig: (config: WWWInputConfig) => Promise<Config> | Config
+  withWWWConfig: (config: WWWInputConfig) => Config
 }
 
 export type WWWInputConfig = Omit<Config, 'collections' | 'globals' | 'plugins'> & {
@@ -56,7 +56,11 @@ export function createWWWConfig(): WWWConfigApi {
       [
         seoPlugin(mergeOrOverride({
           collections: [PAGES_SLUG, POSTS_SLUG],
-          autoGenerate: { mode: 'onCreate', deriveFrom: 'allScalars' }
+          openaiApiKey: process.env.OPENAI_API_KEY,
+          autoGenerate: {
+            mode: 'onCreateOrUpdate',
+            deriveFrom: 'allScalars'
+          }
         }, defaultPluginsConfigs?.seo)),
         imageHashPlugin(mergeOrOverride({
           algorithm: 'lqip-modern'
@@ -68,7 +72,7 @@ export function createWWWConfig(): WWWConfigApi {
             openAIResolver({
               apiKey: process.env.OPENAI_API_KEY!,
               chunkLength: 31,
-              model: 'gpt-5-mini'
+              model: 'gpt-5.4-mini'
             })
           ]
         }, defaultPluginsConfigs?.translator))

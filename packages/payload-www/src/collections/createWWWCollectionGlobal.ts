@@ -12,7 +12,7 @@ export type CreateWWWCollectionArgs<IsGlobalConfig extends boolean> = {
   isDraft?: boolean,
 }
 
-export function createWWWCollectionGlobal<IsGlobalConfig extends boolean, Config = IsGlobalConfig extends true ? GlobalConfig : CollectionConfig>(
+export function createWWWCollectionGlobal<IsGlobalConfig extends boolean = false, Config = IsGlobalConfig extends true ? GlobalConfig : CollectionConfig>(
   fields: Field[],
   {
     slug: collectionSlug,

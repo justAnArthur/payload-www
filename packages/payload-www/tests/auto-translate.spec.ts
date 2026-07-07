@@ -73,7 +73,7 @@ describe('createAutoTranslateCollectionHook', () => {
     req: args.req as never
   } as never)
 
-  it('queues a workflow job for each non-default locale', async () => {
+  it('queues one workflow for the document carrying all non-default locales', async () => {
     const { afterChange } = createAutoTranslateCollectionHook({ collectionSlug: 'pages' })
     const req = buildReq({ locale: 'en', payload })
 
@@ -82,7 +82,8 @@ describe('createAutoTranslateCollectionHook', () => {
       req
     })
 
-    expect(payload.jobs.queue).toHaveBeenCalledTimes(2)
+    // One workflow per document (locales handled sequentially inside it), not one per locale.
+    expect(payload.jobs.queue).toHaveBeenCalledTimes(1)
     expect(payload.jobs.queue).toHaveBeenCalledWith({
       workflow: 'translateEntityToLocales',
       input: {
@@ -91,18 +92,7 @@ describe('createAutoTranslateCollectionHook', () => {
         collection: 'pages',
         fromLocale: 'en',
         resolver: 'openai',
-        toLocale: 'uk'
-      }
-    })
-    expect(payload.jobs.queue).toHaveBeenCalledWith({
-      workflow: 'translateEntityToLocales',
-      input: {
-        id: 42,
-        updatedAt: '2026-06-22T10:00:00.000Z',
-        collection: 'pages',
-        fromLocale: 'en',
-        resolver: 'openai',
-        toLocale: 'de'
+        toLocales: ['uk', 'de']
       }
     })
   })
@@ -273,10 +263,13 @@ describe('createAutoTranslateCollectionHook', () => {
       req: reqDe
     })
 
-    
-    expect(payload.jobs.queue).toHaveBeenCalledTimes(2)
-    const calls = payload.jobs.queue.mock.calls.map((c) => c[0].input.toLocale)
-    expect(calls).toEqual(expect.arrayContaining(['en', 'uk']))
+
+    expect(payload.jobs.queue).toHaveBeenCalledTimes(1)
+    expect(payload.jobs.queue).toHaveBeenCalledWith(
+      expect.objectContaining({
+        input: expect.objectContaining({ fromLocale: 'de', toLocales: ['en', 'uk'] })
+      })
+    )
   })
 
   it('uses explicit targetLocales override', async () => {
@@ -293,7 +286,7 @@ describe('createAutoTranslateCollectionHook', () => {
 
     expect(payload.jobs.queue).toHaveBeenCalledTimes(1)
     expect(payload.jobs.queue).toHaveBeenCalledWith(
-      expect.objectContaining({ input: expect.objectContaining({ toLocale: 'fr' }) })
+      expect.objectContaining({ input: expect.objectContaining({ toLocales: ['fr'] }) })
     )
   })
 
@@ -307,10 +300,8 @@ describe('createAutoTranslateCollectionHook', () => {
     expect(result).toBe(doc)
   })
 
-  it('continues queuing when one job fails', async () => {
-    payload.jobs.queue
-      .mockRejectedValueOnce(new Error('queue down'))
-      .mockResolvedValueOnce({ id: 'job-2' })
+  it('logs an error when queuing the workflow fails', async () => {
+    payload.jobs.queue.mockRejectedValueOnce(new Error('queue down'))
 
     const { afterChange } = createAutoTranslateCollectionHook({ collectionSlug: 'pages' })
     const req = buildReq({ locale: 'en', payload, locales: ['en', 'uk', 'de'] })
@@ -320,9 +311,7 @@ describe('createAutoTranslateCollectionHook', () => {
       req
     })
 
-    
-    
-    expect(payload.jobs.queue).toHaveBeenCalledTimes(2)
+    expect(payload.jobs.queue).toHaveBeenCalledTimes(1)
     expect(payload.logger.error).toHaveBeenCalledWith(
       expect.objectContaining({ msg: expect.stringContaining('failed to queue') })
     )
@@ -345,7 +334,7 @@ describe('createAutoTranslateGlobalHook', () => {
     req: args.req as never
   } as never)
 
-  it('queues a workflow job per non-default locale for the global', async () => {
+  it('queues one workflow for the global carrying all non-default locales', async () => {
     const hook = createAutoTranslateGlobalHook({ globalSlug: 'header' })
     const req = buildReq({ locale: 'en', payload })
 
@@ -354,7 +343,7 @@ describe('createAutoTranslateGlobalHook', () => {
       req
     })
 
-    expect(payload.jobs.queue).toHaveBeenCalledTimes(2)
+    expect(payload.jobs.queue).toHaveBeenCalledTimes(1)
     expect(payload.jobs.queue).toHaveBeenCalledWith({
       workflow: 'translateEntityToLocales',
       input: {
@@ -362,17 +351,7 @@ describe('createAutoTranslateGlobalHook', () => {
         global: 'header',
         fromLocale: 'en',
         resolver: 'openai',
-        toLocale: 'uk'
-      }
-    })
-    expect(payload.jobs.queue).toHaveBeenCalledWith({
-      workflow: 'translateEntityToLocales',
-      input: {
-        updatedAt: '2026-06-22T10:00:00.000Z',
-        global: 'header',
-        fromLocale: 'en',
-        resolver: 'openai',
-        toLocale: 'de'
+        toLocales: ['uk', 'de']
       }
     })
   })

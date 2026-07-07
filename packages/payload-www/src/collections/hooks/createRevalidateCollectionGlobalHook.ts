@@ -10,8 +10,10 @@ export function createRevalidateCollectionGlobalHook() {
 
     function revalidate(args: Omit<CollectionGlobalLocaleIdentifiersArgs, 'locale'>) { // @ts-ignore
       try {
-        revalidateTag(createCollectionCacheKey({ ...args, locale }), 'max')
+        revalidateTag(createCollectionCacheKey({ ...args, locale } as CollectionGlobalLocaleIdentifiersArgs), 'max')
       } catch (error) {
+        const msg = error instanceof Error ? error.message : String(error)
+        if (msg.includes('static generation store missing')) return
         console.error(error)
       }
     }
