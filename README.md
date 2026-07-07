@@ -5,16 +5,69 @@ Payload plugins, developed together in a [Bun](https://bun.sh) workspace monorep
 
 ## Packages
 
-| package | path | description |
-|---|---|---|
-| [`@justanarthur/payload-www`](packages/payload-www) | `packages/payload-www` | Reusable Payload website template — config builder, collections, globals, blocks, fields, access, hooks, metadata (JSON-LD, hreflang), page renderers, and test helpers. |
-| [`@justanarthur/payload-imagehash-plugin`](plugins/imagehash) | `plugins/imagehash` | Automatic Blurhash/Thumbhash encoding of images. |
-| [`@justanarthur/payload-plugin-seo`](plugins/seo) | `plugins/seo` | Meta title, description, image and preview fields, with auto-generation hooks. |
-| [`@justanarthur/payload-plugin-translator`](plugins/translate) | `plugins/translate` | Automatic localization via Google, OpenAI, LibreTranslate, or custom resolvers. |
-| `demo` | `demo` | Private showcase app for `@justanarthur/payload-www` (not published). |
+| package | path | README | description |
+|---|---|---|---|
+| `@justanarthur/payload-www` | `packages/payload-www` | [README](packages/payload-www/README.md) | Reusable Payload website template — config builder, collections, globals, blocks, fields, access, hooks, metadata (JSON-LD, hreflang), page renderers, and test helpers. |
+| `@justanarthur/payload-imagehash-plugin` | `plugins/imagehash` | [README](plugins/imagehash/README.md) | Automatic Blurhash / Thumbhash / LQIP encoding of uploaded images. |
+| `@justanarthur/payload-plugin-seo` | `plugins/seo` | [README](plugins/seo/README.md) | Meta title, description, image and preview fields, with auto-generation hooks and a built-in OpenAI fallback. |
+| `@justanarthur/payload-plugin-translator` | `plugins/translate` | [README](plugins/translate/README.md) | Automatic localization via Google, OpenAI, LibreTranslate, or custom resolvers. |
+| `demo` | `demo` | [README](demo/README.md) | Private showcase app for `@justanarthur/payload-www` (not published). |
 
-`packages/payload-www` depends on all three plugins via `workspace:*`, so they always build and test
-against the local source.
+`packages/payload-www` depends on all three plugins via `file:` links, so they always build and
+test against the local source.
+
+## Integrating into a host app
+
+The package composes a complete Payload config for you. The minimum integration in a host's
+`payload.config.ts`:
+
+```ts
+import { buildConfig } from 'payload'
+import { createWWWConfig } from '@justanarthur/payload-www/config'
+import { blocks } from '@/components/blocks'
+
+const { withWWWConfig } = createWWWConfig()
+
+export default buildConfig(withWWWConfig({
+  blocks,
+  collections: (defaults) => [...defaults, Media, Users],
+  globals: (defaults) => defaults,
+  defaultPluginsConfigs: {
+    seo:       (d) => ({ ...d, collections: ['pages', 'posts'], openaiApiKey: process.env.OPENAI_API_KEY }),
+    imageHash: (d) => ({ ...d, algorithm: 'lqip-modern' }),
+    translator: (d) => ({ ...d, autoTranslate: true, collections: ['pages', 'posts'], globals: ['header', 'footer'] })
+  },
+  // ...rest of your Payload config
+}))
+```
+
+Then mount the lib's Next.js page renderers in `app/(frontend)/[locale]/`:
+
+```ts
+// app/(frontend)/[locale]/layout.tsx
+import { createRootLayoutExports } from '@justanarthur/payload-www/render-pages'
+const { default: RootLayout, generateStaticParams } = createRootLayoutExports(
+  { config: import('@payload-config').then(m => m.default), importMap, routing },
+  { getServerSideURL }
+)
+export default RootLayout
+export { generateStaticParams }
+
+// app/(frontend)/[locale]/[[...slug]]/page.tsx — Pages home + catch-all
+import { createCollectionPageExports } from '@justanarthur/payload-www/render-pages'
+const { default: Page, generateMetadata, generateStaticParams, generateSitemap } =
+  createCollectionPageExports(
+    { config, importMap, routing, slugShape: 'catch-all' },
+    { getServerSideURL }
+  )
+export default Page
+export { generateMetadata, generateStaticParams, generateSitemap }
+```
+
+The canonical, fully-wired integration lives in the host repo's `apps/www/payload.config.ts` — use
+that as the working reference. See
+[`packages/payload-www/README.md`](packages/payload-www/README.md) for the full API surface,
+plugin knobs, and migration notes from older versions.
 
 ## Development
 
@@ -37,7 +90,8 @@ bun run seed           # seed the local sqlite database
 
 ## Release automation
 
-CI/CD is powered by [just-github-actions-n-workflows](https://github.com/justAnArthur/just-github-actions-n-workflows).
+CI/CD is powered by
+[just-github-actions-n-workflows](https://github.com/justAnArthur/just-github-actions-n-workflows).
 Two workflows live in [`.github/workflows/`](.github/workflows):
 
 - **`bump-version`** — on push to `main`, reads conventional-commit scopes, bumps the matching
