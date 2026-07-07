@@ -126,3 +126,35 @@ remaining empty slots. Generator failures or timeouts never block the save.
 | `uploadsCollection` | `CollectionSlug` | — | Slug for image-relation fields. |
 | `interfaceName` | `string` | — | TS interface name for the `meta` group. |
 | `autoGenerate` | `AutoGenerateConfig \| false` | `undefined` | Auto-fill empty meta on save. See above. |
+
+## Behaviour notes
+
+- The plugin only writes into **empty** secondary slots (`ogTitle`, `twitterTitle`, etc.) — your
+  editor-set values are never overwritten.
+- The built-in OpenAI fallback (when only `openaiApiKey` is set) uses `gpt-4o-mini` and runs on every
+  save where the heuristic pass leaves a slot empty.
+- Generator failures / timeouts never block the save — the heuristic result stands and the doc
+  publishes normally.
+- `tabbedUI` is purely cosmetic; it splits the editor screen into Content / SEO tabs without
+  touching the stored shape.
+
+## Subpath imports
+
+Advanced — for hosts that want individual pieces without the plugin runtime:
+
+| Subpath | What's there |
+|---|---|
+| `@justanarthur/payload-plugin-seo` (root) | `seoPlugin` |
+| `@justanarthur/payload-plugin-seo/types` | shared TS types (`SEOPluginConfig`, `SEOMeta`, etc.) |
+| `@justanarthur/payload-plugin-seo/fields` | `metaField` factory, used when you want the field without registering the plugin |
+| `@justanarthur/payload-plugin-seo/fields-components` | the client-side admin UI components |
+| `@justanarthur/payload-plugin-seo/globals` | `createMetadataGlobal` (the SEO `metadata` global the lib's `createWWWConfig` registers) |
+| `@justanarthur/payload-plugin-seo/site-defaults` | `createSiteDefaults` — read the SEO global for the current request |
+| `@justanarthur/payload-plugin-seo/next-metadata` | `generateMeta` (used by `@justanarthur/payload-www/render-pages`) |
+| `@justanarthur/payload-plugin-seo/root-jsonld` | `Organization` / `WebSite` JSON-LD helpers |
+| `@justanarthur/payload-plugin-seo/opengraph-image` | `generateOpenGraphImage` (Next.js `ImageResponse` helper) |
+| `@justanarthur/payload-plugin-seo/client` | client-side bits (already lazy-loaded by `@justanarthur/payload-www`) |
+
+## Licence
+
+MIT
