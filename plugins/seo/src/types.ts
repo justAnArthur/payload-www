@@ -116,6 +116,9 @@ export type AutoGenerateConfig = {
   deriveFrom?: DeriveFrom
   
   timeoutMs?: number
+
+
+  runGenerator?: boolean
 }
 
 export type SEOPluginConfig = {

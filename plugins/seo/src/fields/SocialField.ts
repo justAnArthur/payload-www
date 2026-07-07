@@ -3,6 +3,8 @@ import type { GroupField, SelectField, TextField, UploadField } from 'payload'
 export type SocialFieldOptions = {
   
   readonly relationTo?: string
+
+  readonly localized?: boolean
 }
 
 type Option = { label: string; value: string }
@@ -23,39 +25,43 @@ const TWITTER_CARDS: Option[] = [
   { label: 'Player', value: 'player' }
 ]
 
-const ogImage = (relationTo?: string): UploadField | TextField =>
+const ogImage = (relationTo?: string, localized?: boolean): UploadField | TextField =>
   relationTo
     ? ({
       name: 'ogImage',
       type: 'upload',
       relationTo,
-      label: 'OG image'
+      label: 'OG image',
+      localized
     } as unknown as UploadField)
     : ({
       name: 'ogImage',
       type: 'text',
       label: 'OG image URL',
-      admin: { description: 'Public URL of the Open Graph image.' }
+      admin: { description: 'Public URL of the Open Graph image.' },
+      localized
     } as unknown as TextField)
 
-const twitterImage = (relationTo?: string): UploadField | TextField =>
+const twitterImage = (relationTo?: string, localized?: boolean): UploadField | TextField =>
   relationTo
     ? ({
       name: 'twitterImage',
       type: 'upload',
       relationTo,
-      label: 'Twitter image'
+      label: 'Twitter image',
+      localized
     } as unknown as UploadField)
     : ({
       name: 'twitterImage',
       type: 'text',
       label: 'Twitter image URL',
-      admin: { description: 'Public URL of the Twitter card image.' }
+      admin: { description: 'Public URL of the Twitter card image.' },
+      localized
     } as unknown as TextField)
 
 
 export const SocialField = (options: SocialFieldOptions = {}): GroupField => {
-  const { relationTo } = options
+  const { relationTo, localized } = options
 
   return {
     name: 'social',
@@ -71,15 +77,17 @@ export const SocialField = (options: SocialFieldOptions = {}): GroupField => {
         name: 'ogTitle',
         type: 'text',
         label: 'OG title',
-        admin: { description: 'Open Graph title. ~40–90 chars.' }
+        admin: { description: 'Open Graph title. ~40–90 chars.' },
+        localized
       } as unknown as TextField,
       {
         name: 'ogDescription',
         type: 'textarea',
         label: 'OG description',
-        admin: { description: 'Open Graph description. ~100–200 chars.' }
+        admin: { description: 'Open Graph description. ~100–200 chars.' },
+        localized
       } as unknown as TextField,
-      ogImage(relationTo),
+      ogImage(relationTo, localized),
       {
         name: 'ogType',
         type: 'select',
@@ -100,14 +108,16 @@ export const SocialField = (options: SocialFieldOptions = {}): GroupField => {
         name: 'twitterTitle',
         type: 'text',
         label: 'Twitter title',
-        admin: { description: 'Falls back to OG title, then meta title.' }
+        admin: { description: 'Falls back to OG title, then meta title.' },
+        localized
       } as unknown as TextField,
       {
         name: 'twitterDescription',
         type: 'textarea',
-        label: 'Twitter description'
+        label: 'Twitter description',
+        localized
       } as unknown as TextField,
-      twitterImage(relationTo)
+      twitterImage(relationTo, localized)
     ]
   } as unknown as GroupField
 }
