@@ -7,7 +7,7 @@ export const FOOTER_RENDER_PATH = '@justanarthur/payload-www/render-pages#Footer
 
 export const createFooterGlobal =
   () =>
-    createWWWCollectionGlobal<GlobalConfig>(
+    createWWWCollectionGlobal(
       [
         {
           name: 'nav',

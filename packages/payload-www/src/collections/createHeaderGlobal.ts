@@ -7,7 +7,7 @@ export const HEADER_RENDER_PATH = '@justanarthur/payload-www/render-pages#Header
 
 export const createHeaderGlobal =
   () =>
-    createWWWCollectionGlobal<GlobalConfig>(
+    createWWWCollectionGlobal(
       [
         {
           name: 'nav',
