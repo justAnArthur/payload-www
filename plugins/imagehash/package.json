@@ -1,7 +1,7 @@
 {
   "name": "@justanarthur/payload-imagehash-plugin",
   "description": "Payload CMS plugin for automatic Blurhash/Thumbhash encoding of images",
-  "version": "3.2.3",
+  "version": "3.3.0",
   "type": "module",
   "private": false,
   "files": [

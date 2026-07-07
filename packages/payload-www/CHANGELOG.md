@@ -6,120 +6,97 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-07-07
+
+First stable release. The composer / collections / globals / page-renderers / sitemap surface is
+locked; future changes follow semver.
+
 ### Breaking changes
 
-- **Pages / Posts `slug` is now localized by default.** The lib's
-  collections are multilingual, so the slug field is `localized: true`
-  (one slug per locale — `/about` in `en`, `/o-nas` in `sk`), stored in
-  the collection's `_locales` table. This powers per-locale URLs and
-  hreflang alternates. Hosts on a single shared slug must pass
-  `localized: false` to the extracted `slugField()` (or override the
-  field), and existing non-localized data needs a DB migration to move
-  `slug` into `<collection>_locales`.
-- **Revalidation tag rename — Posts.** The Posts collection's
-  revalidation hook used to fire per-locale tags of the form
-  `global_posts_<locale>`. It now fires `collection_posts_<id>`
-  (matching the new universal `collection_<slug>_<id>` shape) and
-  invalidates `<slug>-sitemap` alongside paths. Hosts that cached by
-  the old per-locale tag must update their cache keys. No compat
-  shim — the old tag is gone.
-- **`createRevalidatePageHooks()` is now a deprecated alias.** The
-  canonical factory is `createRevalidateCollectionHook({ collectionSlug,
-  urlPathPrefix, sitemapTag?, localePrefix?, defaultLocale? })`.
-  `createRevalidatePageHooks()` still works but is preserved only for
-  backward compat with hosts that imported this name directly — it
-  emits a one-time deprecation warning and forwards to the canonical
-  factory with `collectionSlug: 'pages'`, `urlPathPrefix: ''`.
-- **Unified `sitemap.xml` (Next.js file convention).** The lib used
-  to ship a `createSitemapHandler` route handler invoked from
-  `app/(frontend)/pages-sitemap.xml/route.ts`. It now ships
-  `createSitemapFile` — a `MetadataRoute.Sitemap` factory invoked
-  from `app/(frontend)/sitemap.ts` (Next.js's file-convention default
-  export, served at `/sitemap.xml`). The old route-handler name and
-  the two legacy `*-sitemap.xml/route.ts` files are gone.
-
-### Fixed
-
-- Block render components declared via `custom.path` are now
-  auto-registered in the admin importMap. The composer read
-  `admin.custom.path` for blocks — inconsistent with collections/globals
-  (which use `custom.path`) — so blocks with a top-level `custom.path`
-  were silently skipped and didn't render. Now reads `custom.path`, with
-  `admin.custom.path` kept as a fallback.
-- `queryAllLocaleSlugs` now re-reads the doc with `locale: 'all'` so a
-  localized slug field resolves to its real per-locale map. Previously it
-  queried a single locale (which returns a plain string), so every
-  hreflang alternate reused the current locale's slug.
-- Removed a stray `console.log('render', …)` left in the
-  `createCollectionPageExports` page-render hot path.
+- **`createWWWConfig()` takes no arguments.** Locales come from your Payload `localization` config;
+  blocks / collections / globals / plugins are passed through the `WWWInputConfig` arg of
+  `withWWWConfig(...)`. The previous `createWWWConfig({ locales, blocks, routing, ... })` signature
+  was removed.
+- **`defaultPluginsConfigs` replaces `defaultPlugins` callback.** Tune the lib's default plugin set
+  via `defaultPluginsConfigs: { seo, imageHash, translator, mcp }` on `WWWInputConfig` — each
+  entry is either a `(defaults) => override` or a replacement value. The old
+  `defaultPlugins: (defaults) => defaults.filter(...)` callback is gone.
+- **Pages / Posts `slug` is localized by default.** The slug field is `localized: true` (one slug
+  per locale — `/about` in `en`, `/o-nas` in `sk`), stored in the collection's `_locales` table.
+  Hosts on a single shared slug must pass `slugField({ localized: false })` (or override the field)
+  and migrate the `slug` column into `<collection>_locales`.
+- **`slugField()` is exported from `/fields` only** — the previous `/core-fields` subpath is gone.
+- **Revalidation: only `createRevalidateCollectionGlobalHook()` ships.** It fires
+  `revalidateTag('<slug><slug>_<locale>', 'max')` (collections) or
+  `revalidateTag('<globalSlug>_<locale>', 'max')` (globals). There is no per-locale `revalidatePath`
+  fan-out, no `createRevalidateCollectionHook({...})` factory, no `createRevalidatePageHooks()`,
+  no `createRevalidateGlobalHook()` — hosts that need URL fan-out wire their own hook on top of
+  this one.
+- **Sitemap: only `createSitemapFromCollections` ships.** It is called from
+  `app/(frontend)/sitemap.ts` and returns a `MetadataRoute.Sitemap` producer. The previous
+  `createSitemapFile` / `createSitemapHandler` names are gone — do not import them.
+- **Removed `static-pages` system pages from the default composer output.** Hosts that need 404 /
+  500 pages build their own collection via `createWWWCollectionGlobal({...}, { slug:
+  'static-pages', renderPath: '...', isDraft: false })` and mount a normal
+  `createCollectionPageExports` against it. There is no `createStaticPagesCollection` /
+  `createStaticPageExports` helper.
 
 ### Added
 
-- **`slugField()` field factory** (exported from `/fields` and
-  `/core-fields`) — the shared slug field used by the Pages / Posts
-  collections, extracted so it's reusable and configurable: `localized`
-  (default `true`) and `nested` (allow the `_` divider) options.
-- **Nested (hierarchical) slugs.** `createCollectionPageExports({ nested: true })`
-  joins the catch-all `[...slug]` segments with the `_` divider to form
-  the stored slug (URL `/about/us` ⇄ stored `about_us`) and expands it
-  back for URL building, hreflang alternates, and `generateStaticParams`.
-  Pair with `createPagesCollection({ nested: true })` /
-  `createWWWConfig({ nested: true })` to let the Pages slug field accept
-  the `_` divider, and `createSitemapFile({ nested: { pages: true } })`
-  for the sitemap. Default stays `false` (flat, hyphen-only slugs).
-- **Extensible nav links.** `link({ extraFields })` appends host fields
-  (e.g. a `description` or a `navHover` mega-menu group) to the link
-  group. `createHeaderGlobal` / `createFooterGlobal` expose
-  `navColumnLinkFields` and `navItemLinkFields` to thread these into the
-  `navColumn` / `navItem` links without redefining the whole nav.
-- `createRevalidateCollectionHook({ collectionSlug, urlPathPrefix?,
-  sitemapTag?, localePrefix?, defaultLocale? })` — canonical
-  revalidation factory for **all** collections (Pages, Posts,
-  host-defined). The Posts collection is now wired through it
-  with `urlPathPrefix: '/posts'`. Replaces the implicit per-collection
-  hook logic.
-- `revalidateTag('collection_<slug>_<id>', 'max')` — fired on every
-  `afterChange` / `afterDelete` for every collection registered via
-  the canonical hook, giving hosts a stable per-doc tag for
-  fetch-cache and `unstable_cache` invalidation.
-- `urlPrefixes` option on `createSitemapFile` — per-collection URL
-  path prefix for the unified sitemap. Pass `{ posts: '/posts' }` for
-  a collection mounted under a sub-route; Pages (root-mounted)
-  needs no prefix.
-- `localePrefix` + `defaultLocale` options on
-  `createRevalidateCollectionHook` — lets the per-locale
-  `revalidatePath` fan-out mirror the host's next-intl routing
-  (`'always'`, `'as-needed'`, `'never'`). `'as-needed'` drops the
-  prefix for the default locale (e.g. `/about` instead of
-  `/en/about`).
-- `nextCacheImport` — memoized `await import('next/cache')` shared
-  by every revalidation hook, with safe fallback when the module
-  isn't resolvable (e.g. outside a Next.js runtime during unit
-  tests).
-- `prefixFor(locale, defaultLocale, mode)` and `allLocales(config)`
-  helpers under `src/render/_locale.ts`, shared by the revalidation
-  hooks and `createSitemapFile` so the two never disagree on URL
-  shape.
+- **`RootJsonLd` component** auto-injected into the root layout by `createRootLayoutExports` when
+  you pass `getServerSideURL`. Renders the SEO plugin's site-wide `Organization` / `WebSite` /
+  `Product` JSON-LD as the first child of `<html>` so it ships in the initial HTML for crawlers.
+- **`createRootLayoutExports` factory** (from `/render-pages`) wires the `[locale]/layout.tsx`
+  route: locale validation, `setRequestLocale`, header + footer render, `NextIntlClientProvider`,
+  optional `<RootJsonLd>`. Deps accept `getServerSideURL`, `providers`, and `htmlAttrs`.
+- **`createCollectionPageExports({ slugShape })`** — `'single'` (default) for `[slug]` (Posts,
+  static-pages) and `'catch-all'` for `[[...slug]]` (Pages). Drives `generateStaticParams` and
+  slug segmentation.
+- **`createWWWCollectionGlobal(fields, { slug, renderPath, isGlobalConfig?, isDraft? })`** —
+  generic factory used internally for Pages / Posts / static-pages. Hosts can use it directly for
+  custom collections. Sets access (`anyone` for system pages, `authenticatedOrPublished` for
+  drafts), wires the revalidation hook and `populatePublishedAt` `beforeChange`.
+- **Nav-link extension hook:** `link({ extraFields })` lets hosts append fields (e.g. `description`
+  or a `navHover` mega-menu group) to the link group. `createHeaderGlobal` /
+  `createFooterGlobal` expose `navColumnLinkFields` / `navItemLinkFields` to thread these into the
+  `navColumn` / `navItem` blocks without redefining the whole nav.
+- **Open Graph image attributes** are wired through the SEO plugin's `next-metadata` subpath and
+  read by `generateMeta` for every page.
+- **`createPostsCollection` ships an `afterChange` / `afterDelete` revalidation hook** (it didn't
+  before — saves and deletes used to leave cached pages and the sitemap stale).
 
 ### Fixed
 
-- `localePrefix: 'as-needed'` now actually produces `/about` for the
-  default locale (previously it ignored the option and always
-  emitted `/en/about`).
-- `createSitemapHandler` references in the README and the
-  `PAGES_SITEMAP_TAG` doc comment — both pointed at an export that
-  never existed; corrected to `createSitemapFile`.
-- Slug-rename revalidation now fans out across every declared locale
-  (not just the request locale).
-- `afterDelete` revalidation now fires the same `revalidatePath` +
-  tag set as `afterChange` (previously inconsistent).
-- Posts collection revalidation: before this change the Posts
-  collection didn't ship a revalidation hook at all — saves and
-  deletes left cached pages and the sitemap stale until the next
-  manual revalidation.
+- Block render components declared via `custom.path` are now auto-registered in the admin importMap.
+  The composer used to read `admin.custom.path` for blocks — inconsistent with collections / globals
+  (which use `custom.path`) — so blocks with a top-level `custom.path` were silently skipped and
+  didn't render. Now reads `custom.path` with `admin.custom.path` as a fallback.
+- `queryAllLocaleSlugs` now re-reads the doc with `locale: 'all'` so a localized slug field
+  resolves to its real per-locale map. Previously it queried a single locale (which returns a
+  plain string), so every hreflang alternate reused the current locale's slug.
+- `createRevalidateCollectionGlobalHook` swallows the `static generation store missing` error so
+  it doesn't crash the seed-script path that runs outside Next.js.
+- `createWWWCollectionGlobal` now grants `anyone` read access when `isDraft: false` — system
+  pages like 404 / 500 need to be publicly fetchable even before they're "published".
+- Slug-rename revalidation now fans out across every declared locale (not just the request locale).
 
-### Deprecated
+### Changed
 
-- `createRevalidatePageHooks()` — use
-  `createRevalidateCollectionHook({ collectionSlug: 'pages',
-  urlPathPrefix: '' })`. Kept for one release as a forwarding alias.
+- `globals` / `collections` rename: the package now consistently uses **collections** as the
+  umbrella term (collections + globals are both "config entities"). `createGlobalConfig` was
+  folded into `createWWWCollectionGlobal({ isGlobalConfig: true, ... })`.
+- Site-wide JSON-LD utilities were unified under `buildRootJsonLd` (Organization + WebSite +
+  Product combined). Per-piece builders (`buildOrganizationLd`, `buildWebSiteLd`,
+  `buildProductLd`) are still exported from `/metadata` for hosts that want them individually.
+- SEO plugin's `meta` field now includes `keywords` and the localized field support added by the
+  SEO plugin's own 1.3.x line (see `@justanarthur/payload-plugin-seo` README for options).
+- Build script now sets `NODE_ENV=production` before invoking `bunup`, fixing the silent
+  `jsxDEV` runtime crash on Next.js production builds.
+
+### Removed
+
+- **`mcpPlugin` is no longer wired into the default plugin set.** Hosts that want it should
+  register it themselves via `plugins: (defaults) => [...defaults, mcpPlugin({...})]`. The
+  composer previously injected MCP for every collection and global by default; the default-on
+  behaviour caused excessive admin-tool surface and has been disabled until the MCP integration
+  settles.
