@@ -106,6 +106,7 @@
     "@justanarthur/payload-plugin-seo": "file:../../plugins/seo",
     "@justanarthur/payload-plugin-translator": "file:../../plugins/translate",
     "@payloadcms/live-preview-react": "3.85.0",
+    "@payloadcms/plugin-mcp": "3.85.0",
     "@payloadcms/richtext-lexical": "3.85.0",
     "@payloadcms/next": "3.85.0",
     "next": "16.2.6",

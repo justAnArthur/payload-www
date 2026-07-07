@@ -8,6 +8,7 @@ import { createHeaderGlobal, HEADER_SLUG } from "./collections/createHeaderGloba
 import { seoPlugin } from '@justanarthur/payload-plugin-seo'
 import { imageHashPlugin } from '@justanarthur/payload-imagehash-plugin'
 import { translator } from '@justanarthur/payload-plugin-translator'
+import { mcpPlugin, MCPPluginConfig } from '@payloadcms/plugin-mcp'
 import { SEOPluginConfig } from "@justanarthur/payload-plugin-seo/types"
 import { BlurhashPluginOptions } from "@justanarthur/payload-imagehash-plugin/types"
 import { TranslatorConfig } from "@justanarthur/payload-plugin-translator/types"
@@ -23,7 +24,8 @@ export type WWWInputConfig = Omit<Config, 'collections' | 'globals' | 'plugins'>
   defaultPluginsConfigs?: {
     seo?: MergeOrOverride<SEOPluginConfig>,
     imageHash?: MergeOrOverride<BlurhashPluginOptions>,
-    translator?: MergeOrOverride<TranslatorConfig>
+    translator?: MergeOrOverride<TranslatorConfig>,
+    mcp?: MergeOrOverride<MCPPluginConfig>
   }
 }
 
@@ -75,7 +77,21 @@ export function createWWWConfig(): WWWConfigApi {
               model: 'gpt-5.4-mini'
             })
           ]
-        }, defaultPluginsConfigs?.translator))
+        }, defaultPluginsConfigs?.translator)),
+        mcpPlugin(mergeOrOverride<MCPPluginConfig>({
+          collections: Object.fromEntries(
+            collections.map(({ slug, admin }) => [slug, {
+              enabled: { find: true, create: true, update: true, delete: true },
+              description: typeof admin?.description === 'string' ? admin.description : undefined
+            }])
+          ),
+          globals: Object.fromEntries(
+            globals.map(({ slug, admin }) => [slug, {
+              enabled: { find: true, update: true },
+              description: typeof admin?.description === 'string' ? admin.description : undefined
+            }])
+          )
+        }, defaultPluginsConfigs?.mcp))
       ],
       config.plugins)
 
