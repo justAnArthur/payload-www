@@ -67,8 +67,10 @@ export const findEntityWithConfig = async (
       req
     })
 
+  const doc = (await docPromise) as any
+
   return {
     config: entityConfig,
-    doc: (await docPromise) as any
+    doc
   }
 }

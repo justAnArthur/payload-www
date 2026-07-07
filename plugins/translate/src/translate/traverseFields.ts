@@ -3,14 +3,20 @@ import type { Field } from 'payload'
 import { tabHasName } from 'payload/shared'
 
 import { isEmpty } from '../utils/isEmpty'
+import { sanitizeSlug } from '../utils/sanitizeSlug'
 import { traverseRichText } from './traverseRichText'
 import type { ValueToTranslate } from './types'
+
+/** Append a named segment to a field path, handling the empty root. */
+const joinPath = (base: string | undefined, segment: string) =>
+  base ? `${base}.${segment}` : segment
 
 export const traverseFields = ({
                                  dataFrom,
                                  emptyOnly,
                                  fields,
                                  localizedParent,
+                                 path,
                                  siblingDataFrom,
                                  siblingDataTranslated,
                                  translatedData,
@@ -22,6 +28,7 @@ export const traverseFields = ({
   emptyOnly?: boolean
   fields: Field[]
   localizedParent?: boolean
+  path?: string
   siblingDataFrom?: Record<string, unknown>
   siblingDataTranslated?: Record<string, unknown>
   translatedData: Record<string, unknown>
@@ -63,6 +70,7 @@ export const traverseFields = ({
             emptyOnly,
             fields: tab.fields,
             localizedParent: localizedParent ?? tab.localized,
+            path: hasName ? joinPath(path, tab.name) : path,
             siblingDataFrom: tabDataFrom,
             siblingDataTranslated: tabDataTranslated,
             translatedData,
@@ -90,6 +98,7 @@ export const traverseFields = ({
           emptyOnly,
           fields: field.fields,
           localizedParent: localizedParent ?? field.localized,
+          path: joinPath(path, field.name),
           siblingDataFrom: groupDataFrom,
           siblingDataTranslated: groupDataTranslated,
           translatedData,
@@ -126,6 +135,7 @@ export const traverseFields = ({
             emptyOnly,
             fields: field.fields,
             localizedParent: localizedParent ?? field.localized,
+            path: `${joinPath(path, field.name)}[${index}]`,
             siblingDataFrom: arrayDataFrom[index],
             siblingDataTranslated: item,
             translatedData,
@@ -171,6 +181,7 @@ export const traverseFields = ({
             emptyOnly,
             fields: block.fields,
             localizedParent: localizedParent ?? field.localized,
+            path: `${joinPath(path, field.name)}[${index}](${item.blockType})`,
             siblingDataFrom: blocksDataFrom[index],
             siblingDataTranslated: item,
             translatedData,
@@ -191,6 +202,7 @@ export const traverseFields = ({
           emptyOnly,
           fields: field.fields,
           localizedParent,
+          path,
           siblingDataFrom,
           siblingDataTranslated,
           translatedData,
@@ -199,7 +211,7 @@ export const traverseFields = ({
         })
         break
 
-      
+
       case 'date':
       case 'checkbox':
       case 'code':
@@ -222,28 +234,29 @@ export const traverseFields = ({
         const jsonDataTranslated = JSON.parse(JSON.stringify(jsonDataFrom))
         siblingDataTranslated[field.name] = jsonDataTranslated
 
-      function traverseObject(obj: Record<string, any>) {
+      function traverseObject(obj: Record<string, any>, objPath: string) {
         if (!obj || typeof obj !== 'object') return
 
         for (const key in obj) {
           const value = obj[key]
 
           if (typeof value === 'string' && value.trim()) {
-            ((parentObj, parentKey, parentValue) => {
+            ((parentObj, parentKey, parentValue, parentPath) => {
               valuesToTranslate.push({
                 onTranslate: (translated) => {
                   parentObj[parentKey] = translated
                 },
-                value: parentValue
+                value: parentValue,
+                path: parentPath
               })
-            })(obj, key, value)
+            })(obj, key, value, joinPath(objPath, key))
           } else if (typeof value === 'object' && value !== null) {
-            traverseObject(value)
+            traverseObject(value, joinPath(objPath, key))
           }
         }
       }
 
-        traverseObject(jsonDataTranslated)
+        traverseObject(jsonDataTranslated, joinPath(path, field.name))
         break
 
       case 'text':
@@ -253,16 +266,17 @@ export const traverseFields = ({
         if (!(field.localized || localizedParent) || isEmpty(siblingDataFrom[field.name])) break
         if (emptyOnly && siblingDataTranslated[field.name]) break
 
-        
+
         if (field.name === 'blockName' || field.name === 'id') {
           break
         }
 
         valuesToTranslate.push({
           onTranslate: (translated: string) => {
-            siblingDataTranslated[field.name] = translated
+            siblingDataTranslated[field.name] = field.name === 'slug' ? sanitizeSlug(translated) : translated
           },
-          value: siblingDataFrom[field.name]
+          value: siblingDataFrom[field.name],
+          path: joinPath(path, field.name)
         })
         break
 
@@ -282,6 +296,9 @@ export const traverseFields = ({
 
         if (!isSlate && !isLexical) break
 
+        const richTextPath = joinPath(path, field.name)
+        let richTextNodeIndex = 0
+
         if (isLexical) {
           const root = (siblingDataTranslated[field.name] as Record<string, unknown>)
             ?.root as Record<string, unknown>
@@ -293,7 +310,8 @@ export const traverseFields = ({
                   onTranslate: (translated: string) => {
                     siblingData[attribute] = translated
                   },
-                  value: siblingData[attribute]
+                  value: siblingData[attribute],
+                  path: `${richTextPath}#${richTextNodeIndex++}`
                 })
               },
               root,
@@ -308,7 +326,8 @@ export const traverseFields = ({
                   onTranslate: (translated: string) => {
                     siblingData[attribute] = translated
                   },
-                  value: siblingData[attribute]
+                  value: siblingData[attribute],
+                  path: `${richTextPath}#${richTextNodeIndex++}`
                 })
               },
               root: root as Record<string, unknown>,
