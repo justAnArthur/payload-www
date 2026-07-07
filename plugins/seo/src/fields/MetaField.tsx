@@ -18,6 +18,8 @@ export type MetaFieldOptions = {
   readonly hidePreview?: boolean
 
   readonly interfaceName?: string
+
+  readonly localized?: boolean
 }
 
 
@@ -27,7 +29,8 @@ export const MetaField = (options: MetaFieldOptions = {}): GroupField => {
     hasGenerateFn = false,
     interfaceName,
     relationTo,
-    hidePreview = false
+    hidePreview = false,
+    localized
   } = options
 
 
@@ -38,45 +41,43 @@ export const MetaField = (options: MetaFieldOptions = {}): GroupField => {
         name: 'content',
         label: 'Content',
         fields: [
-          TitleField() as unknown as Field,
-          DescriptionField() as unknown as Field,
-          KeywordsField() as unknown as Field,
-          ImageField({ relationTo }) as unknown as Field
+          TitleField({ localized }) as unknown as Field,
+          DescriptionField({ localized }) as unknown as Field,
+          KeywordsField({ localized }) as unknown as Field,
+          ImageField({ relationTo, localized }) as unknown as Field
         ]
       },
       {
         name: 'social',
         label: 'Social',
-        fields: [SocialField({ relationTo }) as unknown as Field]
-      },
-      ...(hidePreview
-        ? []
-        : [
-            {
-              name: 'preview',
-              label: 'Preview',
-              fields: [
-                {
-                  type: 'ui',
-                  name: '_preview',
-                  admin: {
-                    components: {
-                      Field: {
-                        clientProps: { pathPrefix: 'meta' },
-                        path: '@justanarthur/payload-plugin-seo/client#MetaPreview'
-                      }
-                    }
-                  }
-                } as unknown as UIField
-              ]
-            }
-          ])
+        fields: [SocialField({ relationTo, localized }) as unknown as Field]
+      }
     ]
   }
 
 
-
   const fieldPaths = buildFieldPaths(tabs.tabs as Tab[])
+
+  if (!hidePreview) {
+    tabs.tabs.push({
+      name: 'preview',
+      label: 'Preview',
+      fields: [
+        {
+          type: 'ui',
+          name: '_preview',
+          admin: {
+            components: {
+              Field: {
+                clientProps: { pathPrefix: 'meta', fieldPaths },
+                path: '@justanarthur/payload-plugin-seo/client#MetaPreview'
+              }
+            }
+          }
+        } as unknown as UIField
+      ]
+    })
+  }
 
   const generateUi: UIField = {
     type: 'ui',

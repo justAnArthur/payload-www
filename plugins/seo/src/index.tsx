@@ -53,15 +53,20 @@ const buildAutoGenerateHook =
 export const seoPlugin =
   (pluginConfig: SEOPluginConfig = {}) =>
     (config: Config): Config => {
-      const hasGenerateFn = typeof pluginConfig?.generateSEO === 'function'
-      const hasGenerateAi = typeof pluginConfig?.openaiApiKey === 'string'
+      const userGenerateSEO = typeof pluginConfig?.generateSEO === 'function' ? pluginConfig.generateSEO : undefined
+      const userOpenaiApiKey = typeof pluginConfig?.openaiApiKey === 'string' ? pluginConfig.openaiApiKey : undefined
+      const resolvedOpenaiApiKey = userOpenaiApiKey ?? (typeof process !== 'undefined' ? process.env?.OPENAI_API_KEY : undefined)
+
+      const hasGenerateAi = typeof resolvedOpenaiApiKey === 'string'
+      const hasGenerateFn = typeof userGenerateSEO === 'function'
 
       const buildMetaField = (): Field => {
         return MetaField({
           hasGenerateAi,
           hasGenerateFn,
           relationTo: pluginConfig.uploadsCollection,
-          interfaceName: pluginConfig.interfaceName
+          interfaceName: pluginConfig.interfaceName,
+          localized: true
         }) as unknown as Field
       }
 
@@ -70,7 +75,11 @@ export const seoPlugin =
           ? pluginConfig.fields({ defaultFields: [buildMetaField()] })
           : [buildMetaField()]
 
-      const autoGenerateHook = buildAutoGenerateHook(pluginConfig, config)
+      const hookConfig: SEOPluginConfig = {
+        ...pluginConfig,
+        openaiApiKey: resolvedOpenaiApiKey
+      }
+      const autoGenerateHook = buildAutoGenerateHook(hookConfig, config)
 
       const withAutoGenerateHook = <T extends { hooks?: { beforeChange?: unknown } }>(item: T): T => {
         const existing = item.hooks?.beforeChange
@@ -215,10 +224,8 @@ export const seoPlugin =
 
               let meta: Partial<SEOMeta> = {}
 
-              const source = data.source ?? (hasGenerateFn ? 'fn' : 'ai')
-
-              if (source === 'fn' && hasGenerateFn) {
-                meta = await (pluginConfig.generateSEO as GenerateSEO)({
+              if (data.source === 'fn' && userGenerateSEO) {
+                meta = await userGenerateSEO({
                   ...baseArgs,
                   collectionSlug: data.collectionSlug as never,
                   docPermissions: data.docPermissions as never,
@@ -233,9 +240,9 @@ export const seoPlugin =
                   title: data.title as never,
                   versionCount: data.versionCount as never
                 } as Parameters<GenerateSEO>[0])
-              } else if (source === 'ai' && hasGenerateAi) {
+              } else if (hasGenerateAi) {
                 meta = await openaiMessage({
-                  apiKey: pluginConfig.openaiApiKey as string,
+                  apiKey: resolvedOpenaiApiKey as string,
                   content: JSON.stringify(data.doc ?? {}),
                   req
                 })

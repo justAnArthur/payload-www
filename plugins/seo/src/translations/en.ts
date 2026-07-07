@@ -94,6 +94,7 @@ export const en: GenericTranslationsObject = {
     previewTwitter: 'Twitter card preview',
     previewTitlePlaceholder: 'Add a title to see how it looks in search results.',
     previewDescriptionPlaceholder: 'Add a description to see how it looks in search results.',
+    robotsLabel: 'Robots',
 
     
     almostThere: 'Almost there',

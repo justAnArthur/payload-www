@@ -465,7 +465,7 @@ describe('runAutoGenerate — generator pass', () => {
   it('fills still-empty slots from a user-provided generateSEO function', async () => {
     const data: Record<string, unknown> = { title: 't', meta: { content: { title: '' } } }
     const config: SEOPluginConfig = {
-      autoGenerate: { mode: 'onCreateOrUpdate', deriveFrom: 'allScalars' },
+      autoGenerate: { mode: 'onCreateOrUpdate', deriveFrom: 'allScalars', runGenerator: true },
       generateSEO: () => ({ keywords: 'kw1, kw2' })
     }
     await runAutoGenerate({
@@ -484,7 +484,7 @@ describe('runAutoGenerate — generator pass', () => {
   it('does not throw when the generator throws — heuristic result is kept', async () => {
     const data: Record<string, unknown> = { title: 't' }
     const config: SEOPluginConfig = {
-      autoGenerate: { mode: 'onCreateOrUpdate', deriveFrom: 'allScalars' },
+      autoGenerate: { mode: 'onCreateOrUpdate', deriveFrom: 'allScalars', runGenerator: true },
       generateSEO: () => {
         throw new Error('LLM down')
       }
@@ -507,7 +507,8 @@ describe('runAutoGenerate — generator pass', () => {
       autoGenerate: {
         mode: 'onCreateOrUpdate',
         deriveFrom: 'allScalars',
-        timeoutMs: 50
+        timeoutMs: 50,
+        runGenerator: true
       },
       generateSEO: () => new Promise<{ title: string }>((r) => setTimeout(() => r({ title: 'late' }), 500))
     }
@@ -521,5 +522,51 @@ describe('runAutoGenerate — generator pass', () => {
     })
     const content = (data.meta as Record<string, unknown>).content as Record<string, unknown>
     expect(content.title).toBe('t')
+  })
+
+
+  it('does NOT call generateSEO from the hook by default — AI/fn is button-only', async () => {
+    let called = false
+    const data: Record<string, unknown> = { title: 't' }
+    const config: SEOPluginConfig = {
+      autoGenerate: { mode: 'onCreateOrUpdate', deriveFrom: 'allScalars' },
+      openaiApiKey: 'sk-test',
+      generateSEO: () => {
+        called = true
+        return { keywords: 'should-not-apply' }
+      }
+    }
+    await runAutoGenerate({
+      pluginConfig: config,
+      collectionConfig: collection,
+      data,
+      operation: 'create',
+      locale: undefined,
+      req: makeReq()
+    })
+    expect(called).toBe(false)
+    const content = (data.meta as Record<string, unknown>).content as Record<string, unknown>
+    expect(content.title).toBe('t')
+    expect(content.keywords).toBeUndefined()
+  })
+
+
+  it('does NOT call openaiMessage from the hook by default — AI is button-only', async () => {
+    const data: Record<string, unknown> = { title: 't' }
+    const config: SEOPluginConfig = {
+      autoGenerate: { mode: 'onCreateOrUpdate', deriveFrom: 'allScalars' },
+      openaiApiKey: 'sk-test'
+    }
+    await runAutoGenerate({
+      pluginConfig: config,
+      collectionConfig: collection,
+      data,
+      operation: 'create',
+      locale: undefined,
+      req: makeReq()
+    })
+    const content = (data.meta as Record<string, unknown>).content as Record<string, unknown>
+    expect(content.title).toBe('t')
+    expect(content.keywords).toBeUndefined()
   })
 })
