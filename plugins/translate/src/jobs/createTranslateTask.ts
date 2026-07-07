@@ -103,7 +103,7 @@ export function createTranslateTask(options: CreateTranslateTaskOptions = {}): T
 
       req.payload.logger.info({
         jobId: job.id,
-        msg: `persisting ${entityLabel} (id=${id ?? global}) at locale ${toLocale}`
+        msg: `[translate] persisting ${entityLabel}#${id ?? global} → ${toLocale}`
       })
 
       try {

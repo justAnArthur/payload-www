@@ -61,31 +61,31 @@ export function createAutoTranslateCollectionHook(
 
     const updatedAt = typed.updatedAt ?? new Date().toISOString()
 
-    for (const toLocale of targetLocales) {
-      if (toLocale === defaultLocale) continue
-      try {
-        const job = await req.payload.jobs.queue({
-          workflow: workflowSlug,
-          input: {
-            id: typed.id,
-            updatedAt,
-            collection: collectionSlug,
-            fromLocale: defaultLocale,
-            resolver: resolverKey || undefined,
-            toLocale
-          }
-        })
-        req.payload.logger.info({
-          msg: `auto-translate: queued translation of ${collectionSlug}#${typed.id} → ${toLocale} (job ${job.id})`
-        })
-      } catch (error) {
-        
-        
-        
-        req.payload.logger.error({
-          msg: `auto-translate: failed to queue ${collectionSlug}#${typed.id} → ${toLocale}: ${String(error)}`
-        })
-      }
+    const toLocales = targetLocales.filter((toLocale) => toLocale !== defaultLocale)
+    if (toLocales.length === 0) return doc
+
+    try {
+      // One workflow per document (not one per locale): it translates every
+      // target locale sequentially, so the per-locale payload.update() calls
+      // never race on the same document.
+      const job = await req.payload.jobs.queue({
+        workflow: workflowSlug,
+        input: {
+          id: typed.id,
+          updatedAt,
+          collection: collectionSlug,
+          fromLocale: defaultLocale,
+          resolver: resolverKey || undefined,
+          toLocales
+        }
+      })
+      req.payload.logger.info({
+        msg: `auto-translate: queued translation of ${collectionSlug}#${typed.id} → [${toLocales.join(', ')}] (job ${job.id})`
+      })
+    } catch (error) {
+      req.payload.logger.error({
+        msg: `auto-translate: failed to queue ${collectionSlug}#${typed.id}: ${String(error)}`
+      })
     }
 
     return doc

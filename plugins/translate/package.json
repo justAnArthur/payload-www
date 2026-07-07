@@ -65,10 +65,13 @@
         "default": "./dist/resolvers/google.js"
       }
     },
+    "./client.css": "./dist/client.css",
     "./package.json": "./package.json"
   },
   "license": "MIT",
-  "sideEffects": false,
+  "sideEffects": [
+    "**/*.css"
+  ],
   "engines": {
     "node": ">=20"
   },

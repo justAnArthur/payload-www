@@ -50,10 +50,12 @@ const defaultPrompt: OpenAIPrompt = ({ localeFrom, localeTo, texts }) => {
   return `You are a machine-translation engine. Translate each string in the input JSON array from ${from} (${localeFrom}) to ${to} (${localeTo}).
 
 Rules:
-1. The output must be a valid JSON array of strings.
-2. The output array must have the same length and order as the input.
-3. Preserve URLs, email addresses, and other non-translatable tokens as-is.
-4. Apply locale-specific formatting for the target locale (dates, currency, decimal separators).
+1. The output must be a valid JSON array of strings, with the same length and order as the input.
+2. SLUGS: any input that looks like a URL slug (lowercase, contains only ASCII letters/digits/hyphens/underscores, no spaces, no punctuation) MUST be transliterated into the target language. Output the slug in the same format: lowercase ASCII only, using only letters a-z, digits 0-9, hyphens (-), and underscores (_). Never leave a slug unchanged. Never output accented characters, uppercase letters, spaces, or other symbols in a slug. Examples:
+   - "about-us-copy" (en) → "o-nas-kopia" (sk) → "uber-uns-kopie" (de) → "sobre-nos-copia" (pt) → "a-propos-copie" (fr)
+   - For Cyrillic source scripts, transliterate to Latin first, then translate.
+3. URLs (containing "://" or "www."), email addresses, hex strings, and other opaque identifiers: keep as-is.
+4. Apply locale-specific formatting for dates, currency, decimal separators in human-readable text.
 5. Return only the JSON array. No markdown fences, no prose, no trailing commentary.
 
 INPUT:
@@ -70,7 +72,19 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
 
 const isRetryableStatus = (status: number) => status === 429 || status >= 500
 
-const deriveMaxTokens = (chunkLength: number) => Math.max(chunkLength * 100, 4000)
+const isGpt5Family = (model: string) => /^gpt-5/.test(model)
+const isGpt54Plus = (model: string) => /^gpt-5\.[1-9]/.test(model)
+const usesMaxCompletionTokens = (model: string) =>
+  isGpt5Family(model) || /^o[1-9]/.test(model)
+
+// gpt-5.4+ family does hidden reasoning even with reasoning_effort=none when
+// max_completion_tokens is set (verified on gpt-5.4-mini). Give it room for
+// reasoning + output, or the visible content gets truncated to null.
+const deriveMaxTokens = (chunkLength: number, model?: string) => {
+  const base = Math.max(chunkLength * 100, 4000)
+  if (model && isGpt54Plus(model)) return Math.max(base * 4, 16000)
+  return base
+}
 
 type ParseResult =
   | { ok: true; translated: string[]; fenceStripped: boolean }
@@ -115,7 +129,12 @@ export const openAIResolver = ({
     key: 'openai',
     resolve: async ({ localeFrom, localeTo, req, texts }) => {
       const apiUrl = `${baseUrl || 'https://api.openai.com'}/v1/chat/completions`
-      const maxTokens = deriveMaxTokens(chunkLength)
+      const maxTokens = deriveMaxTokens(chunkLength, model)
+      const maxTokensKey = usesMaxCompletionTokens(model) ? 'max_completion_tokens' : 'max_tokens'
+      const supportsCustomTemperature = !isGpt5Family(model)
+      // explicit low reasoning — keeps gpt-5.4+ from burning the max_completion_tokens
+      // budget on hidden reasoning before producing visible content
+      const reasoningEffort = isGpt54Plus(model) ? 'low' : undefined
       const logger = req.payload.logger
 
       try {
@@ -135,9 +154,9 @@ export const openAIResolver = ({
                       }
                     ],
                     model,
-                    response_format: { type: 'json_object' },
-                    temperature: 0,
-                    max_tokens: maxTokens
+                    ...(supportsCustomTemperature ? { temperature: 0 } : {}),
+                    ...(reasoningEffort ? { reasoning_effort: reasoningEffort } : {}),
+                    [maxTokensKey]: maxTokens
                   }),
                   headers: {
                     Authorization: `Bearer ${apiKey}`,

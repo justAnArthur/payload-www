@@ -1,6 +1,6 @@
 'use client'
 
-import './styles.scss'
+import './styles.css'
 
 import { PublishButton, SaveButton, useConfig, useDocumentInfo } from '@payloadcms/ui'
 

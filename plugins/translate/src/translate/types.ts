@@ -3,6 +3,8 @@ import { Doc } from "./findEntityWithConfig"
 export type ValueToTranslate = {
   onTranslate: (translatedValue: any) => void
   value: any
+  /** Dot/bracket path of the field this value came from, for logging (e.g. `blocks[1](flexVerticalBlocks).grid[0].block[0].features[2].title`). */
+  path?: string
 }
 
 export type TranslateArgs = {

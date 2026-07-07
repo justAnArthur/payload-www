@@ -51,27 +51,29 @@ export function createAutoTranslateGlobalHook(
 
     const updatedAt = typed.updatedAt ?? new Date().toISOString()
 
-    for (const toLocale of targetLocales) {
-      if (toLocale === defaultLocale) continue
-      try {
-        const job = await req.payload.jobs.queue({
-          workflow: workflowSlug,
-          input: {
-            updatedAt,
-            global: globalSlug,
-            fromLocale: defaultLocale,
-            resolver: resolverKey || undefined,
-            toLocale
-          }
-        })
-        req.payload.logger.info({
-          msg: `auto-translate: queued translation of ${globalSlug} → ${toLocale} (job ${job.id})`
-        })
-      } catch (error) {
-        req.payload.logger.error({
-          msg: `auto-translate: failed to queue ${globalSlug} → ${toLocale}: ${String(error)}`
-        })
-      }
+    const toLocales = targetLocales.filter((toLocale) => toLocale !== defaultLocale)
+    if (toLocales.length === 0) return doc
+
+    try {
+      // One workflow per global (not one per locale): it translates every target
+      // locale sequentially, so the per-locale updates never race on the same doc.
+      const job = await req.payload.jobs.queue({
+        workflow: workflowSlug,
+        input: {
+          updatedAt,
+          global: globalSlug,
+          fromLocale: defaultLocale,
+          resolver: resolverKey || undefined,
+          toLocales
+        }
+      })
+      req.payload.logger.info({
+        msg: `auto-translate: queued translation of ${globalSlug} → [${toLocales.join(', ')}] (job ${job.id})`
+      })
+    } catch (error) {
+      req.payload.logger.error({
+        msg: `auto-translate: failed to queue ${globalSlug}: ${String(error)}`
+      })
     }
 
     return doc
