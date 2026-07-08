@@ -1,7 +1,5 @@
 import type { Block, Field } from 'payload'
 
-
-
 const columnFields: Field[] = [
   {
     name: 'text',

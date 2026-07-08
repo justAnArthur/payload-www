@@ -1,8 +1,5 @@
-import { getCachedGlobal } from '@justanarthur/payload-www/server'
 import Link from 'next/link'
-import React from 'react'
 
-import configPromise from '@payload-config'
 import { CMSLink } from '@/components/Link'
 import { Logo } from '@/components/Logo/Logo'
 import type { Footer as FooterType } from '@/payload-types'
@@ -13,10 +10,8 @@ const isNavItem = (block: NonNullable<FooterType['nav']>[number]): block is Extr
 const isNavColumn = (block: NonNullable<FooterType['nav']>[number]): block is Extract<NonNullable<FooterType['nav']>[number], { blockType: 'navColumn' }> =>
   block.blockType === 'navColumn'
 
-
-export default async function Footer() {
-  const footerData = await getCachedGlobal(configPromise, 'footer', 1)()
-  const nav = (footerData?.nav ?? []) as NonNullable<FooterType['nav']>
+export async function Footer({ data }: { data: FooterType }) {
+  const nav = (data?.nav ?? []) as NonNullable<FooterType['nav']>
   const itemBlocks = nav.filter(isNavItem)
   const columnBlocks = nav.filter(isNavColumn)
 

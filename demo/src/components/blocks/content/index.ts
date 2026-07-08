@@ -1,0 +1,1 @@
+export { ContentBlock as default } from './Component'

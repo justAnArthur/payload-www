@@ -1,8 +1,5 @@
-import { getCachedGlobal } from '@justanarthur/payload-www/server'
 import Link from 'next/link'
-import React from 'react'
 
-import configPromise from '@payload-config'
 import { CMSLink } from '@/components/Link'
 import { Logo } from '@/components/Logo/Logo'
 import type { Header as HeaderType } from '@/payload-types'
@@ -13,10 +10,8 @@ const isNavItem = (block: NonNullable<HeaderType['nav']>[number]): block is Extr
 const isNavColumn = (block: NonNullable<HeaderType['nav']>[number]): block is Extract<NonNullable<HeaderType['nav']>[number], { blockType: 'navColumn' }> =>
   block.blockType === 'navColumn'
 
-
-export default async function Header() {
-  const headerData = await getCachedGlobal(configPromise, 'header', 1)()
-  const nav = (headerData?.nav ?? []) as NonNullable<HeaderType['nav']>
+export async function Header({ data }: { data: HeaderType }) {
+  const nav = (data?.nav ?? []) as NonNullable<HeaderType['nav']>
   const itemBlocks = nav.filter(isNavItem)
   const columnBlocks = nav.filter(isNavColumn)
 
