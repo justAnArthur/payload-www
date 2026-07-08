@@ -1,4 +1,4 @@
-import type { CollectionSlug, Config, Field, TabsField } from 'payload'
+import type { CollectionSlug, Config, Field, Plugin, TabsField } from 'payload'
 import { deepMergeSimple } from 'payload/shared'
 
 import { runAutoGenerate } from './autoGenerate'
@@ -51,7 +51,7 @@ const buildAutoGenerateHook =
 
 
 export const seoPlugin =
-  (pluginConfig: SEOPluginConfig = {}) =>
+  (pluginConfig: SEOPluginConfig = {}): Plugin =>
     (config: Config): Config => {
       const userGenerateSEO = typeof pluginConfig?.generateSEO === 'function' ? pluginConfig.generateSEO : undefined
       const userOpenaiApiKey = typeof pluginConfig?.openaiApiKey === 'string' ? pluginConfig.openaiApiKey : undefined

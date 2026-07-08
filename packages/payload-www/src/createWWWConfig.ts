@@ -1,5 +1,4 @@
-import type { AdminComponent, CollectionConfig, Config, GlobalConfig, Plugin } from 'payload'
-import { name as packageName } from "../package.json"
+import type { CollectionConfig, Config, GlobalConfig, Plugin } from 'payload'
 import openAIResolver from "@justanarthur/payload-plugin-translator/resolvers/openAI"
 import { createPostsCollection, POSTS_SLUG } from "./collections/createPostsCollection"
 import { createPagesCollection, PAGES_SLUG } from "./collections/createPagesCollection"
@@ -44,18 +43,7 @@ export function createWWWConfig(): WWWConfigApi {
       createFooterGlobal()
     ], config.globals)
 
-    const renderDependencies: Record<string, AdminComponent> = {}
-    for (const { slug, custom } of blocks) {
-      const path = custom?.[packageName]?.path
-      if (typeof path === 'string' && slug) renderDependencies[slug] = { path, type: 'component' }
-    }
-    for (const { custom } of [...collections, ...globals]) {
-      const path = custom?.[packageName]?.path
-      if (typeof path === 'string') renderDependencies[path] = { path, type: 'component' }
-    }
-
-    const plugins = mergeOrOverride(
-      [
+    const defaultPlugins = [
         seoPlugin(mergeOrOverride({
           collections: [PAGES_SLUG, POSTS_SLUG],
           openaiApiKey: process.env.OPENAI_API_KEY,
@@ -77,7 +65,7 @@ export function createWWWConfig(): WWWConfigApi {
               model: 'gpt-5.4-mini'
             })
           ]
-        }, defaultPluginsConfigs?.translator)),
+        }, defaultPluginsConfigs?.translator))
         // mcpPlugin(mergeOrOverride<MCPPluginConfig>({
         //   collections: Object.fromEntries(
         //     collections.map(({ slug, admin }) => [slug, {
@@ -92,21 +80,14 @@ export function createWWWConfig(): WWWConfigApi {
         //     }])
         //   )
         // }, defaultPluginsConfigs?.mcp))
-      ],
-      config.plugins)
+      ] as Plugin[]
+    const plugins = mergeOrOverride(defaultPlugins, config.plugins)
 
     return ({
       ...config,
       collections,
       globals,
-      plugins,
-      admin: {
-        ...(config.admin ?? {}),
-        dependencies: {
-          ...renderDependencies,
-          ...(config.admin?.dependencies ?? {})
-        }
-      }
+      plugins
     }) as Config
   }
 
@@ -115,7 +96,7 @@ export function createWWWConfig(): WWWConfigApi {
 
 type MergeOrOverride<T> = T | ((defaultValue: T) => T)
 
-function mergeOrOverride<T>(defaultValue: T, overrideValue?: T | ((d: T) => T)) {
+function mergeOrOverride<T>(defaultValue: T, overrideValue?: T | ((d: T) => T)): T {
   if (typeof overrideValue === 'function') return (overrideValue as (d: T) => T)(defaultValue)
   if (overrideValue !== undefined) return overrideValue
   return defaultValue

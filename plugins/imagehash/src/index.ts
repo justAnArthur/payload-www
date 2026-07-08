@@ -1,4 +1,4 @@
-import type { CollectionBeforeChangeHook, CollectionConfig, Config } from 'payload'
+import type { CollectionBeforeChangeHook, CollectionConfig, Config, Plugin } from 'payload'
 import { Minimatch } from 'minimatch'
 import { AlgorithmOptions, defaultAlgorithm, runAlgorithm } from './algorithms'
 
@@ -15,7 +15,7 @@ export type BlurhashPluginOptions = {
 
 const computeBlurhash = (
   pluginOptions?: BlurhashPluginOptions
-): ((incomingConfig: Config) => Config) => {
+): Plugin => {
   const {
     collections,
     mimeTypePattern = 'image/*',
@@ -92,7 +92,7 @@ const computeBlurhash = (
   }
 }
 
-export type ImageHashPlugin = (pluginOptions?: BlurhashPluginOptions) => (config: Config) => Config;
+export type ImageHashPlugin = (pluginOptions?: BlurhashPluginOptions) => Plugin;
 
 export const imageHashPlugin: ImageHashPlugin = computeBlurhash
 export default imageHashPlugin
