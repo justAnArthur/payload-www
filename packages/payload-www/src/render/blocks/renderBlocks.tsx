@@ -1,49 +1,41 @@
-import type { FC } from 'react'
+import type { ComponentType, FC, ReactNode } from 'react'
 import type { ImportMap, SanitizedConfig } from 'payload'
-
-import { getFromImportMap } from '../getFromImportMap'
-import { generateImportName } from '../generateImportName'
+import { type AsyncImportMap, getFromImportMap } from '../getFromImportMap'
+import { name as packageName } from '../../../package.json'
 
 export type RenderBlocksProps = {
   blocks: Array<{ blockType: string } & Record<string, unknown>>
   blockProps?: Record<string, unknown>
-  importMap: ImportMap
+  importMap: ImportMap | AsyncImportMap
   config: SanitizedConfig
   locale: string
   searchParams?: Record<string, string | string[] | undefined>
 }
 
+const DEFAULT_BLOCK_PATH_PREFIX = '@/components/blocks'
 
-export const RenderBlocks: FC<RenderBlocksProps> = ({
-                                                      blocks,
-                                                      blockProps,
-                                                      config,
-                                                      importMap,
-                                                      locale,
-                                                      searchParams
-                                                    }) => {
-  if (!blocks || !Array.isArray(blocks) || blocks.length === 0) {
-    console.log('[WWW] render/blocks:RenderBlocks no blocks (locale=', locale, ')')
+export const RenderBlocks: FC<RenderBlocksProps> = async (
+  { blocks, blockProps, config, importMap, locale, searchParams }
+) => {
+  if (!blocks || !Array.isArray(blocks) || blocks.length === 0)
     return null
-  }
 
-  console.log('[WWW] render/blocks:RenderBlocks rendering count=', blocks.length, 'locale=', locale)
-  const rendered: React.ReactNode[] = []
+  const rendered: ReactNode[] = []
   for (let i = 0; i < blocks.length; i++) {
     const block = blocks[i]
     const { blockType } = block
 
+    const blockConfig = (config.blocks ?? []).find(b => b.slug === blockType)
+    const customPath = blockConfig?.custom?.[packageName]?.path
 
-    const importMapPath =
-      config.admin?.dependencies?.[blockType]?.path || generateImportName('block', blockType)
+    const importMapPath = (typeof customPath === 'string' ? customPath : null) ?? `${DEFAULT_BLOCK_PATH_PREFIX}/${blockType}`
 
-    const Block = getFromImportMap(importMapPath, importMap)
+    const Block = (await getFromImportMap(importMapPath, importMap)) as ComponentType<any> | undefined
     if (!Block) {
       console.warn(`[WWW] render/blocks:RenderBlocks no block for type=${blockType} importMapPath=${importMapPath} (locale=${locale})`)
       continue
     }
 
-    console.log('[WWW] render/blocks:RenderBlocks [', i, '] blockType=', blockType, 'importMapPath=', importMapPath)
     rendered.push(
       <Block
         key={i}

@@ -1,6 +1,7 @@
+import type { ComponentType } from 'react'
 import type { ImportMap, SanitizedConfig } from 'payload'
-import { name } from "../../package.json"
-import { getFromImportMap } from "./getFromImportMap"
+import { name } from '../../package.json'
+import { getFromImportMap, type AsyncImportMap } from './getFromImportMap'
 
 export async function renderWWWDataModule(
   data: any,
@@ -13,7 +14,7 @@ export async function renderWWWDataModule(
     collectionSlug: string,
     configPath?: 'collections' | 'globals',
     config: Promise<SanitizedConfig>,
-    importMap: ImportMap
+    importMap: ImportMap | AsyncImportMap
   },
   props?: Record<string, any>
 ) {
@@ -21,7 +22,7 @@ export async function renderWWWDataModule(
 
   const renderPath = config[configPath]?.find((c) => c.slug === collectionSlug)?.custom?.[name]?.path
 
-  const RenderModule = getFromImportMap(renderPath, importMap)
+  const RenderModule = (await getFromImportMap(renderPath, importMap)) as ComponentType<any> | undefined
   if (!RenderModule) {
     if (process.env.NODE_ENV !== 'production') {
       throw Error(
