@@ -15,19 +15,12 @@ import { InlineToolbarFeatureClient as InlineToolbarFeatureClient_e70f5e05f09f93
 import { FixedToolbarFeatureClient as FixedToolbarFeatureClient_e70f5e05f09f93e00b997edb1ef0c864 } from '@payloadcms/richtext-lexical/client'
 import { FolderTableCell as FolderTableCell_f9c02e79a4aed9a3924487c0cd4cafb1 } from '@payloadcms/next/rsc'
 import { FolderField as FolderField_f9c02e79a4aed9a3924487c0cd4cafb1 } from '@payloadcms/next/rsc'
-import { SlugField as SlugField_2b8867833a34864a02ddf429b0728a40 } from '@payloadcms/next/client'
 import { FolderTypeField as FolderTypeField_2b8867833a34864a02ddf429b0728a40 } from '@payloadcms/next/client'
 import { default as default_1a7510af427896d367a49dbf838d2de6 } from '@/components/BeforeDashboard'
 import { default as default_8a7ab0eb7ab5c511aba12e68480bfe5e } from '@/components/BeforeLogin'
 import { CollectionCards as CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1 } from '@payloadcms/next/rsc'
-import { PagesPage as PagesPage_486f2007004bebd6fd824e2f75dfe668 } from '@justanarthur/payload-www/render-pages'
-import { PostsPage as PostsPage_486f2007004bebd6fd824e2f75dfe668 } from '@justanarthur/payload-www/render-pages'
-import { default as default_e20ecfb66760893088d0fe14b02758f5 } from '@/Header/Component'
-import { default as default_4938a80cc738257869bd28b4e2b2059f } from '@/Footer/Component'
-import { LivePreviewListener as LivePreviewListener_bb27da336af6cdab6f00ce241a8c786e } from '@justanarthur/payload-www/render-components'
-import { default as default_61399738b6ab0fa4dd602554caf98171 } from '@/blocks/Content/Component'
 
-
+/** @type import('payload').ImportMap */
 export const importMap = {
   "@justanarthur/payload-plugin-seo/client#GenerateButton": GenerateButton_268419788155f6a6e75e06eff266d768,
   "@justanarthur/payload-plugin-seo/client#TitleFieldComponent": TitleFieldComponent_268419788155f6a6e75e06eff266d768,
@@ -46,15 +39,8 @@ export const importMap = {
   "@payloadcms/richtext-lexical/client#FixedToolbarFeatureClient": FixedToolbarFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
   "@payloadcms/next/rsc#FolderTableCell": FolderTableCell_f9c02e79a4aed9a3924487c0cd4cafb1,
   "@payloadcms/next/rsc#FolderField": FolderField_f9c02e79a4aed9a3924487c0cd4cafb1,
-  "@payloadcms/next/client#SlugField": SlugField_2b8867833a34864a02ddf429b0728a40,
   "@payloadcms/next/client#FolderTypeField": FolderTypeField_2b8867833a34864a02ddf429b0728a40,
   "@/components/BeforeDashboard#default": default_1a7510af427896d367a49dbf838d2de6,
   "@/components/BeforeLogin#default": default_8a7ab0eb7ab5c511aba12e68480bfe5e,
-  "@payloadcms/next/rsc#CollectionCards": CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1,
-  "@justanarthur/payload-www/render-pages#PagesPage": PagesPage_486f2007004bebd6fd824e2f75dfe668,
-  "@justanarthur/payload-www/render-pages#PostsPage": PostsPage_486f2007004bebd6fd824e2f75dfe668,
-  "@/Header/Component#default": default_e20ecfb66760893088d0fe14b02758f5,
-  "@/Footer/Component#default": default_4938a80cc738257869bd28b4e2b2059f,
-  "@justanarthur/payload-www/render-components#LivePreviewListener": LivePreviewListener_bb27da336af6cdab6f00ce241a8c786e,
-  "@/blocks/Content/Component#default": default_61399738b6ab0fa4dd602554caf98171
+  "@payloadcms/next/rsc#CollectionCards": CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1
 }

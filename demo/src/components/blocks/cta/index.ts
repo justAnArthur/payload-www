@@ -1,0 +1,1 @@
+export { CtaBlock as default } from './Component'
