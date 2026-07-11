@@ -124,16 +124,6 @@ async function main(): Promise<void> {
   if (process.env.PAYLOAD_WWW_DEBUG === '1') {
     const { writeFileSync } = await import('node:fs')
     writeFileSync('/tmp/payload-config-dump.json', JSON.stringify(config, (k, v) => typeof v === 'function' ? '[function]' : v, 2).slice(0, 200000))
-    const cfg = config as unknown as { blocks?: unknown[]; collections?: unknown[]; globals?: unknown[] }
-    console.error('[payload-www DEBUG] blocks:', cfg.blocks?.length ?? 0)
-    console.error('[payload-www DEBUG] collections:', cfg.collections?.length ?? 0)
-    console.error('[payload-www DEBUG] globals:', cfg.globals?.length ?? 0)
-    console.error('[payload-www DEBUG] keys:', Object.keys(config).slice(0, 30).join(','))
-    const firstBlock = (cfg.blocks?.[0] ?? null) as { slug?: string; custom?: unknown } | null
-    if (firstBlock) {
-      console.error('[payload-www DEBUG] first block slug:', firstBlock.slug)
-      console.error('[payload-www DEBUG] first block custom:', JSON.stringify(firstBlock.custom))
-    }
   }
 
   const result = await generateAsyncImportmap(config as Config, {
