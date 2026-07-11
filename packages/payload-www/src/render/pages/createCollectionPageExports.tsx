@@ -115,8 +115,6 @@ export function createCollectionPageExports<S extends string = 'pages'>(
       siteDefaults
     })
 
-    console.log('[www#generateMetadata]', { alternates, meta, locale, localesSlug, doc })
-
     return { ...meta, alternates }
   }
 

@@ -5,75 +5,10 @@ import { generateMeta, type SEOMetaShape } from '../src/generateMeta'
 import { runAutoGenerate } from '../src/autoGenerate/runAutoGenerate'
 import type { SEOPluginConfig } from '../src/types'
 
-
-
-
 const HAS_OPENAI = Boolean(process.env.OPENAI_API_KEY)
 const OPENAI_KEY = process.env.OPENAI_API_KEY ?? ''
-
 const OPENAI_TIMEOUT_MS = 30000
 const skipIfNoOpenAI = it.skipIf(!HAS_OPENAI)
-
-
-
-
-
-const logPipeline = (label: string, doc: Record<string, unknown>, meta: Record<string, unknown>, rendered: Record<string, unknown>): void => {
-  
-  const stripRichText = (v: unknown): unknown => {
-    if (v === null || typeof v !== 'object') return v
-    if (Array.isArray(v)) return v.map(stripRichText)
-    const out: Record<string, unknown> = {}
-    for (const [k, val] of Object.entries(v as Record<string, unknown>)) {
-      if (k === 'root' && val && typeof val === 'object') {
-        const r = val as { children?: unknown[] }
-        if (Array.isArray(r.children)) {
-          const text = r.children
-            .map((c) => {
-              const ch = c as { children?: Array<{ text?: string }> }
-              return Array.isArray(ch.children) ? ch.children.map((t) => t.text ?? '').join('') : ''
-            })
-            .join(' ')
-          out.bodyText = text
-          continue
-        }
-      }
-      out[k] = stripRichText(val)
-    }
-    return out
-  }
-  
-  console.log(
-    `\n━━━ ${label} ━━━\n` +
-      `\n📄 INPUT DOC\n${JSON.stringify(stripRichText(doc), null, 2)}\n` +
-      `\n🤖 AI-GENERATED META (after runAutoGenerate)\n${JSON.stringify(meta, null, 2)}\n` +
-      `\n🌐 RENDERED METADATA (Next.js <head>)\n${JSON.stringify(rendered, null, 2)}\n`
-  )
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 const makeReq = (locale?: string): PayloadRequest =>
   ({
@@ -91,18 +26,6 @@ const getMeta = <T = unknown>(data: Record<string, unknown>, path: string): T =>
   }
   return cur as T
 }
-
-
-
-
-
-
-
-
-
-
-
-
 
 describe('page — what AI generates and how it lands on the web page', () => {
   const pagesCollection: CollectionConfig = {
@@ -289,17 +212,6 @@ describe('page — what AI generates and how it lands on the web page', () => {
   })
 })
 
-
-
-
-
-
-
-
-
-
-
-
 describe('post — what AI generates and how it lands on a web page', () => {
   const postsCollection: CollectionConfig = {
     slug: 'posts',
@@ -481,15 +393,6 @@ describe('post — what AI generates and how it lands on a web page', () => {
   })
 })
 
-
-
-
-
-
-
-
-
-
 describe('static-page (not-found, error) — what the page looks like when meta is absent', () => {
   it('renders a "Not found" title when the route passes null doc + no fallback', () => {
     const rendered = generateMeta({ meta: undefined, type: 'website' })
@@ -537,34 +440,6 @@ describe('static-page (not-found, error) — what the page looks like when meta 
     expect(rendered.twitter).toBeUndefined()
   })
 })
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 describe('page — real OpenAI generates meta and renders on a web page', () => {
   const pagesCollection: CollectionConfig = {
@@ -675,8 +550,6 @@ describe('page — real OpenAI generates meta and renders on a web page', () => 
         title,
         description: desc
       })
-
-      logPipeline('PAGE — Building a Payload CMS SEO plugin from scratch', inputDoc, data.meta as Record<string, unknown>, rendered as unknown as Record<string, unknown>)
     },
     OPENAI_TIMEOUT_MS + 5000
   )
@@ -760,8 +633,6 @@ describe('post — real OpenAI generates article meta and renders on a web page'
         title,
         description: desc
       })
-
-      logPipeline('POST — Why we built the Payload SEO plugin', inputDoc, data.meta as Record<string, unknown>, rendered as unknown as Record<string, unknown>)
     },
     OPENAI_TIMEOUT_MS + 5000
   )
@@ -810,33 +681,10 @@ describe('live OpenAI — sanity checks that prevent silent contract drift', () 
       expect(desc).not.toBe(content.title)
 
       const rendered = generateMeta({ meta: data.meta as SEOMetaShape, type: 'website' })
-      logPipeline('SMOKE — A short note about OpenAI integration', inputDoc, data.meta as Record<string, unknown>, rendered as unknown as Record<string, unknown>)
     },
     OPENAI_TIMEOUT_MS + 5000
   )
 })
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 describe('page with rich content — AI extracts meta from blocks + json + richText', () => {
   const richPagesCollection: CollectionConfig = {
@@ -1008,8 +856,6 @@ describe('page with rich content — AI extracts meta from blocks + json + richT
         title,
         description: desc
       })
-
-      logPipeline('PAGE w/ RICH CONTENT — Payload CMS for cross-border job platforms', inputDoc, data.meta as Record<string, unknown>, rendered as unknown as Record<string, unknown>)
     },
     OPENAI_TIMEOUT_MS + 5000
   )
