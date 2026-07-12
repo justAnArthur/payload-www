@@ -12,45 +12,15 @@ type Args = {
   configPath: string
   output: string
   packageName?: string
-  help: boolean
-}
-
-function printHelp(): void {
-  console.log(`payload-www generate:async-importmap
-
-Generate an async-importMap.ts containing only the render-path dependencies
-(blocks + collection/global renderers) used by the public render path.
-
-Usage:
-  payload-www generate:async-importmap --config-path <path> --output <path>
-
-Options:
-  --config-path <path>   Path to the Payload config file (TS or JS).
-                         Resolved relative to the current working directory.
-  --output <path>        Output file path. Created if missing.
-  --package-name <name>  Custom-package key for the render-dependency lookup.
-                         Defaults to "@justanarthur/payload-www".
-  --help, -h             Show this help.
-
-Example:
-  payload-www generate:async-importmap \\
-    --config-path apps/www/payload.config.ts \\
-    --output apps/www/app/\\(payload\\)/admin/asyncImportMap.ts
-`)
 }
 
 function parseArgs(argv: string[]): Args {
   const args: Args = {
     configPath: '',
     output: '',
-    help: false,
   }
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i]
-    if (a === '--help' || a === '-h') {
-      args.help = true
-      continue
-    }
     if (a === '--config-path') {
       args.configPath = argv[++i] ?? ''
       continue
@@ -82,14 +52,8 @@ function parseArgs(argv: string[]): Args {
 async function main(): Promise<void> {
   const args = parseArgs(process.argv.slice(2))
 
-  if (args.help) {
-    printHelp()
-    process.exit(0)
-  }
-
   if (!args.configPath || !args.output) {
-    console.error('[payload-www] --config-path and --output are required.\n')
-    printHelp()
+    console.error('[payload-www] --config-path and --output are required.')
     process.exit(1)
   }
 
@@ -126,12 +90,10 @@ async function main(): Promise<void> {
     writeFileSync('/tmp/payload-config-dump.json', JSON.stringify(config, (k, v) => typeof v === 'function' ? '[function]' : v, 2).slice(0, 200000))
   }
 
-  const result = await generateAsyncImportmap(config as Config, {
+  await generateAsyncImportmap(config as Config, {
     output: path.isAbsolute(args.output) ? args.output : path.resolve(cwd, args.output),
     ...(args.packageName ? { packageName: args.packageName } : {}),
   })
-
-  console.log(`[payload-www] wrote ${result.entries} entries to ${result.output}`)
 }
 
 main().catch((err) => {
