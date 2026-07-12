@@ -51,8 +51,4 @@ for (const file of jsFiles) {
 
   await writeFile(path, next)
   stripped++
-  const removed = [hadImport && 'import', hadAssign && 'assign'].filter(Boolean).join('+')
-  console.log(`[strip-createRequire] ${file}: removed ${removed}`)
 }
-
-console.log(`[strip-createRequire] done — stripped ${stripped} file(s), warned ${warned}`)
