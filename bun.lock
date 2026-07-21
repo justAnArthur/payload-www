@@ -10,7 +10,7 @@
     },
     "demo": {
       "name": "demo",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "dependencies": {
         "@justanarthur/payload-imagehash-plugin": "workspace:*",
         "@justanarthur/payload-plugin-seo": "workspace:*",
@@ -51,7 +51,7 @@
     },
     "packages/payload-www": {
       "name": "@justanarthur/payload-www",
-      "version": "1.1.0",
+      "version": "1.2.1",
       "bin": {
         "payload-www": "./dist/cli.js",
       },
@@ -60,6 +60,7 @@
         "@payloadcms/next": "3.85.0",
         "@payloadcms/plugin-mcp": "3.85.0",
         "@payloadcms/richtext-lexical": "3.85.0",
+        "drizzle-orm": "0.45.2",
         "next": "16.2.6",
         "next-intl": "^4.0.0",
         "server-only": "0.0.1",
@@ -115,7 +116,7 @@
     },
     "plugins/seo": {
       "name": "@justanarthur/payload-plugin-seo",
-      "version": "3.0.1",
+      "version": "3.0.2",
       "dependencies": {
         "bson-objectid": "^2.0.4",
         "server-only": "0.0.1",
@@ -145,7 +146,7 @@
     },
     "plugins/translate": {
       "name": "@justanarthur/payload-plugin-translator",
-      "version": "3.0.2",
+      "version": "3.0.3",
       "dependencies": {
         "bson-objectid": "^2.0.4",
         "he": "^1.2.0",
