@@ -1,6 +1,17 @@
-import { RoutingConfig as GenericRoutingConfig } from "next-intl/routing"
-
-export type RoutingConfig = GenericRoutingConfig<string[], any, any, any>
+// ponytail: next-intl's `RoutingConfig` requires `pathnames` even though
+// most hosts (acadsys-www, camasys) don't use it. Define a structural
+// subset of RoutingConfig that omits `pathnames` and is assignable from
+// `defineRouting({...})` outputs regardless of which optional fields the
+// host fills in.
+export type RoutingConfig = {
+  locales: readonly string[]
+  defaultLocale: string
+  localePrefix?: 'always' | 'as-needed' | 'never' | { mode: 'always' | 'as-needed' | 'never'; prefixes?: Partial<Record<string, string>> }
+  localeDetection?: boolean
+  domains?: unknown
+  localeCookie?: unknown
+  alternateLinks?: boolean
+}
 
 export function buildLocalizedPath(
   locale: string, prefix: string | undefined, slug: string | undefined, { routing }: { routing: RoutingConfig }

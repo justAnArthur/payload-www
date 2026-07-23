@@ -25,6 +25,11 @@ export type CreateCollectionPageExportsArgs<S extends string = 'pages'> = {
 export type CreateCollectionPageExportsDeps<S extends string> = {
   getServerSideURL: () => string
   pagePathPrefix?: string
+  // ponytail: hosts (acadsys-www) pass a custom `generateMeta` to override
+  // the lib's default from @justanarthur/payload-plugin-seo. Keep it loose
+  // so adding new optional fields doesn't break existing host code.
+  generateMeta?: (...args: any[]) => any
+  metadataType?: 'website' | 'article'
 }
 
 export function createCollectionPageExports<S extends string = 'pages'>(

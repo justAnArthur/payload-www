@@ -47,7 +47,10 @@ export function createRootLayoutExports(
 ) {
 
   async function RootLayout(props: NextLayoutProps) {
-    const params = await props.params
+    // ponytail: Next.js 16 passes `params` as a sync object (was a Promise
+    // in Next.js 15). The lib used to `await props.params` for backwards
+    // compat; that's no longer needed.
+    const params = props.params
 
     const locale = params.locale as string
     if (!routing.locales.includes(locale)) {
