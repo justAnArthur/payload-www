@@ -118,16 +118,11 @@ export async function queryAllDocs<S extends string>(
       // producing `select "pages_locales"."slug" from "pages_locales"` which
       // crashes because `slug` lives on `pages`, not on `pages_locales`. We
       // only need the slug per doc, so we go to raw SQL via the underlying
-      // Drizzle pg client. The query: just `id, slug` from the main table.
+      // Drizzle pg client.
       const collectionConfig = payload.collections[collectionSlug]?.config
       if (!collectionConfig) return []
-      // Resolve the actual table name the collection lives in.
-      // For pages, dbName is unset so it's "pages".
       const tableName = (collectionConfig as { dbName?: string }).dbName ?? collectionConfig.slug
-      const snakeSlugField = (() => {
-        // slugs are stored as `slug` in the DB regardless of the field name
-        return slugField
-      })()
+      const snakeSlugField = slugField
       const drizzleDb = (payload.db as { drizzle?: { execute?: (q: unknown) => Promise<{ rows: unknown[] }> } })
         .drizzle
       if (!drizzleDb?.execute) {
@@ -141,18 +136,39 @@ export async function queryAllDocs<S extends string>(
         })
         return (result.docs ?? []).map((d) => ({ [slugField]: (d as Record<string, unknown>)[slugField] }) as DataFromCollectionSlug<S>)
       }
-      // Access check via payload: only return published slugs for the front-end.
-      // We use overrideAccess: true here because (a) the build is
-      // unauthenticated and (b) the lib's read-side access returns the
-      // already-published status filter; we'll mirror that with a literal
-      // status = 'published' WHERE if versions are enabled.
       const hasVersions = Boolean((collectionConfig as { versions?: boolean }).versions)
-      const useStatusFilter = hasVersions
-      const sqlText = useStatusFilter
-        ? `SELECT id, "${snakeSlugField}", "updated_at" FROM "${tableName}" WHERE "_status" = 'published' ORDER BY "created_at" DESC LIMIT 1000`
-        : `SELECT id, "${snakeSlugField}", "updated_at" FROM "${tableName}" ORDER BY "created_at" DESC LIMIT 1000`
-      // Use the Drizzle SQL tag via raw() so execute() gets a real SQL object
-      // (the pg client behind it expects an object with .getSQL() / .getParams()).
+      // ponytail: figure out where the slug column lives. If the slug
+      // field is localized, the column is on the *_locales table. Otherwise
+      // it's on the main table. We only check the slug field's config — for
+      // Pages the slug is localized, for Posts it's not.
+      const isSlugLocalized = (() => {
+        const fields = (collectionConfig as { fields?: Array<{ name?: string; localized?: boolean }> }).fields
+        if (!Array.isArray(fields)) return false
+        const found = fields.find((f) => f.name === slugField)
+        return Boolean(found?.localized)
+      })()
+      const hasLocales = Boolean((collectionConfig as { custom?: { _isLocalized?: boolean } }).custom?._isLocalized) ||
+        Boolean((payload.config.localization?.locales?.length))
+      const localesTableName = `${tableName}_locales`
+      let sqlText: string
+      const safeLocale = locale.replace(/'/g, "''")
+      if (isSlugLocalized && hasLocales) {
+        const statusFilter = hasVersions ? ` AND "${tableName}"."_status" = 'published'` : ''
+        sqlText = `
+          SELECT DISTINCT ON ("${tableName}"."id")
+            "${tableName}"."id" AS "id",
+            "${localesTableName}"."${snakeSlugField}" AS "${snakeSlugField}",
+            "${tableName}"."updated_at" AS "updated_at"
+          FROM "${tableName}"
+          JOIN "${localesTableName}" ON "${localesTableName}"."_parent_id" = "${tableName}"."id"
+          WHERE "${localesTableName}"."_locale" = '${safeLocale}'${statusFilter}
+          ORDER BY "${tableName}"."id", "${tableName}"."created_at" DESC
+          LIMIT 1000
+        `
+      } else {
+        const statusFilter = hasVersions ? ` WHERE "_status" = 'published'` : ''
+        sqlText = `SELECT id, "${snakeSlugField}", "updated_at" FROM "${tableName}"${statusFilter} ORDER BY "created_at" DESC LIMIT 1000`
+      }
       const { sql: drizzleSql } = await import('drizzle-orm')
       const result = await drizzleDb.execute(drizzleSql.raw(sqlText))
       const rows = (result as { rows?: Array<Record<string, unknown>> }).rows ?? []

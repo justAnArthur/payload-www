@@ -56,6 +56,14 @@ export function createCollectionPageExports<S extends string = 'pages'>(
   }
 
   const default_ = async (props: NextPageProps): Promise<ReactNode> => {
+    // ponytail: defensive guard — Next.js can call the page default with no
+    // props during route enumeration (e.g. when a more specific sibling route
+    // is being resolved). Without this guard we crash on `h.locale` because
+    // `g.params` is undefined. Real renders always have `{params, searchParams}`.
+    if (!props || !props.params) {
+      const { notFound } = await import('next/navigation')
+      notFound()
+    }
     const params = await props.params
 
     const locale = params.locale as string
