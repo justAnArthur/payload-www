@@ -26,7 +26,21 @@ export const RenderBlocks: FC<RenderBlocksProps> = async (
     const { blockType } = block
 
     const blockConfig = (config.blocks ?? []).find(b => b.slug === blockType)
-    const customPath = blockConfig?.custom?.[packageName]?.path
+    const blockCustom = blockConfig?.custom?.[packageName]
+    const customPath = blockCustom?.path
+
+    // ponytail: only hand `searchParams` to blocks that ask for it.
+    //
+    // Next's `searchParams` is a tracking proxy: ANY property read marks the
+    // render dynamic. Passing it to every block meant every client-component
+    // block got it as a prop, and React's Flight serializer walks props with
+    // JSON.stringify — tripping the proxy on pages that never use search
+    // params at all. Next 16 then fails the request with "Page changed from
+    // static to dynamic at runtime" (stack: Object.get -> stringify). With a
+    // client block as common as a hero, that is every page on the site.
+    //
+    // Blocks opt in with `custom['<pkg>'].searchParams = true`.
+    const wantsSearchParams = blockCustom?.searchParams === true
 
     const importMapPath = (typeof customPath === 'string' ? customPath : null) ?? `${DEFAULT_BLOCK_PATH_PREFIX}/${blockType}`
 
@@ -43,7 +57,7 @@ export const RenderBlocks: FC<RenderBlocksProps> = async (
         {...blockProps}
         {...block}
         locale={locale}
-        searchParams={searchParams}
+        {...(wantsSearchParams ? { searchParams } : null)}
       />
     )
   }

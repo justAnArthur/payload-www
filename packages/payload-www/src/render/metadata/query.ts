@@ -211,10 +211,40 @@ export async function queryAllLocaleSlugs(
     return (doc?.[slugField] as Record<string, string> | undefined) ?? null
   }
   const { sql: drizzleSql } = await import('drizzle-orm')
-  const result = await drizzleDb.execute(
-    drizzleSql.raw(
-      `SELECT _locale, "${snakeSlugField}" FROM "${localesTableName}" WHERE "_parent_id" = $1`
+
+  // ponytail: the slug field is not necessarily localized. Pages localizes it
+  // (so it lives in `<table>_locales`), but a collection like Posts keeps a
+  // single slug on the BASE table. Querying `<table>_locales` unconditionally
+  // failed those with `column "slug" does not exist`. Decide from the config.
+  const slugFieldConfig = (collectionConfig.fields as Array<Record<string, unknown>> | undefined)
+    ?.find((f) => f && f.name === slugField)
+  const slugIsLocalized = Boolean(slugFieldConfig?.localized)
+
+  // ponytail: these must be parameterised `sql` templates, NOT `sql.raw`. `raw`
+  // emits the string verbatim with no bind values, so the `$1` placeholder
+  // reached Postgres with an empty params array and every call threw
+  // `there is no parameter $1` — a 500 on any localized page that actually had
+  // rows in <coll>_locales. `id` was in scope the whole time, just never bound.
+  // Identifiers go through `sql.identifier` so they stay quoted/escaped.
+  if (!slugIsLocalized) {
+    const result = await drizzleDb.execute(
+      drizzleSql`SELECT ${drizzleSql.identifier(snakeSlugField)} FROM ${drizzleSql.identifier(tableName)} WHERE "id" = ${id}`
     )
+    const rows = (result as { rows?: Array<Record<string, unknown>> }).rows ?? []
+    const slugValue = rows[0]?.[snakeSlugField]
+    if (typeof slugValue !== 'string') return null
+    // One slug shared by every locale — report it for all of them so hreflang
+    // alternates and the language switcher still resolve.
+    const localization = payload.config.localization
+    const localeCodes: string[] = localization
+      ? (localization.localeCodes ?? localization.locales.map((l: { code: string }) => l.code))
+      : []
+    if (localeCodes.length === 0) return null
+    return Object.fromEntries(localeCodes.map((code) => [code, slugValue]))
+  }
+
+  const result = await drizzleDb.execute(
+    drizzleSql`SELECT _locale, ${drizzleSql.identifier(snakeSlugField)} FROM ${drizzleSql.identifier(localesTableName)} WHERE "_parent_id" = ${id}`
   )
   const rows = (result as { rows?: Array<Record<string, unknown>> }).rows ?? []
   const out: Record<string, string> = {}

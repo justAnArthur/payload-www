@@ -47,10 +47,15 @@ export function createRootLayoutExports(
 ) {
 
   async function RootLayout(props: NextLayoutProps) {
-    // ponytail: Next.js 16 passes `params` as a sync object (was a Promise
-    // in Next.js 15). The lib used to `await props.params` for backwards
-    // compat; that's no longer needed.
-    const params = props.params
+    // ponytail: `params` is a PROMISE in Next.js 15 AND 16 — layouts are not
+    // exempt. A previous change dropped this await on the belief that Next 16
+    // passes a sync object; it does not. Reading `.locale` off the un-awaited
+    // promise yielded `undefined`, so the locale check below failed and this
+    // layout called notFound() for EVERY request — every page 404'd while the
+    // page components underneath resolved their documents perfectly. Note the
+    // page factory (createCollectionPageExports) awaits it correctly; this was
+    // the odd one out.
+    const params = await props.params
 
     const locale = params.locale as string
     if (!routing.locales.includes(locale)) {
