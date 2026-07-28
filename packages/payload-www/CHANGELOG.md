@@ -6,6 +6,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- **`mcpPlugin` re-enabled in the default plugin set.** Reverses the 1.0.0 "Removed" entry — the
+  official `@payloadcms/plugin-mcp` is now wired into the composer by default, with `find`,
+  `create`, `update`, `delete` enabled for every collection and `find`, `update` for every global.
+  Hosts tune via `defaultPluginsConfigs.mcp` on `WWWInputConfig` (see `@payloadcms/plugin-mcp` for
+  the full options surface, including `disabled`, `mcp.prompts`, `mcp.resources`, `mcp.tools`,
+  `experimental`, and `overrideAuth`).
+- **New public subpath `@justanarthur/payload-www/mcp`** re-exports `mcpPlugin` and `MCPPluginConfig`
+  from `@payloadcms/plugin-mcp` for hosts that want to register the plugin manually (e.g. when not
+  going through `createWWWConfig`).
+
+### Changed
+
+- **Security note:** with MCP enabled by default, every collection and global is mutable through
+  `/api/mcp` (Streamable HTTP + SSE). Hosts that need a tighter surface should either pass
+  `defaultPluginsConfigs: { mcp: (d) => ({ ...d, disabled: true }) }` to disable it outright, or
+  override `collections` / `globals` per-entity to drop the write ops. Authentication is still
+  required for all MCP access — the plugin does not bypass `req.user` checks.
+
 ## [1.0.0] - 2026-07-07
 
 First stable release. The composer / collections / globals / page-renderers / sitemap surface is
