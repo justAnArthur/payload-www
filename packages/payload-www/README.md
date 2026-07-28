@@ -318,8 +318,8 @@ the matching component from the host's `importMap`.
 ```ts
 import { imageHashPlugin } from '@justanarthur/payload-www/imagehash'
 import { translator }      from '@justanarthur/payload-www/translator'
+import { mcpPlugin }       from '@justanarthur/payload-www/mcp'
 import { seoPlugin }       from '@justanarthur/payload-plugin-seo'          // no re-export here, import directly
-import { mcpPlugin }       from '@payloadcms/plugin-mcp'                    // no re-export here, import directly
 ```
 
 Use these if you want to compose the default plugin set manually outside `createWWWConfig`. Full
@@ -347,6 +347,7 @@ The package's `package.json#exports` map:
 | `@justanarthur/payload-www/utils` | `generateImportName`, `getFromImportMap` |
 | `@justanarthur/payload-www/imagehash` | `imageHashPlugin`, `BlurhashPluginOptions` (re-export of `@justanarthur/payload-imagehash-plugin`) |
 | `@justanarthur/payload-www/translator` | `translator` (re-export of `@justanarthur/payload-plugin-translator`) |
+| `@justanarthur/payload-www/mcp` | `mcpPlugin`, `MCPPluginConfig` (re-export of `@payloadcms/plugin-mcp`) |
 | `@justanarthur/payload-www/import-map-provider` | `setImportMapProvider`, `getImportMap` (stubs in the current build — reserved for future use) |
 
 There is **no root import** (`.`) and **no `/server`, `/with-www-config`, `/globals`, `/hooks`,
