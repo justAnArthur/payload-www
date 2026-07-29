@@ -36,13 +36,16 @@ export function buildLocalizedPaths(
   pagePathPrefix: string | undefined,
   { routing }: { routing: RoutingConfig }
 ) {
-  if (!localesSlug[routing.defaultLocale])
-    return {}
+  // a blank slug means the doc isn't translated in that locale, and letting it
+  // through collapses the path onto the collection listing. the home page is the
+  // exception — it's addressed by its locale prefix alone, so every locale is
+  // blank there and dropping them would leave it with no alternates at all
+  const blankIsHome = !localesSlug[routing.defaultLocale]
 
   return routing.locales.reduce((paths, locale) => {
     const slug = localesSlug[locale]
 
-    if (!slug) return paths
+    if (!slug && !blankIsHome) return paths
 
     paths[locale] = buildLocalizedPath(locale, pagePathPrefix, slug, { routing })
     return paths
