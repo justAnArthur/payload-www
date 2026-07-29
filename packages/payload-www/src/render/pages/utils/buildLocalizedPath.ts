@@ -1,10 +1,13 @@
-import { RoutingConfig as GenericRoutingConfig } from "next-intl/routing"
+import type { RoutingConfig as GenericRoutingConfig } from "next-intl/routing"
+import { slugToPath } from "../../metadata/slug"
 
 export type RoutingConfig = GenericRoutingConfig<string[], any, any, any>
 
 export function buildLocalizedPath(
   locale: string, prefix: string | undefined, slug: string | undefined, { routing }: { routing: RoutingConfig }
 ) {
+  const path = slugToPath(slug)
+
   return `${
     routing.localePrefix === 'never'
       ? ''
@@ -22,8 +25,8 @@ export function buildLocalizedPath(
       ? '/' + prefix
       : ''
   }${
-    slug
-      ? '/' + slug
+    path
+      ? '/' + path
       : ''
   }`
 }
@@ -33,8 +36,13 @@ export function buildLocalizedPaths(
   pagePathPrefix: string | undefined,
   { routing }: { routing: RoutingConfig }
 ) {
+  if (!localesSlug[routing.defaultLocale])
+    return {}
+
   return routing.locales.reduce((paths, locale) => {
     const slug = localesSlug[locale]
+
+    if (!slug) return paths
 
     paths[locale] = buildLocalizedPath(locale, pagePathPrefix, slug, { routing })
     return paths
@@ -45,16 +53,19 @@ export function buildAlternates(
   locale: string,
   ...args: [Record<string, string>, string | undefined, { routing: RoutingConfig, siteUrl: string }]
 ) {
-  const siteUrl = args[2].siteUrl
+  const [localesSlug, pagePathPrefix, { routing, siteUrl }] = args
 
-  let localizedPaths = buildLocalizedPaths(...args)
-  localizedPaths['x-default'] = localizedPaths[args[2].routing.defaultLocale]
+  const localizedPaths = buildLocalizedPaths(...args)
 
-  localizedPaths = Object.fromEntries(Object.entries(localizedPaths).map(([key, value]) =>
-    [key, siteUrl + localizedPaths[key]]))
+  const defaultPath = localizedPaths[routing.defaultLocale]
+  if (defaultPath !== undefined) localizedPaths['x-default'] = defaultPath
+
+  const canonical = localizedPaths[locale]
+    ?? buildLocalizedPath(locale, pagePathPrefix, localesSlug[locale], { routing })
 
   return ({
-    languages: localizedPaths,
-    canonical: localizedPaths[locale]
+    languages: Object.fromEntries(Object.entries(localizedPaths).map(([key, value]) =>
+      [key, siteUrl + value])),
+    canonical: siteUrl + canonical
   })
 }

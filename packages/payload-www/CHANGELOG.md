@@ -6,6 +6,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed
+
+- **Nested slugs are now split when building URLs.** `buildLocalizedPath` emitted the stored slug
+  verbatim, so a page saved as `products_online-reservations` declared
+  `https://site/products_online-reservations` as its canonical, sitemap `<loc>` and hreflang target
+  while the route actually served `/products/online-reservations`. Both forms resolve, so this
+  published a canonical that nothing on the site links to. The new `slugToPath` helper (exported
+  from `render/metadata/slug`) applies the `_` → `/` nesting divider that `slugField` already
+  documents.
+- **Untranslated locales no longer claim the collection listing as their alternate.** When a doc had
+  no slug in a locale the blank fell through the path template and produced the listing URL — every
+  untranslated post advertised `hreflang="cs" → /cs/posts`, so hundreds of documents pointed at the
+  same page and the hreflang cluster was discarded. `buildLocalizedPaths` now omits those locales. A
+  blank slug is still honoured when the default locale is also blank, which is how the home page is
+  addressed.
+- **`buildAlternates` can no longer emit `undefined` inside a URL.** The canonical is computed
+  independently of the alternates map, and `x-default` is only set when the default locale survives.
+
 ### Added
 
 - **`mcpPlugin` re-enabled in the default plugin set.** Reverses the 1.0.0 "Removed" entry — the

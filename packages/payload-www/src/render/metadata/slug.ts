@@ -17,3 +17,8 @@ export function slugToParamsSlug(
   if (!slug) return shape === 'catch-all' ? [] : ''
   return shape === 'catch-all' ? slug.split(SLUG_NESTED_DIVIDER) : slug
 }
+
+export function slugToPath(slug: string | undefined): string {
+  if (!slug) return ''
+  return slug.split(SLUG_NESTED_DIVIDER).join('/')
+}
