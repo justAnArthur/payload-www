@@ -6,7 +6,54 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- **New public subpath `@justanarthur/payload-www/cache-keys`** exports the atomic tag vocabulary
+  used by the lib's query layer (`createCollectionCacheKey`, `createAliasCacheKey`,
+  `createListCacheKey`, `createJoinCacheKey`, `createGlobalCacheKey`, `createAllCacheKey`,
+  `createDraftCacheKey`, `prefixedTag`). Hosts that install their own revalidation strategy
+  (e.g. `@pro-laico/payload-revalidate`) MUST import from this subpath so the tags the lib
+  emits via `cacheTag(...)` match the tags they revalidate. Hand-spelling tags silently no-ops.
+- **`defaultPluginsConfigs.revalidate?: false | (<D>(d: D) => D)` passthrough slot** on
+  `WWWInputConfig`. Hosts can disable the in-lib revalidation composer's pass-through entirely
+  (returning `false`) or wrap the per-collection config (typed against the host's payload types).
+  Default behaviour unchanged: the slot is omitted.
+
+### Changed
+
+- **Stack upgrade to Next 16.3 + React 19.2 + Payload 3.88 + next-intl 4.14 + TypeScript 7.**
+  Runtime deps bumped in `dependencies` and `peerDependencies` of every package; dev deps
+  (including `typescript` → `^7.0.2`, `vitest` → `4.0.18`) bumped in the lib and each plugin.
+  `bun.lock` regenerated from scratch.
+- **`render/metadata/query.ts` migrated to the cacheComponents atomic model.** Each cached
+  query (`queryDocBySlug`, `queryGlobal`, `queryAllDocs`) now emits the same tag vocabulary the
+  revalidation plugin reads — no more `withUnstableCache`, no more implicit revalidate windows.
+  Cache invalidation is purely tag-based. `queryAllLocaleSlugs` stays uncached (caching would
+  freeze the hreflang map across all renders). `depth` defaults to `0` (relations stay as ids) —
+  hosts that need populated relations pass `depth` explicitly. This is a real behaviour break;
+  see the migration note in the README.
+- **`createWWWCollectionGlobal` no longer installs revalidation hooks.** The `afterChange` /
+  `beforeChange` / `afterDelete` block that wired `populatePublishedAt` and tag-based cache
+  invalidation into every collection is gone. Hosts install their own revalidation plugin
+  (the demo ships a minimal reference at `demo/src/plugins/revalidate/index.ts`; production
+  hosts should use `@pro-laico/payload-revalidate` or equivalent). The `populatePublishedAt`
+  hook remains exported from the lib for hosts that want to keep the published-at default.
+- **`<Activity>` wraps rendered header / footer in `createRootLayoutExports`.** Instant
+  navigations can now defer the off-screen activity until the user scrolls to it. Default
+  `mode="visible"`.
+- **`cacheLife('weeks')`** is the chosen profile for the lib's cached query layer
+  (built-in Next 16: 5 m stale / 1 w revalidate / 30 d expire). No custom `cacheLife` config
+  entry required.
+
 ### Fixed
+
+- **Nested slugs are now split when building URLs.** `buildLocalizedPath` emitted the stored slug
+  verbatim, so a page saved as `products_online-reservations` declared
+  `https://site/products_online-reservations` as its canonical, sitemap `<loc>` and hreflang target
+  while the route actually served `/products/online-reservations`. Both forms resolve, so this
+  published a canonical that nothing on the site links to. The new `slugToPath` helper (exported
+  from `render/metadata/slug`) applies the `_` → `/` nesting divider that `slugField` already
+  documents.
 
 - **Nested slugs are now split when building URLs.** `buildLocalizedPath` emitted the stored slug
   verbatim, so a page saved as `products_online-reservations` declared

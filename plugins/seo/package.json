@@ -90,16 +90,16 @@
     "server-only": "0.0.1"
   },
   "devDependencies": {
-    "@payloadcms/translations": "3.85.0",
-    "@payloadcms/ui": "3.85.0",
-    "@types/react": "19.2.14",
-    "@types/react-dom": "19.2.3",
+    "@payloadcms/translations": "3.88.0",
+    "@payloadcms/ui": "3.88.0",
+    "@types/react": "19.2.18",
+    "@types/react-dom": "19.2.7",
     "bunup": "^0.16.32",
     "openai": "^4.52.0",
-    "payload": "3.85.0",
-    "react": "19.2.6",
-    "react-dom": "19.2.6",
-    "typescript": "5.7.3",
+    "payload": "3.88.0",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "typescript": "^7.0.2",
     "vitest": "4.0.18"
   },
   "peerDependencies": {

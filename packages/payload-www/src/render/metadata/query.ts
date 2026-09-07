@@ -1,128 +1,120 @@
 import type { DataFromCollectionSlug, DataFromGlobalSlug, SanitizedConfig } from 'payload'
 import { getPayload } from 'payload'
+import { cacheTag } from 'next/cache'
 import {
-  type CollectionGlobalLocaleIdentifiersArgs,
-  createCollectionCacheKey
-} from '../../collections/hooks/createRevalidateCollectionGlobalHook'
+  type CollectionCacheKeyArgs,
+  createAliasCacheKey,
+  createCollectionCacheKey,
+  createDraftCacheKey,
+  createGlobalCacheKey,
+  createListCacheKey,
+} from '../../exports/cache-keys'
 
-async function withUnstableCache<R>(
-  keyParts: unknown[],
-  tags: string[],
-  fn: () => Promise<R>
-): Promise<R> {
-  const { unstable_cache } = await import('next/cache')
-  return unstable_cache(fn, keyParts.map(String), { tags })()
+export type QueryCollectionArgs<S extends string> = {
+  collectionSlug: S
+  slug: string
+  slugField?: string
+  locale: string
+  draft?: boolean
+  depth?: number
+  extraCacheTags?: string[]
+  config: Promise<SanitizedConfig>
+}
+
+export type QueryGlobalArgs<G extends string> = {
+  globalSlug: G
+  locale: string
+  depth?: number
+  draft?: boolean
+  extraCacheTags?: string[]
+  config: Promise<SanitizedConfig>
+}
+
+export type QueryListArgs<S extends string> = {
+  collectionSlug: S
+  slugField?: string
+  locale: string
+  extraCacheTags?: string[]
+  config: Promise<SanitizedConfig>
+}
+
+export type QueryDocArgs =
+  | ({ globalSlug: string; locale: string; draft?: boolean; extraCacheTags?: string[] })
+  | ({ collectionSlug: string; slug: string; slugField?: string; locale: string; draft?: boolean; depth?: number; extraCacheTags?: string[] })
+
+// cacheTag only works inside a 'use cache' scope. The queries below are
+// called from both cached scopes (the host's page) and uncached ones
+// (generateStaticParams, generateSitemap at build time). The try/catch
+// keeps the call site valid in both.
+const safeCacheTag = (...tags: string[]): void => {
+  try {
+    cacheTag(...tags)
+  } catch {
+    // not inside a 'use cache' scope — tags are no-ops here
+  }
+}
+
+export async function queryDocBySlug<S extends string>(args: QueryCollectionArgs<S>): Promise<DataFromCollectionSlug<S> | null> {
+  const payload = await getPayload({ config: await args.config })
+  const slugField = args.slugField ?? 'slug'
+  const baseTag = createCollectionCacheKey({ collectionSlug: args.collectionSlug, slug: args.slug, locale: args.locale })
+  safeCacheTag(
+    baseTag,
+    createAliasCacheKey({ collectionSlug: args.collectionSlug, slug: args.slug, idField: slugField }),
+    createDraftCacheKey(baseTag),
+    ...(args.extraCacheTags ?? [])
+  )
+  const result = await payload.find({
+    collection: args.collectionSlug,
+    draft: args.draft ?? false,
+    limit: 1,
+    pagination: false,
+    overrideAccess: args.draft ?? false,
+    where: { [slugField]: { equals: args.slug } },
+    locale: args.locale,
+    depth: args.depth ?? 0
+  })
+  return result.docs?.[0] ?? null
+}
+
+export async function queryGlobal<G extends string>(args: QueryGlobalArgs<G>): Promise<DataFromGlobalSlug<G> | null> {
+  const payload = await getPayload({ config: await args.config })
+  const baseTag = createGlobalCacheKey({ globalSlug: args.globalSlug, locale: args.locale })
+  safeCacheTag(
+    baseTag,
+    createDraftCacheKey(baseTag),
+    ...(args.extraCacheTags ?? [])
+  )
+  try {
+    return await payload.findGlobal({ slug: args.globalSlug, draft: args.draft ?? false, locale: args.locale })
+  } catch (error) {
+    console.warn('[WWW] queryGlobal failed', { globalSlug: args.globalSlug, locale: args.locale, error: String(error) })
+    return null
+  }
+}
+
+export async function queryAllDocs<S extends string>(args: QueryListArgs<S>): Promise<DataFromCollectionSlug<S>[]> {
+  const payload = await getPayload({ config: await args.config })
+  const listTag = createListCacheKey({ collectionSlug: args.collectionSlug, scope: '_all', locale: args.locale })
+  safeCacheTag(listTag, ...(args.extraCacheTags ?? []))
+  const result = await payload.find({
+    collection: args.collectionSlug,
+    draft: false,
+    limit: 1000,
+    pagination: false,
+    overrideAccess: false,
+    locale: args.locale
+  })
+  return result.docs ?? []
 }
 
 export async function queryDoc(
-  args: CollectionGlobalLocaleIdentifiersArgs,
+  args: QueryDocArgs,
   { config: configPromise }: { config: Promise<SanitizedConfig> }
 ) {
-  return withUnstableCache(
-    Object.values(args),
-    [createCollectionCacheKey(args)],
-    async () => {
-      if ('globalSlug' in args)
-        return queryGlobal({ ...args, config: configPromise })
-      else
-        return queryDocBySlug({ ...args, config: configPromise })
-    }
-  )
-}
-
-export async function queryDocBySlug<S extends string>(
-  {
-    collectionSlug,
-    slug,
-    slugField = 'slug',
-    locale,
-    draft = false,
-    config
-  }: {
-    collectionSlug: S
-    slug: string
-    slugField?: string
-    locale: string
-    draft?: boolean
-    config: Promise<SanitizedConfig>
-  }): Promise<DataFromCollectionSlug<S> | null> {
-  return withUnstableCache(
-    [collectionSlug, slug, locale, draft],
-    [createCollectionCacheKey({ collectionSlug, slug, locale })],
-    async () => {
-      const payload = await getPayload({ config })
-      const result = await payload.find({
-        collection: collectionSlug,
-        draft,
-        limit: 1,
-        pagination: false,
-        overrideAccess: draft,
-        where: { [slugField]: { equals: slug } },
-        locale
-      })
-      return result.docs?.[0] ?? null
-    }
-  )
-}
-
-export async function queryGlobal<G extends string>(
-  {
-    globalSlug,
-    locale,
-    draft = false,
-    config
-  }: {
-    globalSlug: G
-    locale: string
-    depth?: number
-    draft?: boolean
-    config: Promise<SanitizedConfig>
-  }): Promise<DataFromGlobalSlug<G> | null> {
-  return withUnstableCache(
-    [globalSlug, locale, draft],
-    [createCollectionCacheKey({ globalSlug, locale })],
-    async () => {
-      const payload = await getPayload({ config })
-      try {
-        return await payload.findGlobal({ slug: globalSlug, draft, locale })
-      } catch (error) {
-        console.warn('[WWW] queryGlobal failed', { globalSlug, locale, error: String(error) })
-        return null
-      }
-    }
-  )
-}
-
-
-export async function queryAllDocs<S extends string>(
-  {
-    collectionSlug,
-    slugField = 'slug',
-    locale,
-    config
-  }: {
-    collectionSlug: S
-    slugField?: string
-    locale: string
-    config: Promise<SanitizedConfig>
-  }): Promise<DataFromCollectionSlug<S>[]> {
-  return withUnstableCache(
-    [collectionSlug, slugField, locale],
-    [createCollectionCacheKey({ collectionSlug, slug: '__all__', locale })],
-    async () => {
-      const payload = await getPayload({ config })
-      const result = await payload.find({
-        collection: collectionSlug,
-        draft: false,
-        limit: 1000,
-        pagination: false,
-        overrideAccess: false,
-        select: { [slugField]: true },
-        locale
-      })
-      return result.docs ?? []
-    }
-  )
+  if ('globalSlug' in args)
+    return queryGlobal({ ...args, config: configPromise })
+  return queryDocBySlug({ ...args, config: configPromise })
 }
 
 export async function queryAllLocaleSlugs(
@@ -137,7 +129,7 @@ export async function queryAllLocaleSlugs(
     slugField?: string
     config: Promise<SanitizedConfig>
   }): Promise<Record<string, string> | null> {
-  const payload = await getPayload({ config })
+  const payload = await getPayload({ config: await config })
   const doc = await payload.findByID({
     collection: collectionSlug,
     id,
@@ -146,3 +138,5 @@ export async function queryAllLocaleSlugs(
   })
   return doc?.[slugField]
 }
+
+export type { CollectionCacheKeyArgs }

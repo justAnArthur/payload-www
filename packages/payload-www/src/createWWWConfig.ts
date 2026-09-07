@@ -24,7 +24,8 @@ export type WWWInputConfig = Omit<Config, 'collections' | 'globals' | 'plugins'>
     seo?: MergeOrOverride<SEOPluginConfig>,
     imageHash?: MergeOrOverride<BlurhashPluginOptions>,
     translator?: MergeOrOverride<TranslatorConfig>,
-    mcp?: MergeOrOverride<MCPPluginConfig>
+    mcp?: MergeOrOverride<MCPPluginConfig>,
+    revalidate?: false | (<D>(d: D) => D)
   }
 }
 

@@ -96,6 +96,12 @@
         "default": "./dist/sitemap.js"
       }
     },
+    "./cache-keys": {
+      "import": {
+        "types": "./dist/cache-keys.d.ts",
+        "default": "./dist/cache-keys.js"
+      }
+    },
     "./package.json": "./package.json"
   },
   "sideEffects": false,
@@ -113,24 +119,24 @@
     "prepublishOnly": "bun run clean && bun run build"
   },
   "dependencies": {
-    "@payloadcms/live-preview-react": "3.85.0",
-    "@payloadcms/plugin-mcp": "3.85.0",
-    "@payloadcms/richtext-lexical": "3.85.0",
-    "@payloadcms/next": "3.85.0",
-    "next": "16.2.6",
-    "next-intl": "^4.0.0",
+    "@payloadcms/live-preview-react": "3.88.0",
+    "@payloadcms/plugin-mcp": "3.88.0",
+    "@payloadcms/richtext-lexical": "3.88.0",
+    "@payloadcms/next": "3.88.0",
+    "next": "16.3.4",
+    "next-intl": "^4.14.2",
     "server-only": "0.0.1",
     "tsx": "^4.19.2"
   },
   "devDependencies": {
     "@types/node": "22.19.9",
-    "@types/react": "19.2.14",
-    "@types/react-dom": "19.2.3",
+    "@types/react": "19.2.18",
+    "@types/react-dom": "19.2.7",
     "bunup": "^0.16.32",
-    "payload": "3.85.1",
-    "react": "19.2.6",
-    "react-dom": "19.2.6",
-    "typescript": "5.7.3",
+    "payload": "3.88.0",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "typescript": "^7.0.2",
     "vitest": "4.0.18"
   },
   "peerDependencies": {

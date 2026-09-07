@@ -1,211 +1,64 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-
-const revalidateTag = vi.fn()
-
-vi.mock('next/cache', () => ({
-  revalidateTag: (...args: unknown[]) => revalidateTag(...args)
-}))
+import { describe, expect, it } from 'vitest'
 
 import {
+  createAliasCacheKey,
+  createAllCacheKey,
   createCollectionCacheKey,
-  createRevalidateCollectionGlobalHook
-} from '../src/collections/hooks/createRevalidateCollectionGlobalHook'
+  createDraftCacheKey,
+  createGlobalCacheKey,
+  createJoinCacheKey,
+  createListCacheKey,
+  prefixedTag
+} from '../src/collections/cacheKeys'
 import { populatePublishedAt } from '../src/collections/hooks/populatePublishedAt'
 
-type MockLogger = { error: ReturnType<typeof vi.fn>; info?: ReturnType<typeof vi.fn> }
-
-function mockLogger(): MockLogger {
-  return { error: vi.fn(), info: vi.fn() }
-}
-
-type ReqOverrides = Partial<{
-  locale: string
-  context: Record<string, unknown>
-  payload: unknown
-  logger: MockLogger
-}>
-
-function buildReq(overrides: ReqOverrides = {}) {
-  return {
-    payload: {
-      config: { localization: { defaultLocale: 'en', locales: ['en', 'uk'] } },
-      logger: overrides.logger ?? mockLogger(),
-      ...((overrides.payload as object | undefined) ?? {})
-    },
-    context: overrides.context ?? {},
-    locale: overrides.locale,
-    user: null
-  }
-}
-
-beforeEach(() => {
-  revalidateTag.mockClear()
-})
-
-afterEach(() => {
-  vi.clearAllMocks()
-})
-
-describe('createCollectionCacheKey', () => {
-  it('builds the collection cache key from slug + locale', () => {
-    expect(createCollectionCacheKey({ collectionSlug: 'pages', slug: 'about', locale: 'en' })).toBe('pagesabout_en')
+describe('cacheKeys', () => {
+  it('createCollectionCacheKey joins collectionSlug : slug _ locale', () => {
+    expect(createCollectionCacheKey({ collectionSlug: 'pages', slug: 'about', locale: 'en' })).toBe('pages:about_en')
   })
 
-  it('builds the global cache key from globalSlug + locale', () => {
-    expect(createCollectionCacheKey({ globalSlug: 'header', locale: 'uk' })).toBe('header_uk')
-  })
-})
-
-describe('createRevalidateCollectionGlobalHook', () => {
-  const callChange = (
-    hooks: ReturnType<typeof createRevalidateCollectionGlobalHook>,
-    args: {
-      doc: Record<string, unknown>
-      previousDoc?: Record<string, unknown>
-      collection: { slug: string }
-      locale: string
-      context?: Record<string, unknown>
-    }
-  ) =>
-    hooks.afterChange({
-      doc: args.doc as never,
-      previousDoc: args.previousDoc as never,
-      collection: args.collection as never,
-      req: buildReq({ locale: args.locale, context: args.context })
-    } as never)
-
-  const callDelete = (
-    hooks: ReturnType<typeof createRevalidateCollectionGlobalHook>,
-    args: {
-      doc: Record<string, unknown>
-      collection: { slug: string }
-      locale: string
-      context?: Record<string, unknown>
-    }
-  ) =>
-    hooks.afterDelete({
-      doc: args.doc as never,
-      collection: args.collection as never,
-      req: buildReq({ locale: args.locale, context: args.context })
-    } as never)
-
-  it('returns { afterChange, afterDelete }', () => {
-    const hooks = createRevalidateCollectionGlobalHook()
-    expect(typeof hooks.afterChange).toBe('function')
-    expect(typeof hooks.afterDelete).toBe('function')
+  it('createCollectionCacheKey omits the locale suffix when none given', () => {
+    expect(createCollectionCacheKey({ collectionSlug: 'pages', slug: 'about' })).toBe('pages:about')
   })
 
-  it('afterChange: published doc fires collection_<slug>_<slug>_<locale> tag', async () => {
-    const hooks = createRevalidateCollectionGlobalHook()
-    await callChange(hooks, {
-      doc: { _status: 'published', slug: 'about' },
-      collection: { slug: 'pages' },
-      locale: 'en'
-    })
-
-    expect(revalidateTag).toHaveBeenCalledWith('pagesabout_en', 'max')
+  it('createAliasCacheKey produces collectionSlug : idField : slug', () => {
+    expect(createAliasCacheKey({ collectionSlug: 'pages', slug: 'about', idField: 'slug' })).toBe('pages:slug:about')
   })
 
-  it('afterChange: draft doc does not fire revalidation', async () => {
-    const hooks = createRevalidateCollectionGlobalHook()
-    await callChange(hooks, {
-      doc: { _status: 'draft', slug: 'about' },
-      collection: { slug: 'pages' },
-      locale: 'en'
-    })
-
-    expect(revalidateTag).not.toHaveBeenCalled()
+  it('createListCacheKey uses the _all scope by default', () => {
+    expect(createListCacheKey({ collectionSlug: 'posts', locale: 'en' })).toBe('posts:list:_all:en')
   })
 
-  it('afterChange: unpublish fires the old slug tag', async () => {
-    const hooks = createRevalidateCollectionGlobalHook()
-    await callChange(hooks, {
-      doc: { _status: 'draft', slug: 'about' },
-      previousDoc: { _status: 'published', slug: 'about' },
-      collection: { slug: 'pages' },
-      locale: 'en'
-    })
-
-    expect(revalidateTag).toHaveBeenCalledWith('pagesabout_en', 'max')
+  it('createListCacheKey respects the scope argument', () => {
+    expect(createListCacheKey({ collectionSlug: 'posts', scope: 'recent', locale: 'en' })).toBe('posts:list:recent:en')
   })
 
-  it('afterChange: slug rename fires both old and new tags', async () => {
-    const hooks = createRevalidateCollectionGlobalHook()
-    await callChange(hooks, {
-      doc: { _status: 'published', slug: 'new-about' },
-      previousDoc: { _status: 'published', slug: 'old-about' },
-      collection: { slug: 'pages' },
-      locale: 'en'
-    })
-
-    const tags = revalidateTag.mock.calls.map((c) => c[0]).sort()
-    expect(tags).toEqual(['pagesnew-about_en', 'pagesold-about_en'])
+  it('createJoinCacheKey uses the canonical 4-segment shape', () => {
+    expect(createJoinCacheKey({ collectionSlug: 'posts', joinField: 'author', parentId: 7 })).toBe('posts:join:author:7')
   })
 
-  it('afterChange: returns the doc unchanged', async () => {
-    const hooks = createRevalidateCollectionGlobalHook()
-    const doc = { _status: 'published', slug: 'about' }
-    const result = await callChange(hooks, {
-      doc,
-      collection: { slug: 'pages' },
-      locale: 'en'
-    })
-    expect(result).toBe(doc)
+  it('createGlobalCacheKey produces global : slug _ locale', () => {
+    expect(createGlobalCacheKey({ globalSlug: 'header', locale: 'en' })).toBe('global:header_en')
   })
 
-  it('afterDelete: fires the collection tag for the deleted slug', async () => {
-    const hooks = createRevalidateCollectionGlobalHook()
-    await callDelete(hooks, {
-      doc: { slug: 'about' },
-      collection: { slug: 'pages' },
-      locale: 'uk'
-    })
-
-    expect(revalidateTag).toHaveBeenCalledWith('pagesabout_uk', 'max')
+  it('createAllCacheKey returns the bare all tag without a prefix', () => {
+    expect(createAllCacheKey()).toBe('all')
   })
 
-  it('afterDelete: returns the doc unchanged', async () => {
-    const hooks = createRevalidateCollectionGlobalHook()
-    const doc = { slug: 'about' }
-    const result = await callDelete(hooks, {
-      doc,
-      collection: { slug: 'pages' },
-      locale: 'en'
-    })
-    expect(result).toBe(doc)
+  it('createAllCacheKey prefixes the all tag when a prefix is given', () => {
+    expect(createAllCacheKey('app')).toBe('app:all')
   })
 
-  it('global path: afterChange fires global_<slug>_<locale> tag', async () => {
-    const hooks = createRevalidateCollectionGlobalHook()
-    await hooks.afterChange({
-      doc: {} as never,
-      global: { slug: 'header' } as never,
-      req: buildReq({ locale: 'uk' })
-    } as never)
-
-    expect(revalidateTag).toHaveBeenCalledWith('header_uk', 'max')
+  it('createDraftCacheKey appends :draft to its base', () => {
+    expect(createDraftCacheKey('pages:about_en')).toBe('pages:about_en:draft')
   })
 
-  it('global path: afterDelete fires global_<slug>_<locale> tag', async () => {
-    const hooks = createRevalidateCollectionGlobalHook()
-    await hooks.afterDelete({
-      doc: {} as never,
-      global: { slug: 'footer' } as never,
-      req: buildReq({ locale: 'en' })
-    } as never)
-
-    expect(revalidateTag).toHaveBeenCalledWith('footer_en', 'max')
+  it('prefixedTag is a no-op when no prefix is given', () => {
+    expect(prefixedTag('pages:about_en')).toBe('pages:about_en')
   })
 
-  it('global path: afterChange returns the doc unchanged', async () => {
-    const hooks = createRevalidateCollectionGlobalHook()
-    const doc = { title: 'Header' }
-    const result = await hooks.afterChange({
-      doc: doc as never,
-      global: { slug: 'header' } as never,
-      req: buildReq({ locale: 'en' })
-    } as never)
-    expect(result).toBe(doc)
+  it('prefixedTag namespaces its tag with the prefix', () => {
+    expect(prefixedTag('pages:about_en', 'app')).toBe('app:pages:about_en')
   })
 })
 

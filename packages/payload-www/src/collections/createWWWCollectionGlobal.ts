@@ -1,7 +1,6 @@
 import { name } from "../../package.json"
 import { type CollectionConfig, Field, GlobalConfig } from "payload"
 import { populatePublishedAt } from "./hooks/populatePublishedAt"
-import { createRevalidateCollectionGlobalHook } from "./hooks/createRevalidateCollectionGlobalHook"
 import { slugField } from "./fields/slug"
 import { anyone, authenticated, authenticatedOrPublished } from "./access"
 
@@ -43,19 +42,12 @@ export function createWWWCollectionGlobal<IsGlobalConfig extends boolean = false
       update: authenticated
     },
 
-    hooks: (() => {
-      const { afterChange, afterDelete } = createRevalidateCollectionGlobalHook()
-
-      return ({
-        afterChange: [afterChange],
-        beforeChange: [populatePublishedAt],
-        afterDelete: [afterDelete] // @ts-expect-error
-      }) as Config['hooks']
-    })(),
+    hooks: {
+      beforeChange: [populatePublishedAt]
+    },
 
     ...(isDraft && {
       versions: { drafts: { autosave: { interval: 3000 } } }
     })
   }) as Config
 }
-

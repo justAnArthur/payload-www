@@ -19,6 +19,7 @@ import { Content } from './components/blocks/content/config'
 import { Media as MediaBlock } from './components/blocks/media/config'
 import { Cta } from './components/blocks/cta/config'
 import { plugins } from './plugins'
+import { revalidatePlugin } from './plugins/revalidate'
 import { defaultLexical } from '@/fields/defaultLexical'
 import { getServerSideURL } from './utilities/getURL'
 import { defaultLocale, locales } from '@/i18n/locales'
@@ -63,7 +64,7 @@ export default buildConfig(withWWWConfig({
       ] as unknown as typeof defaultGlobals
     },
 
-    plugins: (defaultPlugins) => [...defaultPlugins, ...plugins],
+    plugins: (defaultPlugins) => [...defaultPlugins, ...plugins, revalidatePlugin()],
 
     defaultPluginsConfigs: {
       seo: (defaults) => ({

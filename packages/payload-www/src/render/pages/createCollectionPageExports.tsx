@@ -1,4 +1,3 @@
-import 'server-only'
 import type { Metadata, MetadataRoute } from 'next'
 import type { ImportMap, SanitizedConfig } from 'payload'
 import type { ReactNode } from 'react'
@@ -119,9 +118,12 @@ export function createCollectionPageExports<S extends string = 'pages'>(
   }
 
   async function generateStaticParams(props: NextPageProps) {
-    const locale = (await props.params).locale as string
-
-    const docs = await queryAllDocs({ locale, collectionSlug, config: configPromise })
+    await props.params
+    // Use the default locale's docs as the static-param basis. Slugs are URL
+    // identifiers, not localized content — the per-locale content is fetched
+    // at render time. This also satisfies cacheComponents' "at least one
+    // result" rule when non-default locales have no seeded slugs yet.
+    const docs = await queryAllDocs({ locale: routing.defaultLocale, collectionSlug, config: configPromise })
 
     return docs
       .filter(doc => typeof doc.slug === 'string' && doc.slug.length > 0)
@@ -133,7 +135,7 @@ export function createCollectionPageExports<S extends string = 'pages'>(
 
     const docs = await queryAllDocs({
       collectionSlug,
-      locale,
+      locale: routing.defaultLocale,
       config: configPromise
     })
 
