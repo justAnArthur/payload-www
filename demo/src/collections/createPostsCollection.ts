@@ -1,7 +1,10 @@
 import { createWWWCollectionGlobal } from "@justanarthur/payload-www/collections"
 
 export const POSTS_SLUG = 'posts'
-export const POSTS_RENDER_PATH = '@/app/(frontend)/(pages)/[locale]/posts/[slug]/page'
+// ponytail: see render.tsx — pointing the render path at the page file itself
+// would recurse (default_ → renderWWWDataModule → page → default_). Use a
+// separate render module like categories do.
+export const POSTS_RENDER_PATH = '@/app/(frontend)/(pages)/[locale]/posts/[slug]/render'
 
 export const createPostsCollection = () =>
   createWWWCollectionGlobal(

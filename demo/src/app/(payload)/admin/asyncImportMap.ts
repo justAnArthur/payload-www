@@ -3,7 +3,7 @@
 
 /** @type import('payload').ImportMap */
 export const asyncImportMap = {
-  "@/app/(frontend)/(pages)/[locale]/posts/[slug]/page#default": () => import("@/app/(frontend)/(pages)/[locale]/posts/[slug]/page").then((m) => ({ default: m.default })),
+  "@/app/(frontend)/(pages)/[locale]/posts/[slug]/render#default": () => import("@/app/(frontend)/(pages)/[locale]/posts/[slug]/render").then((m) => ({ default: m.default })),
   "@/app/(frontend)/(pages)/[locale]/posts/category/[slug]/render#default": () => import("@/app/(frontend)/(pages)/[locale]/posts/category/[slug]/render").then((m) => ({ default: m.default })),
   "@/components/Footer/Component#Footer": () => import("@/components/Footer/Component").then((m) => ({ default: m.Footer })),
   "@/components/Header/Component#Header": () => import("@/components/Header/Component").then((m) => ({ default: m.Header })),
