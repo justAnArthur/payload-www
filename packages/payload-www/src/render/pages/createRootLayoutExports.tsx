@@ -1,8 +1,6 @@
-import 'server-only'
-
 
 import type { ImportMap, SanitizedConfig } from 'payload'
-import type { HTMLAttributes, ReactNode } from 'react'
+import { Activity, type HTMLAttributes, type ReactNode } from 'react'
 import { queryDoc } from '../metadata/query'
 import { NextLayoutProps } from "./utils/checkParams"
 import { setRequestLocale } from "next-intl/server"
@@ -97,9 +95,9 @@ export function createRootLayoutExports(
       <body>
       <NextIntlClientProvider>
         {rootJsonLd}
-        {renderedHeader}
+        <Activity>{renderedHeader}</Activity>
         {providers ? providers({ children: props.children, locale }) : props.children}
-        {renderedFooter}
+        <Activity>{renderedFooter}</Activity>
       </NextIntlClientProvider>
       </body>
       </html>
