@@ -23,6 +23,26 @@ const contentBlock = (textValue: string) => ({
 type Localized = { en: string; uk: string }
 const asLocalized = (v: Localized): unknown => v
 
+// ponytail: the lib's slug `validate` rejects a localized-object value at
+// create time (it sees `{ en, uk }` and bails on `typeof value !== 'string'`).
+// Workaround: set `en` on create, then a follow-up `update` with `locale: 'uk'`
+// to populate the uk row. Same value in both locales — the user can localize
+// later.
+async function setUkLocale(
+  payload: Awaited<ReturnType<typeof getPayload>>,
+  collection: 'categories' | 'pages' | 'posts',
+  id: number | string,
+  data: Record<string, unknown>
+) {
+  await payload.update({
+    collection,
+    id,
+    data,
+    locale: 'uk',
+    overrideAccess: true
+  })
+}
+
 async function ensureCategory(payload: Awaited<ReturnType<typeof getPayload>>, slug: string, title: Localized) {
   const existing = await payload.find({
     collection: 'categories',
@@ -30,13 +50,22 @@ async function ensureCategory(payload: Awaited<ReturnType<typeof getPayload>>, s
     limit: 1,
     overrideAccess: true
   })
-  if (existing.docs[0]) return existing.docs[0]
+  if (existing.docs[0]) {
+    // Backfill uk slug if a previous seed run stored en only.
+    const doc = existing.docs[0]
+    if (typeof (doc as { slug?: unknown }).slug !== 'object' || !(doc as { slug?: { uk?: string } }).slug?.uk) {
+      await setUkLocale(payload, 'categories', doc.id, { slug, title: asLocalized(title) })
+    }
+    return doc
+  }
 
-  return payload.create({
+  const created = await payload.create({
     collection: 'categories',
     data: { slug, title: asLocalized(title) as string },
     overrideAccess: true
   })
+  await setUkLocale(payload, 'categories', created.id, { slug, title: asLocalized(title) })
+  return created
 }
 
 async function ensurePage(
@@ -50,9 +79,19 @@ async function ensurePage(
     overrideAccess: true,
     draft: true
   })
-  if (existing.docs[0]) return existing.docs[0]
+  if (existing.docs[0]) {
+    const doc = existing.docs[0]
+    if (typeof (doc as { slug?: unknown }).slug !== 'object' || !(doc as { slug?: { uk?: string } }).slug?.uk) {
+      await setUkLocale(payload, 'pages', doc.id, {
+        slug: data.slug,
+        title: asLocalized(data.title),
+        blocks: data.blocks
+      })
+    }
+    return doc
+  }
 
-  return payload.create({
+  const created = await payload.create({
     collection: 'pages',
     data: {
       ...data,
@@ -62,6 +101,12 @@ async function ensurePage(
     },
     overrideAccess: true
   })
+  await setUkLocale(payload, 'pages', created.id, {
+    slug: data.slug,
+    title: asLocalized(data.title),
+    blocks: data.blocks
+  })
+  return created
 }
 
 async function ensurePost(
@@ -80,9 +125,20 @@ async function ensurePost(
     overrideAccess: true,
     draft: true
   })
-  if (existing.docs[0]) return existing.docs[0]
+  if (existing.docs[0]) {
+    const doc = existing.docs[0]
+    if (typeof (doc as { slug?: unknown }).slug !== 'object' || !(doc as { slug?: { uk?: string } }).slug?.uk) {
+      await setUkLocale(payload, 'posts', doc.id, {
+        slug: data.slug,
+        title: asLocalized(data.title),
+        excerpt: asLocalized(data.excerpt),
+        categories: data.categories
+      })
+    }
+    return doc
+  }
 
-  return payload.create({
+  const created = await payload.create({
     collection: 'posts',
     // ponytail: see comment on `asLocalized` above — Posts `title`/`excerpt` are localized at runtime.
     data: {
@@ -94,6 +150,13 @@ async function ensurePost(
     } as never,
     overrideAccess: true
   })
+  await setUkLocale(payload, 'posts', created.id, {
+    slug: data.slug,
+    title: asLocalized(data.title),
+    excerpt: asLocalized(data.excerpt),
+    categories: data.categories
+  })
+  return created
 }
 
 async function ensureUser(payload: Awaited<ReturnType<typeof getPayload>>) {
