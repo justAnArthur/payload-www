@@ -15,7 +15,14 @@ import {
   buildWebSiteLd
 } from '@justanarthur/payload-plugin-seo/root-jsonld'
 import { type SlugShape, paramsSlugToSlug, slugToParamsSlug } from '../render/metadata/slug'
-import { queryAllDocs, queryAllLocaleSlugs, queryDocBySlug, tagsFor } from '../render/metadata/query'
+import {
+  queryAllDocs,
+  queryAllLocaleSlugs,
+  queryDocBySlug,
+  seedPayloadCache,
+  tagsFor,
+  type SeedPayloadCacheArgs,
+} from '../render/metadata/query'
 
 const metadata = {
   buildArticleLd,
@@ -29,7 +36,8 @@ const metadata = {
   queryAllLocaleSlugs,
   paramsSlugToSlug,
   slugToParamsSlug,
-  tagsFor
+  seedPayloadCache,
+  tagsFor,
 }
 
 export default metadata
@@ -45,6 +53,7 @@ export {
   queryDocBySlug,
   paramsSlugToSlug,
   slugToParamsSlug,
+  seedPayloadCache,
   tagsFor,
   type ArticleLdOptions,
   type BreadcrumbItem,
@@ -52,5 +61,6 @@ export {
   type BuildProductLdOptions,
   type BuildRootJsonLdOptions,
   type BuildWebSiteLdOptions,
-  type SlugShape
+  type SeedPayloadCacheArgs,
+  type SlugShape,
 }
