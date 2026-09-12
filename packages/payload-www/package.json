@@ -96,12 +96,6 @@
         "default": "./dist/sitemap.js"
       }
     },
-    "./cache-keys": {
-      "import": {
-        "types": "./dist/cache-keys.d.ts",
-        "default": "./dist/cache-keys.js"
-      }
-    },
     "./package.json": "./package.json"
   },
   "sideEffects": false,

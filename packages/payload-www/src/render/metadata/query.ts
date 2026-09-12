@@ -1,14 +1,41 @@
-import type { DataFromCollectionSlug, DataFromGlobalSlug, SanitizedConfig } from 'payload'
+import type {
+  CollectionSlug,
+  DataFromCollectionSlug,
+  DataFromGlobalSlug,
+  SanitizedConfig
+} from 'payload'
+import type { CacheHelpers } from '@pro-laico/payload-revalidate/cache'
+import { createCacheHelpers } from '@pro-laico/payload-revalidate/cache'
+import { tagsFor } from '@pro-laico/payload-revalidate'
+import { cacheLife } from 'next/cache'
 import { getPayload } from 'payload'
-import { cacheTag } from 'next/cache'
-import {
-  type CollectionCacheKeyArgs,
-  createAliasCacheKey,
-  createCollectionCacheKey,
-  createDraftCacheKey,
-  createGlobalCacheKey,
-  createListCacheKey,
-} from '../../exports/cache-keys'
+
+let _helpers: CacheHelpers | null = null
+let _seedPromise: Promise<void> | null = null
+
+export type SeedPayloadCacheArgs = {
+  config: SanitizedConfig | Promise<SanitizedConfig>
+}
+
+export function seedPayloadCache({ config }: SeedPayloadCacheArgs): void {
+  if (_helpers || _seedPromise) return
+  _seedPromise = (async () => {
+    const payload = await getPayload({ config: await config })
+    _helpers = createCacheHelpers(payload)
+  })()
+}
+
+async function requireCacheHelpers(): Promise<CacheHelpers> {
+  if (_helpers) return _helpers
+  if (_seedPromise) {
+    await _seedPromise
+    if (_helpers) return _helpers
+  }
+  throw new Error(
+    '[payload-www] seedPayloadCache({ config }) must be called before any query getter. ' +
+    'Call it from createCollectionPageExports / createRootLayoutExports factory, or in your root layout.'
+  )
+}
 
 export type QueryCollectionArgs<S extends string> = {
   collectionSlug: S
@@ -17,8 +44,6 @@ export type QueryCollectionArgs<S extends string> = {
   locale: string
   draft?: boolean
   depth?: number
-  extraCacheTags?: string[]
-  config: Promise<SanitizedConfig>
 }
 
 export type QueryGlobalArgs<G extends string> = {
@@ -26,117 +51,84 @@ export type QueryGlobalArgs<G extends string> = {
   locale: string
   depth?: number
   draft?: boolean
-  extraCacheTags?: string[]
-  config: Promise<SanitizedConfig>
 }
 
 export type QueryListArgs<S extends string> = {
   collectionSlug: S
   slugField?: string
   locale: string
-  extraCacheTags?: string[]
-  config: Promise<SanitizedConfig>
 }
 
 export type QueryDocArgs =
-  | ({ globalSlug: string; locale: string; draft?: boolean; extraCacheTags?: string[] })
-  | ({ collectionSlug: string; slug: string; slugField?: string; locale: string; draft?: boolean; depth?: number; extraCacheTags?: string[] })
-
-// cacheTag only works inside a 'use cache' scope. The queries below are
-// called from both cached scopes (the host's page) and uncached ones
-// (generateStaticParams, generateSitemap at build time). The try/catch
-// keeps the call site valid in both.
-const safeCacheTag = (...tags: string[]): void => {
-  try {
-    cacheTag(...tags)
-  } catch {
-    // not inside a 'use cache' scope — tags are no-ops here
-  }
-}
+  | ({ globalSlug: string; locale: string; draft?: boolean })
+  | ({ collectionSlug: string; slug: string; slugField?: string; locale: string; draft?: boolean; depth?: number })
 
 export async function queryDocBySlug<S extends string>(args: QueryCollectionArgs<S>): Promise<DataFromCollectionSlug<S> | null> {
-  const payload = await getPayload({ config: await args.config })
+  'use cache'
+  cacheLife('max')
+  const { findDoc } = await requireCacheHelpers()
   const slugField = args.slugField ?? 'slug'
-  const baseTag = createCollectionCacheKey({ collectionSlug: args.collectionSlug, slug: args.slug, locale: args.locale })
-  safeCacheTag(
-    baseTag,
-    createAliasCacheKey({ collectionSlug: args.collectionSlug, slug: args.slug, idField: slugField }),
-    createDraftCacheKey(baseTag),
-    ...(args.extraCacheTags ?? [])
-  )
-  const result = await payload.find({
-    collection: args.collectionSlug,
-    draft: args.draft ?? false,
-    limit: 1,
-    pagination: false,
-    overrideAccess: args.draft ?? false,
+  const result = await findDoc(args.collectionSlug as CollectionSlug, {
     where: { [slugField]: { equals: args.slug } },
     locale: args.locale,
-    depth: args.depth ?? 0
-  })
-  return result.docs?.[0] ?? null
+    draft: args.draft ?? false,
+    depth: args.depth
+  } as never)
+  return (result ?? null) as unknown as DataFromCollectionSlug<S> | null
 }
 
 export async function queryGlobal<G extends string>(args: QueryGlobalArgs<G>): Promise<DataFromGlobalSlug<G> | null> {
-  const payload = await getPayload({ config: await args.config })
-  const baseTag = createGlobalCacheKey({ globalSlug: args.globalSlug, locale: args.locale })
-  safeCacheTag(
-    baseTag,
-    createDraftCacheKey(baseTag),
-    ...(args.extraCacheTags ?? [])
-  )
+  'use cache'
+  cacheLife('max')
+  const { findGlobal } = await requireCacheHelpers()
   try {
-    return await payload.findGlobal({ slug: args.globalSlug, draft: args.draft ?? false, locale: args.locale })
+    const result = await findGlobal(args.globalSlug as never, {
+      locale: args.locale,
+      draft: args.draft ?? false,
+      depth: args.depth
+    } as never)
+    return (result ?? null) as unknown as DataFromGlobalSlug<G> | null
   } catch (error) {
     console.warn('[WWW] queryGlobal failed', { globalSlug: args.globalSlug, locale: args.locale, error: String(error) })
     return null
   }
 }
 
-export async function queryAllDocs<S extends string>(args: QueryListArgs<S>): Promise<DataFromCollectionSlug<S>[]> {
-  const payload = await getPayload({ config: await args.config })
-  const listTag = createListCacheKey({ collectionSlug: args.collectionSlug, scope: '_all', locale: args.locale })
-  safeCacheTag(listTag, ...(args.extraCacheTags ?? []))
-  const result = await payload.find({
-    collection: args.collectionSlug,
-    draft: false,
-    limit: 1000,
-    pagination: false,
-    overrideAccess: false,
-    locale: args.locale
-  })
-  return result.docs ?? []
+export async function queryAllDocs<S extends string = string>(args: QueryListArgs<S>): Promise<DataFromCollectionSlug<S>[]> {
+  'use cache'
+  cacheLife('max')
+  const { findIds, findDocByID } = await requireCacheHelpers()
+  const collection = args.collectionSlug as CollectionSlug
+  const { ids } = await findIds(collection, { locale: args.locale } as never)
+  if (ids.length === 0) return []
+  const docs = await Promise.all(
+    ids.map((id) => findDocByID(collection, id, { locale: args.locale } as never))
+  )
+  return docs.filter((d): d is NonNullable<typeof d> => d !== null) as unknown as DataFromCollectionSlug<S>[]
 }
 
-export async function queryDoc(
-  args: QueryDocArgs,
-  { config: configPromise }: { config: Promise<SanitizedConfig> }
-) {
-  if ('globalSlug' in args)
-    return queryGlobal({ ...args, config: configPromise })
-  return queryDocBySlug({ ...args, config: configPromise })
+export async function queryDoc(args: QueryDocArgs) {
+  if ('globalSlug' in args) return queryGlobal(args)
+  return queryDocBySlug(args)
 }
 
-export async function queryAllLocaleSlugs(
-  {
-    collectionSlug,
-    id,
-    slugField = 'slug',
-    config
-  }: {
-    collectionSlug: string
-    id: number | string
-    slugField?: string
-    config: Promise<SanitizedConfig>
-  }): Promise<Record<string, string> | null> {
-  const payload = await getPayload({ config: await config })
-  const doc = await payload.findByID({
-    collection: collectionSlug,
-    id,
-    locale: 'all',
-    select: { [slugField]: true }
-  })
-  return doc?.[slugField]
+export async function queryAllLocaleSlugs(args: {
+  collectionSlug: string
+  id: number | string
+  slugField?: string
+}): Promise<Record<string, string> | null> {
+  'use cache'
+  cacheLife('max')
+  const { findDocByID } = await requireCacheHelpers()
+  const slugField = args.slugField ?? 'slug'
+  const doc = await findDocByID(
+    args.collectionSlug as CollectionSlug,
+    args.id,
+    { locale: 'all', select: { [slugField]: true } as never }
+  )
+  const localeMap = doc?.[slugField]
+  if (localeMap && typeof localeMap === 'object') return localeMap as unknown as Record<string, string>
+  return null
 }
 
-export type { CollectionCacheKeyArgs }
+export { tagsFor }
