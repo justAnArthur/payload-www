@@ -13,14 +13,14 @@ The composition root is `createWWWConfig()` — see [Quick start](#quick-start) 
 | piece | exported from | purpose |
 |---|---|---|
 | Composer | [`/config`](#quick-start) | `createWWWConfig()` — returns `{ withWWWConfig }`. One call wires Pages + Posts + Header + Footer + the default plugin set. |
-| Pages + Posts collections | `createPagesCollection`, `createPostsCollection` (internal — composed by the composer) | Pages (title, blocks tab, slug, drafts, revalidation); Posts (title, excerpt, richText, drafts, revalidation). |
+| Pages + Posts collections | `createPagesCollection`, `createPostsCollection` (internal — composed by the composer) | Pages (title, blocks tab, slug, drafts); Posts (title, excerpt, richText, drafts). Caching comes from the host's `revalidatePlugin()` registration. |
 | Header + Footer globals | `createHeaderGlobal`, `createFooterGlobal` (internal) | Both nav blocks with `navColumn` / `navItem`. Extend via `link({ extraFields })`. |
 | Static-page collection | `createWWWCollectionGlobal` ([`/collections`](#collections)) | Generic factory for system pages (404, 500, search-empty) — keyed by a discriminator, no slug. |
 | Default plugins | composed by `createWWWConfig()` | `seoPlugin`, `imageHashPlugin`, `translator`, `mcpPlugin`. Tune via `defaultPluginsConfigs`. |
 | Fields | [`/fields`](#fields) | `link`, `linkGroup` (with `disableLabel` / `appearances` / `localized` / `relationTo` / `extraFields`), `slugField`, `appearanceOptions`. |
 | Access | [`/access`](#access) | `anyone`, `authenticated`, `authenticatedOrPublished`. |
-| Revalidation hooks | [`/collections`](#collections) (`createRevalidateCollectionGlobalHook`, `createCollectionCacheKey`, `populatePublishedAt`) | Tag-based cache invalidation + published-at population. |
-| Metadata | [`/metadata`](#metadata) | `buildArticleLd`, `buildBreadcrumbsLd`, `buildOrganizationLd`, `buildWebSiteLd`, `buildProductLd`, `buildRootJsonLd`; slug transforms; `queryDocBySlug`, `queryAllDocs`, `queryAllLocaleSlugs`. |
+| Caching | [`Caching`](#caching) | Cached query getters wrap `@pro-laico/payload-revalidate` finders; tag-based invalidation via `revalidatePlugin()`; `seedPayloadCache` singleton seed. |
+| Metadata | [`/metadata`](#metadata) | `buildArticleLd`, `buildBreadcrumbsLd`, `buildOrganizationLd`, `buildWebSiteLd`, `buildProductLd`, `buildRootJsonLd`; slug transforms; `queryDocBySlug`, `queryDocByID`, `queryGlobal`, `queryAllDocs`, `queryAllLocaleSlugs`; `seedPayloadCache`, `tagsFor`. |
 | Next.js page renderers | [`/render-pages`](#render-pages) | `createCollectionPageExports`, `createRootLayoutExports`; default render components `PagesPage`, `PostsPage`, `HeaderPage`, `FooterPage`, `RootJsonLd`. |
 | Sitemap | [`/sitemap`](#sitemap) | `createSitemapFromCollections` (Next.js file-convention helper). |
 | Plugin re-exports | [`/imagehash`](#plugin-re-exports), [`/translator`](#plugin-re-exports) | Drop-in for hosts that don't want to import the sibling packages directly. |
@@ -193,9 +193,10 @@ export default createSitemapFromCollections({
 `createCollectionPageExports`'s deps accept) and returns a Next.js `MetadataRoute.Sitemap`-compatible
 function. Mount one per collection under a sub-route, or a single call for the root.
 
-The lib's Pages `afterChange` hook fires `revalidateTag(collection_pages_<slug>_<locale>, 'max')`,
-which is the key `createCollectionPageExports` / `createSitemapFromCollections` reads from — so
-edits refresh the sitemap without manual rebuilds.
+The lib reads through `@pro-laico/payload-revalidate`'s cached finders, so registering
+`revalidatePlugin()` in `payload.config.ts` makes every collection / global save revalidate
+its tags automatically — no lib-side hooks to wire. Edits refresh the sitemap without
+manual rebuilds.
 
 ## Static pages (404 / 500 / system)
 
@@ -213,16 +214,14 @@ const { default: NotFound } = createCollectionPageExports(
 export default NotFound
 ```
 
-The `static-pages` collection is built via `createWWWCollectionGlobal({...}, { slug: 'static-pages', renderPath: '@/components/StaticPage/Component#StaticPage', isDraft: false })`. Editors pick a `kind` (`'not-found'`, `'server-error'`, `'search-empty'`, `'offline'`), populate the `blocks` tab with the same block set you passed to `createWWWConfig`, and the host's not-found / server-error route renders the row. `populatePublishedAt` and the revalidation hooks are wired automatically.
+The `static-pages` collection is built via `createWWWCollectionGlobal({...}, { slug: 'static-pages', renderPath: '@/components/StaticPage/Component#StaticPage', isDraft: false })`. Editors pick a `kind` (`'not-found'`, `'server-error'`, `'search-empty'`, `'offline'`), populate the `blocks` tab with the same block set you passed to `createWWWConfig`, and the host's not-found / server-error route renders the row. `populatePublishedAt` is wired automatically; revalidation comes from the host's `revalidatePlugin()` registration.
 
 ## Collections
 
 ```ts
 import {
   createWWWCollectionGlobal,         // generic factory (used internally for static-pages)
-  createRevalidateCollectionGlobalHook, // the afterChange/afterDelete pair
-  createCollectionCacheKey,          // produces the tag string
-  queryDoc                          // server-side helper used by renderers
+  queryDoc                           // server-side helper used by renderers
 } from '@justanarthur/payload-www/collections'
 ```
 
@@ -230,32 +229,71 @@ import {
 
 | arg | type | notes |
 |---|---|---|
-| `fields` | `Field[]` | the collection's field set (the factory adds `slug`, `publishedAt`, access, hooks) |
+| `fields` | `Field[]` | the collection's field set (the factory adds `slug`, `publishedAt`, access, the `populatePublishedAt` `beforeChange`) |
 | `slug` | `string` | collection slug |
 | `renderPath` | `string` | import-map path to the render component (`'@/components/Foo/Component#Foo'`) |
 | `isGlobalConfig` | `boolean` | `true` for globals, `false` (default) for collections |
 | `isDraft` | `boolean` | `true` (default) enables Payload's drafts + autosave; `false` for system pages |
 
 The factory wires `custom[packageName] = { path: renderPath }`, access (`create`/`update`/`delete`
-require auth, `read` is `anyone` or `authenticatedOrPublished` depending on `isDraft`), the
-`afterChange`/`afterDelete` revalidation hook, and `populatePublishedAt` (`beforeChange`).
+require auth, `read` is `anyone` or `authenticatedOrPublished` depending on `isDraft`), and
+`populatePublishedAt` (`beforeChange`). It does **not** install revalidation hooks — those live
+in the host's `revalidatePlugin()` registration (see [Caching](#caching) below).
 
-### Revalidation
+### Caching
 
-`createRevalidateCollectionGlobalHook()` returns `{ afterChange, afterDelete }` — the same function
-used for both. On every save / delete of a published doc it fires:
+The lib's cached query layer (`queryDocBySlug`, `queryGlobal`, `queryAllDocs`, `queryAllLocaleSlugs`,
+`queryDocByID`) wraps `@pro-laico/payload-revalidate`'s finders in `'use cache'` + `cacheLife('max')`
+scopes. Setup:
 
-```
-revalidateTag(`<slug><slug>_<locale>`, 'max')   // collections
-revalidateTag(`<globalSlug>_<locale>`, 'max')  // globals
-```
+1. **Install the peer deps at the workspace root** (not in the lib's `dependencies` — `file:` links
+   in a published `package.json` break downstream installs):
 
-`createCollectionCacheKey({ collectionSlug, slug, locale })` produces the same key string — use it
-in your own `unstable_cache` / `fetch` cache keys if you want them invalidated by the lib's hooks.
+   ```bash
+   bun add @pro-laico/core @pro-laico/payload-revalidate
+   ```
 
-> The `// @ts-expect-error` and `// todo sitemap caching and revalidation` markers in
-> `createRevalidateCollectionGlobalHook.ts` are intentional, not bugs — the hook covers tag-based
-> invalidation; URL revalidation and the unified sitemap tag are still TODO.
+2. **Register `revalidatePlugin()` last in `payload.config.ts#plugins`:**
+
+   ```ts
+   import { revalidatePlugin } from '@pro-laico/payload-revalidate'
+
+   export default buildConfig({
+     // ...
+     plugins: [...otherPlugins, revalidatePlugin()],
+   })
+   ```
+
+3. **Turn on Next's cacheComponents pipeline** in `next.config.ts`:
+
+   ```ts
+   const nextConfig: NextConfig = { cacheComponents: true, /* ... */ }
+   ```
+
+4. **Use the lib's getters in renderers** — they're `'use cache'`-wrapped already. No need to
+   re-wrap or hand-tag:
+
+   ```ts
+   import { queryDocBySlug, queryGlobal } from '@justanarthur/payload-www/metadata'
+
+   const doc = await queryDocBySlug({ collectionSlug: 'pages', slug, locale })
+   const header = await queryGlobal({ globalSlug: 'header', locale })
+   ```
+
+5. **`seedPayloadCache({ config })`** runs once per process to initialize the pro-laico cache
+   helpers from the host's Payload config. `createCollectionPageExports` and
+   `createRootLayoutExports` call it automatically — hosts with custom layouts call it directly:
+
+   ```ts
+   import { seedPayloadCache } from '@justanarthur/payload-www/metadata'
+
+   seedPayloadCache({ config })
+   ```
+
+The cached profile is `cacheLife('max')` — Next 16's built-in long-tail profile (5 m stale,
+1 w revalidate, 30 d expire). No custom `cacheLife` config entry needed. Invalidations are
+purely tag-based: `revalidatePlugin()` fires the same tags the finders emit, so every save /
+delete / publish of a Payload doc revalidates the cached render without manual rebuilds.
 
 ## Fields
 
@@ -292,9 +330,13 @@ import {
   buildWebSiteLd,
   buildProductLd,
   buildRootJsonLd,          // combined Organization + WebSite + Product (used by RootJsonLd)
-  queryDocBySlug,
+  queryDocBySlug,           // cached collection fetch
+  queryDocByID,             // cached collection fetch by id
+  queryGlobal,              // cached global fetch
   queryAllDocs,             // for generateStaticParams
   queryAllLocaleSlugs,      // for hreflang alternates
+  seedPayloadCache,         // one-time seed for the pro-laico cache helpers
+  tagsFor,                  // build cache tags by hand (passthrough of @pro-laico/payload-revalidate)
   paramsSlugToSlug,         // turn [locale]/[[...slug]] params → stored slug
   slugToParamsSlug          // turn stored slug → params for generateStaticParams
 } from '@justanarthur/payload-www/metadata'
@@ -340,10 +382,10 @@ The package's `package.json#exports` map:
 | `@justanarthur/payload-www/pages` | subset of `/render-pages` (no `createRootLayoutExports`, no `PostsPage`, no `RootJsonLd`) |
 | `@justanarthur/payload-www/sitemap` | `createSitemapFromCollections` |
 | `@justanarthur/payload-www/blocks` | `RenderBlocks`, `RenderBlocksProps` |
-| `@justanarthur/payload-www/collections` | `createWWWCollectionGlobal`, `createRevalidateCollectionGlobalHook`, `createCollectionCacheKey`, `queryDoc` |
+| `@justanarthur/payload-www/collections` | `createWWWCollectionGlobal`, `queryDoc` |
 | `@justanarthur/payload-www/fields` | `link`, `linkGroup`, `appearanceOptions`, `slugField`, `LinkAppearances`, `LinkOptions` |
 | `@justanarthur/payload-www/access` | `anyone`, `authenticated`, `authenticatedOrPublished` |
-| `@justanarthur/payload-www/metadata` | `buildArticleLd`, `buildBreadcrumbsLd`, `buildOrganizationLd`, `buildWebSiteLd`, `buildProductLd`, `buildRootJsonLd`, `queryDocBySlug`, `queryAllDocs`, `queryAllLocaleSlugs`, `paramsSlugToSlug`, `slugToParamsSlug` + types |
+| `@justanarthur/payload-www/metadata` | `buildArticleLd`, `buildBreadcrumbsLd`, `buildOrganizationLd`, `buildWebSiteLd`, `buildProductLd`, `buildRootJsonLd`, `queryDocBySlug`, `queryDocByID`, `queryGlobal`, `queryAllDocs`, `queryAllLocaleSlugs`, `seedPayloadCache`, `tagsFor`, `paramsSlugToSlug`, `slugToParamsSlug` + types |
 | `@justanarthur/payload-www/utils` | `generateImportName`, `getFromImportMap` |
 | `@justanarthur/payload-www/imagehash` | `imageHashPlugin`, `BlurhashPluginOptions` (re-export of `@justanarthur/payload-imagehash-plugin`) |
 | `@justanarthur/payload-www/translator` | `translator` (re-export of `@justanarthur/payload-plugin-translator`) |
@@ -363,10 +405,16 @@ For agents migrating from older docs:
   Payload `localization` config; `blocks` come from the `WWWInputConfig.blocks` field.
 - `defaultPlugins` callback → now `defaultPluginsConfigs: { seo, imageHash, translator, mcp }` map
   on `WWWInputConfig`.
-- `createRevalidateCollectionHook({ collectionSlug, urlPathPrefix, … })` (CHANGELOG `[Unreleased]`)
-  → **not implemented yet**. The current hook is `createRevalidateCollectionGlobalHook()` (no args),
-  exported from `/collections`. Per-locale URL fan-out + `revalidatePath` does not happen — only
-  `revalidateTag` fires.
+- `createRevalidateCollectionHook({ collectionSlug, urlPathPrefix, … })` (older CHANGELOG) and
+  `createRevalidateCollectionGlobalHook()` (no args, 1.0.0) → **both removed**. Caching now goes
+  through `@pro-laico/payload-revalidate`: install it as a peer dep, register `revalidatePlugin()`
+  last in `payload.config.ts#plugins`, and the lib's cached query getters (`queryDocBySlug`,
+  `queryGlobal`, `queryAllDocs`, `queryAllLocaleSlugs`, `queryDocByID`) wrap its finders so the
+  revalidation tags line up automatically. See [Caching](#caching) above.
+- `@justanarthur/payload-www/cache-keys` subpath (older `[Unreleased]`) → **removed**. There is
+  no in-tree tag vocabulary to export — tags come from `@pro-laico/payload-revalidate`'s finders.
+- `defaultPluginsConfigs.revalidate` slot (older `[Unreleased]`) → **removed**. The in-lib
+  revalidation composer is gone; revalidation is the host's responsibility via `revalidatePlugin()`.
 - `createSitemapFile` → **not implemented**. The current export is `createSitemapFromCollections`,
   used per-collection from your `app/(frontend)/sitemap.ts`.
 - `createPreviewHandler`, `LocaleSwitcher`, `LivePreviewListener`, `PageShowcase`, `HomePage`,
