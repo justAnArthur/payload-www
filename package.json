@@ -11,5 +11,9 @@
   },
   "resolutions": {
     "sharp": "0.35.4"
+  },
+  "devDependencies": {
+    "@pro-laico/core": "^0.5.0",
+    "@pro-laico/payload-revalidate": "^0.8.5"
   }
 }
