@@ -2,7 +2,7 @@ import type { ComponentType } from 'react'
 import { createElement } from 'react'
 
 import type { ImportMap, SanitizedCollectionConfig, SanitizedConfig } from 'payload'
-import { getPayload } from 'payload'
+import { queryDocByID, queryDocBySlug, seedPayloadCache } from '@justanarthur/payload-www/metadata'
 
 import type { SiteDefaults } from '../types'
 import { extractSEOMetaForImage, type SEOMetaImageProps } from './extractSEOMetaForImage'
@@ -175,29 +175,24 @@ export const createOpenGraphImageRoute =
         slugField
       })
     } else {
-      const payload = await getPayload({ config: sanitizedConfig })
+      seedPayloadCache({ config: sanitizedConfig })
       if (rawSlug !== undefined) {
         const numericId = toParamNumber(rawSlug)
         if (numericId !== undefined) {
-          doc = (await payload.findByID({
-            collection: args.collectionSlug,
+          doc = (await queryDocByID({
+            collectionSlug: args.collectionSlug,
             id: numericId,
-            locale,
-            draft: false,
+            locale: locale ?? '',
             depth: 0
           })) as Record<string, unknown> | null
         } else {
-          const result = await payload.find({
-            collection: args.collectionSlug,
-            draft: false,
-            depth: 0,
-            limit: 1,
-            pagination: false,
-            overrideAccess: false,
-            where: { [slugParam]: { equals: rawSlug } },
-            locale
-          })
-          doc = (result.docs?.[0] as Record<string, unknown> | undefined) ?? null
+          doc = (await queryDocBySlug({
+            collectionSlug: args.collectionSlug,
+            slug: rawSlug,
+            slugField: slugParam,
+            locale: locale ?? '',
+            depth: 0
+          })) as Record<string, unknown> | null
         }
       }
     }
