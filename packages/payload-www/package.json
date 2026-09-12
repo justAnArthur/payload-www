@@ -145,6 +145,8 @@
     "@payloadcms/richtext-lexical": "^3.85.0",
     "@payloadcms/translations": "^3.85.0",
     "@payloadcms/ui": "^3.85.0",
+    "@pro-laico/core": "^0.5.0",
+    "@pro-laico/payload-revalidate": "^0.8.5",
     "next": "^16.2.6",
     "next-intl": "^4.0.0",
     "payload": "^3.85.0",
