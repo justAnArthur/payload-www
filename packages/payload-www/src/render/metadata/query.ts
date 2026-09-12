@@ -131,4 +131,21 @@ export async function queryAllLocaleSlugs(args: {
   return null
 }
 
+export async function queryDocByID<S extends string = string>(args: {
+  collectionSlug: S
+  id: number | string
+  locale: string
+  draft?: boolean
+  depth?: number
+}): Promise<DataFromCollectionSlug<S> | null> {
+  'use cache'
+  cacheLife('max')
+  const { findDocByID } = await requireCacheHelpers()
+  return (await findDocByID(args.collectionSlug as CollectionSlug, args.id, {
+    locale: args.locale,
+    draft: args.draft ?? false,
+    depth: args.depth
+  } as never)) as DataFromCollectionSlug<S> | null
+}
+
 export { tagsFor }
