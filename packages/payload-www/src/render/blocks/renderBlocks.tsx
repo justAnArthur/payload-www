@@ -1,6 +1,5 @@
 import type { ComponentType, FC, ReactNode } from 'react'
 import type { ImportMap, SanitizedConfig } from 'payload'
-import { Suspense } from 'react'
 import { type AsyncImportMap, getFromImportMap } from '../getFromImportMap'
 import { name as packageName } from '../../../package.json'
 
@@ -38,15 +37,14 @@ export const RenderBlocks: FC<RenderBlocksProps> = async (
     }
 
     rendered.push(
-      <Suspense key={i} fallback={null}>
-        <Block
-          index={i}
-          {...blockProps}
-          {...block}
-          locale={locale}
-          searchParams={searchParams}
-        />
-      </Suspense>
+      <Block
+        key={i}
+        index={i}
+        {...blockProps}
+        {...block}
+        locale={locale}
+        searchParams={searchParams}
+      />
     )
   }
 
