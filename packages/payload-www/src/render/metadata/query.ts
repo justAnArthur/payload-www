@@ -65,7 +65,7 @@ export type QueryDocArgs =
 
 export async function queryDocBySlug<S extends string>(args: QueryCollectionArgs<S>): Promise<DataFromCollectionSlug<S> | null> {
   'use cache'
-  cacheLife('max')
+  cacheLife('weeks')
   const { findDoc } = await requireCacheHelpers()
   const slugField = args.slugField ?? 'slug'
   const result = await findDoc(args.collectionSlug as CollectionSlug, {
@@ -79,7 +79,7 @@ export async function queryDocBySlug<S extends string>(args: QueryCollectionArgs
 
 export async function queryGlobal<G extends string>(args: QueryGlobalArgs<G>): Promise<DataFromGlobalSlug<G> | null> {
   'use cache'
-  cacheLife('max')
+  cacheLife('weeks')
   const { findGlobal } = await requireCacheHelpers()
   try {
     const result = await findGlobal(args.globalSlug as never, {
@@ -96,7 +96,7 @@ export async function queryGlobal<G extends string>(args: QueryGlobalArgs<G>): P
 
 export async function queryAllDocs<S extends string = string>(args: QueryListArgs<S>): Promise<DataFromCollectionSlug<S>[]> {
   'use cache'
-  cacheLife('max')
+  cacheLife('weeks')
   const { findIds, findDocByID } = await requireCacheHelpers()
   const collection = args.collectionSlug as CollectionSlug
   const { ids } = await findIds(collection, { locale: args.locale } as never)
@@ -118,7 +118,7 @@ export async function queryAllLocaleSlugs(args: {
   slugField?: string
 }): Promise<Record<string, string> | null> {
   'use cache'
-  cacheLife('max')
+  cacheLife('weeks')
   const { findDocByID } = await requireCacheHelpers()
   const slugField = args.slugField ?? 'slug'
   const doc = await findDocByID(
@@ -139,7 +139,7 @@ export async function queryDocByID<S extends string = string>(args: {
   depth?: number
 }): Promise<DataFromCollectionSlug<S> | null> {
   'use cache'
-  cacheLife('max')
+  cacheLife('weeks')
   const { findDocByID } = await requireCacheHelpers()
   return (await findDocByID(args.collectionSlug as CollectionSlug, args.id, {
     locale: args.locale,
