@@ -243,7 +243,7 @@ in the host's `revalidatePlugin()` registration (see [Caching](#caching) below).
 ### Caching
 
 The lib's cached query layer (`queryDocBySlug`, `queryGlobal`, `queryAllDocs`, `queryAllLocaleSlugs`,
-`queryDocByID`) wraps `@pro-laico/payload-revalidate`'s finders in `'use cache'` + `cacheLife('max')`
+`queryDocByID`) wraps `@pro-laico/payload-revalidate`'s finders in `'use cache'` + `cacheLife('weeks')`
 scopes. Setup:
 
 1. **Install the peer deps at the workspace root** (not in the lib's `dependencies` — `file:` links
@@ -290,7 +290,7 @@ scopes. Setup:
    seedPayloadCache({ config })
    ```
 
-The cached profile is `cacheLife('max')` — Next 16's built-in long-tail profile (5 m stale,
+The cached profile is `cacheLife('weeks')` — Next 16's built-in long-tail profile (5 m stale,
 1 w revalidate, 30 d expire). No custom `cacheLife` config entry needed. Invalidations are
 purely tag-based: `revalidatePlugin()` fires the same tags the finders emit, so every save /
 delete / publish of a Payload doc revalidates the cached render without manual rebuilds.

@@ -15,8 +15,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   tags the revalidation plugin reads match the tags the lib emits — hand-spelling tags
   silently no-ops.
 - **`queryDocBySlug`, `queryGlobal`, `queryAllDocs`, `queryAllLocaleSlugs`, `queryDocByID`**
-  are now `'use cache'` + `cacheLife('max')` scopes (Next 16 cacheComponents, 5 m stale /
-  1 w revalidate / 30 d expire via the built-in `'max'` profile). Exported from
+  are now `'use cache'` + `cacheLife('weeks')` scopes (Next 16 cacheComponents, 5 m stale /
+  1 w revalidate / 30 d expire via the built-in `'weeks'` profile). Exported from
   `@justanarthur/payload-www/metadata`. `depth` defaults to `0` (relations stay as ids) —
   hosts that need populated relations pass `depth` explicitly.
 - **`seedPayloadCache({ config })`** — singleton seed that initializes the pro-laico cache
@@ -68,7 +68,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - **`defaultPluginsConfigs.revalidate` passthrough slot** on `WWWInputConfig` — the in-lib
   revalidation composer no longer exists, so the slot has nothing to wrap.
 - **`cacheLife('weeks')` profile** — every cached getter now uses the built-in
-  `cacheLife('max')`. No custom `cacheLife` config entry needed.
+  `cacheLife('weeks')`. No custom `cacheLife` config entry needed.
 
 ### Required
 
