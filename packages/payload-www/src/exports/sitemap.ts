@@ -1,5 +1,6 @@
 import { createSitemapFromCollections } from '../render/pages/createCollectionPageExports'
+import { seedPayloadCache } from '../render/metadata/query'
 
-export { createSitemapFromCollections }
+export { createSitemapFromCollections, seedPayloadCache }
 
-export default { createSitemapFromCollections }
+export default { createSitemapFromCollections, seedPayloadCache }
