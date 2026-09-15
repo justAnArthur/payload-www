@@ -1,6 +1,7 @@
 {
-  "name": "payload-www",
-  "version": "0.1.0",
+  "name": "payload-www-workspace",
+  "version": "0.0.0",
+  "private": true,
   "workspaces": [
     "packages/*",
     "plugins/*",
