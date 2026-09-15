@@ -41,6 +41,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   `MCPPluginConfig` from `@payloadcms/plugin-mcp` for hosts that want to register the plugin
   manually (e.g. when not going through `createWWWConfig`).
 
+- **`createWWWCollectionGlobal` accepts an optional `useAsTitle`.** Pages and Posts pass
+  `'title'`, so the admin list shows the document title instead of its id, and — only for
+  `'title'` — sets `defaultColumns` to `[title, slug, publishedAt]`. Collections that omit
+  the option get no `admin` block at all, so existing callers are unaffected.
+
 ### Changed
 
 - **Stack upgrade to Next 16.3 + React 19.2 + Payload 3.88 + next-intl 4.14 + TypeScript 7.**

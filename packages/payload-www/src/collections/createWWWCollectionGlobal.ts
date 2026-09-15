@@ -9,6 +9,7 @@ export type CreateWWWCollectionArgs<IsGlobalConfig extends boolean> = {
   renderPath: string,
   isGlobalConfig?: IsGlobalConfig,
   isDraft?: boolean,
+  useAsTitle?: string,
 }
 
 export function createWWWCollectionGlobal<IsGlobalConfig extends boolean = false, Config = IsGlobalConfig extends true ? GlobalConfig : CollectionConfig>(
@@ -17,7 +18,8 @@ export function createWWWCollectionGlobal<IsGlobalConfig extends boolean = false
     slug: collectionSlug,
     renderPath,
     isGlobalConfig = false as IsGlobalConfig,
-    isDraft = true
+    isDraft = true,
+    useAsTitle
   }: CreateWWWCollectionArgs<IsGlobalConfig>): Config {
   return ({
     slug: collectionSlug,
@@ -32,6 +34,10 @@ export function createWWWCollectionGlobal<IsGlobalConfig extends boolean = false
         },
         ...fields
       ],
+
+    admin: useAsTitle
+      ? { useAsTitle, defaultColumns: useAsTitle === 'title' ? [useAsTitle, 'slug', 'publishedAt'] : undefined }
+      : undefined,
 
     custom: { [name]: { path: renderPath } },
 
