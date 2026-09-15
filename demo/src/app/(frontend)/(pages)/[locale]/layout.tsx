@@ -22,7 +22,7 @@ export const metadata: Metadata = {
 
 const { default: RootLayout, generateStaticParams } = createRootLayoutExports(
   // ponytail: routing is `readonly [...]` from next-intl, lib expects `RoutingConfig` — narrow the cast.
-  { config, routing: routing as unknown as Parameters<typeof createRootLayoutExports>[0]['routing'], importMap },
+  { _payloadConfig: config, routing: routing as unknown as Parameters<typeof createRootLayoutExports>[0]['routing'], importMap },
   {
     htmlAttrs: (locale) => ({
       lang: locale,

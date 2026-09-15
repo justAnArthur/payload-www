@@ -8,7 +8,7 @@ import config from '@payload-config'
 // ponytail: Next 16's AppPageConfig expects sync `params` for `generateStaticParams`; the lib
 // still types it as `Promise<params>`. Runtime is identical — narrow the cast for the type checker.
 const built = createCollectionPageExports(
-  { config, importMap, routing: routing as unknown as Parameters<typeof createCollectionPageExports>[0]['routing'], slugShape: 'catch-all' },
+  { _payloadConfig: config, importMap, routing: routing as unknown as Parameters<typeof createCollectionPageExports>[0]['routing'], slugShape: 'catch-all' },
   { getServerSideURL }
 ) as unknown as {
   default: React.ComponentType<{ params: Promise<{ locale: string; slug?: string[] }> }>

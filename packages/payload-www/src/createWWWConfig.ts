@@ -8,6 +8,7 @@ import { seoPlugin } from '@justanarthur/payload-plugin-seo'
 import { imageHashPlugin } from '@justanarthur/payload-imagehash-plugin'
 import { translator } from '@justanarthur/payload-plugin-translator'
 import { mcpPlugin, MCPPluginConfig } from '@payloadcms/plugin-mcp'
+import { revalidatePlugin } from '@pro-laico/payload-revalidate'
 import { SEOPluginConfig } from "@justanarthur/payload-plugin-seo/types"
 import { BlurhashPluginOptions } from "@justanarthur/payload-imagehash-plugin/types"
 import { TranslatorConfig } from "@justanarthur/payload-plugin-translator/types"
@@ -24,7 +25,8 @@ export type WWWInputConfig = Omit<Config, 'collections' | 'globals' | 'plugins'>
     seo?: MergeOrOverride<SEOPluginConfig>,
     imageHash?: MergeOrOverride<BlurhashPluginOptions>,
     translator?: MergeOrOverride<TranslatorConfig>,
-    mcp?: MergeOrOverride<MCPPluginConfig>
+    mcp?: MergeOrOverride<MCPPluginConfig>,
+    revalidate?: false | (<D>(d: D) => D)
   }
 }
 
@@ -81,7 +83,14 @@ export function createWWWConfig(): WWWConfigApi {
           )
         }, defaultPluginsConfigs?.mcp))
       ] as Plugin[]
-    const plugins = mergeOrOverride(defaultPlugins, config.plugins)
+    const plugins = [
+      ...mergeOrOverride(defaultPlugins, config.plugins),
+      // pro-laico walks config.collections / config.globals to install
+      // afterChange / afterDelete hooks, so it must be the LAST plugin —
+      // host's plugins may add virtual collections or transform globals
+      // that revalidatePlugin also needs to know about.
+      revalidatePlugin()
+    ]
 
     return ({
       ...config,

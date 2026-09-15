@@ -10,6 +10,10 @@
     "tsx": "^4.22.4"
   },
   "resolutions": {
-    "sharp": "0.34.2"
+    "sharp": "0.35.4"
+  },
+  "devDependencies": {
+    "@pro-laico/core": "^0.5.0",
+    "@pro-laico/payload-revalidate": "^0.8.5"
   }
 }
