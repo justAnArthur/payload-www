@@ -118,6 +118,37 @@ A commit's scope decides which package is bumped. The mapping is declared per pa
 For example, `feat(seo): ...` bumps `@justanarthur/payload-plugin-seo`. Plugins build before
 `payload-www` via their lower `properties.priority`.
 
+**A scope resolves by manifest `name` first, then by these aliases** — `findManifestByName`
+returns the first manifest where `name === scope`, and only then checks
+`gitCommitScopeRelatedNames`. So an alias that collides with some other package's `name`
+silently bumps the wrong package. This happened once: the workspace root was named
+`payload-www`, so `feat(payload-www): ...` bumped the root instead of the library and
+published it to npm. The root is now `payload-www-workspace` and `private: true`. Never give a
+manifest a `name` that is also another manifest's alias.
+
+To be certain which package you are bumping, scope by its full name —
+`feat(@justanarthur/payload-www): ...` — or dispatch the workflow manually with
+`bump_manifest_names`.
+
+### Version levels
+
+The level comes from the commit **type** alone:
+
+| type | level |
+|---|---|
+| `feat`, `perf` | minor |
+| `fix`, `chore`, `docs`, `style`, `refactor`, `test`, `build`, `ci`, `revert` | patch |
+| `BREAKING-CHANGE` | **major** |
+
+A major needs the literal type `BREAKING-CHANGE`, e.g.
+`BREAKING-CHANGE(@justanarthur/payload-www): drop config from the page factories`.
+
+**A `!` marker does not work.** `feat!(scope):` parses but the flag is discarded — the parser
+captures it and `CommitItem` never carries it. And `feat(scope)!:` fails the parser's regex
+outright, so the whole commit is skipped and contributes no bump at all. A `BREAKING CHANGE:`
+footer is likewise ignored. Use the `BREAKING-CHANGE` type, or a manual dispatch with
+`bump_type: major`.
+
 ### Deploy targets
 
 Targets are auto-detected per package: a package is published to **npm** when `private` is not
