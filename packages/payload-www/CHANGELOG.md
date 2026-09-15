@@ -6,6 +6,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [2.0.0] - 2026-09-15
+
+### Breaking changes
+
+- `createCollectionPageExports` / `createRootLayoutExports` take `_payloadConfig` instead of
+  `config`, and seed the cache themselves.
+- `@pro-laico/core` and `@pro-laico/payload-revalidate` are required peer dependencies.
+- `cacheComponents: true` is required in the host's `next.config.ts`.
+- The `@justanarthur/payload-www/cache-keys` subpath is gone, along with `safeCacheTag` and
+  the seven `create*CacheKey` helpers.
+- `createWWWCollectionGlobal` no longer installs revalidation hooks.
+- Peer ranges move to Next 16.3 / React 19.2 / Payload 3.88 / next-intl 4.14, and
+  `@justanarthur/payload-plugin-seo` to `^4.0.0`.
+
 ### Added
 
 - **`pagePathPrefix` can be localized.** It now accepts a `Record<locale, string>` alongside
@@ -41,14 +55,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   (site-wide SEO defaults) and `RootJsonLd` (Organization / WebSite JSON-LD) in
   `@justanarthur/payload-plugin-seo` now call `seedPayloadCache` once and read through the
   lib's `'use cache'` getters instead of issuing their own Payload lookups.
-- **`mcpPlugin` re-enabled in the default plugin set.** Reverses the 1.0.0 "Removed" entry —
-  the official `@payloadcms/plugin-mcp` is now wired into the composer by default, with
-  `find`, `create`, `update`, `delete` enabled for every collection and `find`, `update` for
-  every global. Hosts tune via `defaultPluginsConfigs.mcp` on `WWWInputConfig`.
-- **New public subpath `@justanarthur/payload-www/mcp`** re-exports `mcpPlugin` and
-  `MCPPluginConfig` from `@payloadcms/plugin-mcp` for hosts that want to register the plugin
-  manually (e.g. when not going through `createWWWConfig`).
-
 - **`createWWWCollectionGlobal` accepts an optional `useAsTitle`.** Pages and Posts pass
   `'title'`, so the admin list shows the document title instead of its id, and — only for
   `'title'` — sets `defaultColumns` to `[title, slug, publishedAt]`. Collections that omit
@@ -91,6 +97,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 
+- **`generateMetadata` short-circuits on a locale `routing` does not serve.** Any
+  `/[locale]/...` segment — including bot-probed junk — ran a full document fetch and then
+  emitted alternates for a locale the site has no routes for. Unknown locales now return
+  empty metadata before the fetch.
+
+## [1.4.2] - 2026-09-12
+
+### Fixed
+
+- **`buildAlternates` can no longer emit `undefined` inside a URL.** The canonical is
+  computed independently of the alternates map, and `x-default` is only set when the default
+  locale survives.
+
+## [1.4.1] - 2026-09-12
+
+### Fixed
+
 - **Nested slugs are now split when building URLs.** `buildLocalizedPath` emitted the stored
   slug verbatim, so a page saved as `products_online-reservations` declared
   `https://site/products_online-reservations` as its canonical, sitemap `<loc>` and hreflang
@@ -98,20 +121,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   so this published a canonical that nothing on the site links to. The new `slugToPath`
   helper (exported from `render/metadata/slug`) applies the `_` → `/` nesting divider that
   `slugField` already documents.
+
 - **Untranslated locales no longer claim the collection listing as their alternate.** When a
   doc had no slug in a locale the blank fell through the path template and produced the
   listing URL — every untranslated post advertised `hreflang="cs" → /cs/posts`, so hundreds
   of documents pointed at the same page and the hreflang cluster was discarded.
   `buildLocalizedPaths` now omits those locales. A blank slug is still honoured when the
   default locale is also blank, which is how the home page is addressed.
-- **`buildAlternates` can no longer emit `undefined` inside a URL.** The canonical is
-  computed independently of the alternates map, and `x-default` is only set when the default
-  locale survives.
 
-- **`generateMetadata` short-circuits on a locale `routing` does not serve.** Any
-  `/[locale]/...` segment — including bot-probed junk — ran a full document fetch and then
-  emitted alternates for a locale the site has no routes for. Unknown locales now return
-  empty metadata before the fetch.
+## [1.4.0] - 2026-09-11
+
+### Added
+
+- **`mcpPlugin` re-enabled in the default plugin set.** Reverses the 1.0.0 "Removed" entry —
+  the official `@payloadcms/plugin-mcp` is now wired into the composer by default, with
+  `find`, `create`, `update`, `delete` enabled for every collection and `find`, `update` for
+  every global. Hosts tune via `defaultPluginsConfigs.mcp` on `WWWInputConfig`.
+
+- **New public subpath `@justanarthur/payload-www/mcp`** re-exports `mcpPlugin` and
+  `MCPPluginConfig` from `@payloadcms/plugin-mcp` for hosts that want to register the plugin
+  manually (e.g. when not going through `createWWWConfig`).
 
 ### Security
 
