@@ -142,6 +142,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   `MCPPluginConfig` from `@payloadcms/plugin-mcp` for hosts that want to register the plugin
   manually (e.g. when not going through `createWWWConfig`).
 
+- **`generateMeta` emits a title again when there is no meta and no fallback.** `45e4ae6`
+  swapped the final `'Not found'` candidate for `fallback.name`, which left not-found and
+  error pages with `{ title: undefined }`. Both candidates are now present, and `name` is
+  part of the `fallback` type instead of a bracket-access escape hatch.
+
 ### Security
 
 - With MCP enabled by default, every collection and global is mutable through `/api/mcp`
