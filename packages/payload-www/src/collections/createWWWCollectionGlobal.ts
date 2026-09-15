@@ -1,7 +1,6 @@
 import { name } from "../../package.json"
 import { type CollectionConfig, Field, GlobalConfig } from "payload"
 import { populatePublishedAt } from "./hooks/populatePublishedAt"
-import { createRevalidateCollectionGlobalHook } from "./hooks/createRevalidateCollectionGlobalHook"
 import { slugField } from "./fields/slug"
 import { anyone, authenticated, authenticatedOrPublished } from "./access"
 
@@ -10,6 +9,7 @@ export type CreateWWWCollectionArgs<IsGlobalConfig extends boolean> = {
   renderPath: string,
   isGlobalConfig?: IsGlobalConfig,
   isDraft?: boolean,
+  useAsTitle?: string,
 }
 
 export function createWWWCollectionGlobal<IsGlobalConfig extends boolean = false, Config = IsGlobalConfig extends true ? GlobalConfig : CollectionConfig>(
@@ -18,7 +18,8 @@ export function createWWWCollectionGlobal<IsGlobalConfig extends boolean = false
     slug: collectionSlug,
     renderPath,
     isGlobalConfig = false as IsGlobalConfig,
-    isDraft = true
+    isDraft = true,
+    useAsTitle
   }: CreateWWWCollectionArgs<IsGlobalConfig>): Config {
   return ({
     slug: collectionSlug,
@@ -34,6 +35,10 @@ export function createWWWCollectionGlobal<IsGlobalConfig extends boolean = false
         ...fields
       ],
 
+    admin: useAsTitle
+      ? { useAsTitle, defaultColumns: useAsTitle === 'title' ? [useAsTitle, 'slug', 'publishedAt'] : undefined }
+      : undefined,
+
     custom: { [name]: { path: renderPath } },
 
     access: {
@@ -43,19 +48,12 @@ export function createWWWCollectionGlobal<IsGlobalConfig extends boolean = false
       update: authenticated
     },
 
-    hooks: (() => {
-      const { afterChange, afterDelete } = createRevalidateCollectionGlobalHook()
-
-      return ({
-        afterChange: [afterChange],
-        beforeChange: [populatePublishedAt],
-        afterDelete: [afterDelete] // @ts-expect-error
-      }) as Config['hooks']
-    })(),
+    hooks: {
+      beforeChange: [populatePublishedAt]
+    },
 
     ...(isDraft && {
       versions: { drafts: { autosave: { interval: 3000 } } }
     })
   }) as Config
 }
-

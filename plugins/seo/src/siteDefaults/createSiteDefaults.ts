@@ -1,16 +1,16 @@
 import 'payload'
-import { getPayload } from 'payload'
+import { queryGlobal, seedPayloadCache } from '@justanarthur/payload-www/metadata'
 import type { SanitizedConfig } from 'payload'
 
 import type { SiteDefaults } from '../types'
 
 
 export type CreateSiteDefaultsArgs = {
-
+  
   config: Promise<SanitizedConfig>
-
+  
   locale: string
-
+  
   slug?: string
 }
 
@@ -20,12 +20,11 @@ export const createSiteDefaults = async (
 ): Promise<SiteDefaults | undefined> => {
   const { config, locale, slug = 'metadata' } = args
   try {
-    const payload = await getPayload({ config })
-    const raw = (await payload.findGlobal({
-      slug,
+    seedPayloadCache({ config })
+    const raw = (await queryGlobal({
+      globalSlug: slug,
       locale,
-      depth: 0,
-      draft: false
+      depth: 0
     })) as
       | {
           shared?: {

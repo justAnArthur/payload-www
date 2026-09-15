@@ -1,9 +1,7 @@
-import 'server-only'
-
 
 import type { ImportMap, SanitizedConfig } from 'payload'
-import type { HTMLAttributes, ReactNode } from 'react'
-import { queryDoc } from '../metadata/query'
+import { Activity, type HTMLAttributes, type ReactNode } from 'react'
+import { queryDoc, seedPayloadCache } from '../metadata/query'
 import { NextLayoutProps } from "./utils/checkParams"
 import { setRequestLocale } from "next-intl/server"
 import { NextIntlClientProvider } from "next-intl"
@@ -12,7 +10,7 @@ import { renderWWWDataModule } from "../renderWWWModule"
 import { RootJsonLd } from "@justanarthur/payload-plugin-seo/root-jsonld"
 
 export type CreateRootLayoutExportsArgs = {
-  config: Promise<SanitizedConfig>
+  _payloadConfig: Promise<SanitizedConfig>
   importMap: ImportMap
 
   routing: RoutingConfig
@@ -34,7 +32,7 @@ export type CreateRootLayoutExportsDeps = {
 
 export function createRootLayoutExports(
   {
-    config: configPromise,
+    _payloadConfig,
     importMap,
 
     routing
@@ -45,6 +43,8 @@ export function createRootLayoutExports(
     getServerSideURL
   }: CreateRootLayoutExportsDeps = {}
 ) {
+
+  seedPayloadCache({ config: _payloadConfig })
 
   async function RootLayout(props: NextLayoutProps) {
     const params = await props.params
@@ -60,17 +60,17 @@ export function createRootLayoutExports(
       header,
       footer
     ] = await Promise.all([
-      queryDoc({ globalSlug: 'header', locale }, { config: configPromise }),
-      queryDoc({ globalSlug: 'footer', locale }, { config: configPromise })
+      queryDoc({ globalSlug: 'header', locale }),
+      queryDoc({ globalSlug: 'footer', locale })
     ])
 
     const
       renderedHeader = renderWWWDataModule(
-        header, { collectionSlug: 'header', configPath: 'globals', config: configPromise, importMap },
+        header, { collectionSlug: 'header', configPath: 'globals', config: _payloadConfig, importMap },
         { ...props, locale }
       ),
       renderedFooter = renderWWWDataModule(
-        footer, { collectionSlug: 'footer', configPath: 'globals', config: configPromise, importMap },
+        footer, { collectionSlug: 'footer', configPath: 'globals', config: _payloadConfig, importMap },
         { ...props, locale }
       )
 
@@ -85,7 +85,7 @@ export function createRootLayoutExports(
     // don't execute JS to read it).
     const rootJsonLd = getServerSideURL ? (
       <RootJsonLd
-        config={configPromise}
+        config={_payloadConfig}
         locale={locale as never}
         getServerSideURL={getServerSideURL}
         locales={routing.locales}
@@ -97,9 +97,9 @@ export function createRootLayoutExports(
       <body>
       <NextIntlClientProvider>
         {rootJsonLd}
-        {renderedHeader}
+        <Activity>{renderedHeader}</Activity>
         {providers ? providers({ children: props.children, locale }) : props.children}
-        {renderedFooter}
+        <Activity>{renderedFooter}</Activity>
       </NextIntlClientProvider>
       </body>
       </html>

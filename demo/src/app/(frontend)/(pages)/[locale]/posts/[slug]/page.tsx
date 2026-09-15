@@ -7,7 +7,7 @@ import config from '@payload-config'
 
 // ponytail: Next 16 AppPageConfig sync-params mismatch — see [[...slug]]/page.tsx for the full note.
 const built = createCollectionPageExports(
-  { config, importMap, routing: routing as unknown as Parameters<typeof createCollectionPageExports>[0]['routing'], slug: 'posts' },
+  { _payloadConfig: config, importMap, routing: routing as unknown as Parameters<typeof createCollectionPageExports>[0]['routing'], slug: 'posts' },
   { getServerSideURL, pagePathPrefix: 'posts' }
 ) as unknown as {
   default: React.ComponentType<{ params: Promise<{ locale: string; slug: string }> }>

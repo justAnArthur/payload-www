@@ -1,14 +1,14 @@
 import 'server-only'
 
-import type { Locale, SanitizedConfig } from 'payload'
-import { getPayload } from 'payload'
+import type { SanitizedConfig } from 'payload'
+import { queryGlobal, seedPayloadCache } from '@justanarthur/payload-www/metadata'
 
 import { buildRootJsonLd } from './jsonld'
 
 
 export type RootJsonLdProps = {
   config: Promise<SanitizedConfig>
-  locale: Locale
+  locale: string
   getServerSideURL: () => string
   locales: readonly string[]
 }
@@ -16,21 +16,19 @@ export type RootJsonLdProps = {
 
 // Async server component that renders the site-wide JSON-LD payload as a single
 // `<script type="application/ld+json">` tag. Reads the seo plugin's `metadata`
-// global directly via Payload (no caching wrapper — the root layout runs once
-// per request, and the query is cheap).
+// global via the lib's cached `queryGlobal` getter.
 export async function RootJsonLd({
                                     config,
                                     locale,
                                     getServerSideURL,
                                     locales
                                   }: RootJsonLdProps) {
-  const payload = await getPayload({ config })
+  seedPayloadCache({ config })
 
-  const metadata = (await payload.findGlobal({
-    slug: 'metadata',
+  const metadata = (await queryGlobal({
+    globalSlug: 'metadata',
     locale,
-    depth: 0,
-    draft: false
+    depth: 0
   })) as {
     shared?: { name?: string | null; description?: string | null; logo?: string | null } | null
     organization?: { sameAs?: { value?: string | null }[] | null } | null
