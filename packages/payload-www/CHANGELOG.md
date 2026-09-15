@@ -8,6 +8,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- **`pagePathPrefix` can be localized.** It now accepts a `Record<locale, string>` alongside
+  the existing `string`, so a host serving localized routes (`/posts/x` in English,
+  `/sk/prispevky/x` in Slovak) gets canonical and hreflang URLs that match the URLs it
+  actually serves, instead of the default-locale segment for every locale. Locales missing
+  from the record fall back to `routing.defaultLocale`, and the sitemap *index* route
+  (`/<prefix>/sitemap.xml`) keeps using the default locale's segment because it addresses a
+  route rather than a page. Passing a plain string behaves exactly as before.
+
 - **Caching via `@pro-laico/core` + `@pro-laico/payload-revalidate`.** Both packages are
   peer deps of `@justanarthur/payload-www` (resolved through `peerDependencies`, not `file:`
   links — install at the workspace root with `bun install`). The lib's cached query getters

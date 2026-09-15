@@ -5,6 +5,7 @@ import {
   buildAlternates,
   buildLocalizedPath,
   buildLocalizedPaths,
+  resolvePagePathPrefix,
   type RoutingConfig
 } from '../src/render/pages/utils/buildLocalizedPath'
 
@@ -102,5 +103,38 @@ describe('buildAlternates', () => {
 
     expect(canonical).toBe('https://www.camasys.com')
     expect(languages.cs).toBe('https://www.camasys.com/cs')
+  })
+})
+
+describe('localized pagePathPrefix', () => {
+  const prefix = { en: 'posts', sk: 'prispevky' }
+
+  it('resolves per locale and falls back to the default locale', () => {
+    expect(resolvePagePathPrefix(prefix, 'sk', routing)).toBe('prispevky')
+    expect(resolvePagePathPrefix(prefix, 'cs', routing)).toBe('posts')
+    expect(resolvePagePathPrefix('posts', 'sk', routing)).toBe('posts')
+    expect(resolvePagePathPrefix(undefined, 'sk', routing)).toBeUndefined()
+  })
+
+  it('uses each locale segment when building a path', () => {
+    expect(buildLocalizedPath('sk', prefix, 'nejaky-clanek', { routing }))
+      .toBe('/sk/prispevky/nejaky-clanek')
+    expect(buildLocalizedPath('en', prefix, 'some-post', { routing }))
+      .toBe('/posts/some-post')
+  })
+
+  it('gives hreflang alternates the segment each locale actually serves', () => {
+    const { languages, canonical } = buildAlternates(
+      'sk', { en: 'some-post', sk: 'nejaky-clanek' }, prefix, { routing, siteUrl }
+    )
+
+    expect(canonical).toBe('https://www.camasys.com/sk/prispevky/nejaky-clanek')
+    expect(languages.en).toBe('https://www.camasys.com/posts/some-post')
+    expect(languages.sk).toBe('https://www.camasys.com/sk/prispevky/nejaky-clanek')
+  })
+
+  it('still accepts a plain string for every locale', () => {
+    expect(buildLocalizedPaths({ en: 'a', sk: 'b' }, 'posts', { routing }))
+      .toEqual({ en: '/posts/a', sk: '/sk/posts/b' })
   })
 })

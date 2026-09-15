@@ -140,7 +140,7 @@ const { default: PostPage, generateMetadata, generateStaticParams } = createColl
 | dep | type | notes |
 |---|---|---|
 | `getServerSideURL` | `() => string` | host's absolute-URL helper |
-| `pagePathPrefix` | `string` | optional URL prefix for `generateSitemap` only — not used for rendering |
+| `pagePathPrefix` | `string \| Record<locale, string>` | URL segment the collection is mounted under, used for `generateSitemap` and for canonical/hreflang URLs. Pass a record to localize the segment (`{ en: 'posts', sk: 'prispevky' }`); locales absent from it fall back to the default locale. The sitemap *index* route always uses the default locale's segment. |
 
 ### What you get back
 

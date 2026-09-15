@@ -3,10 +3,26 @@ import { slugToPath } from "../../metadata/slug"
 
 export type RoutingConfig = GenericRoutingConfig<string[], any, any, any>
 
+/**
+ * URL segment a collection is mounted under. A string is used for every locale; a record
+ * localizes it (`{ en: 'posts', sk: 'prispevky' }`), so a host serving localized routes
+ * gets canonical/hreflang URLs that match the URLs it actually serves. Locales missing
+ * from the record fall back to the default locale.
+ */
+export type PagePathPrefix = string | Record<string, string>
+
+export function resolvePagePathPrefix(
+  prefix: PagePathPrefix | undefined, locale: string, routing: RoutingConfig
+) {
+  if (typeof prefix !== 'object') return prefix
+  return prefix[locale] ?? prefix[routing.defaultLocale]
+}
+
 export function buildLocalizedPath(
-  locale: string, prefix: string | undefined, slug: string | undefined, { routing }: { routing: RoutingConfig }
+  locale: string, prefix: PagePathPrefix | undefined, slug: string | undefined, { routing }: { routing: RoutingConfig }
 ) {
   const path = slugToPath(slug)
+  const localePrefix = resolvePagePathPrefix(prefix, locale, routing)
 
   return `${
     routing.localePrefix === 'never'
@@ -21,8 +37,8 @@ export function buildLocalizedPath(
             throw new Error('Unsupported locale prefix')
           })()
   }${
-    prefix
-      ? '/' + prefix
+    localePrefix
+      ? '/' + localePrefix
       : ''
   }${
     path
@@ -33,7 +49,7 @@ export function buildLocalizedPath(
 
 export function buildLocalizedPaths(
   localesSlug: Record<string, string>,
-  pagePathPrefix: string | undefined,
+  pagePathPrefix: PagePathPrefix | undefined,
   { routing }: { routing: RoutingConfig }
 ) {
   // a blank slug means the doc isn't translated in that locale, and letting it
@@ -54,7 +70,7 @@ export function buildLocalizedPaths(
 
 export function buildAlternates(
   locale: string,
-  ...args: [Record<string, string>, string | undefined, { routing: RoutingConfig, siteUrl: string }]
+  ...args: [Record<string, string>, PagePathPrefix | undefined, { routing: RoutingConfig, siteUrl: string }]
 ) {
   const [localesSlug, pagePathPrefix, { routing, siteUrl }] = args
 
