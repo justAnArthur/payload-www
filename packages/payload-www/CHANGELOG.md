@@ -100,6 +100,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   computed independently of the alternates map, and `x-default` is only set when the default
   locale survives.
 
+- **`generateMetadata` short-circuits on a locale `routing` does not serve.** Any
+  `/[locale]/...` segment — including bot-probed junk — ran a full document fetch and then
+  emitted alternates for a locale the site has no routes for. Unknown locales now return
+  empty metadata before the fetch.
+
 ### Security
 
 - With MCP enabled by default, every collection and global is mutable through `/api/mcp`

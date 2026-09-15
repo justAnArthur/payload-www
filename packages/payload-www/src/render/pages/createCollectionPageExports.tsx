@@ -84,8 +84,12 @@ export function createCollectionPageExports<S extends string = 'pages'>(
   async function generateMetadata(props: NextPageProps): Promise<Metadata> {
     const params = await props.params
 
-    const locale = params.locale as string,
-      slug = paramsSlugToSlug(params.slug, slugShape)
+    const locale = params.locale as string
+    if (!routing.locales.includes(locale)) {
+      return {}
+    }
+
+    const slug = paramsSlugToSlug(params.slug, slugShape)
 
     const doc = await fetchDoc(locale, slug)
 
