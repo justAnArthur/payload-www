@@ -35,5 +35,6 @@ export const createPagesCollection =
       {
         slug: PAGES_SLUG,
         renderPath: PAGES_RENDER_PATH,
+        useAsTitle: 'title'
       }
     )
