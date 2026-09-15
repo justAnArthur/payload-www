@@ -58,7 +58,7 @@ export type GenerateMetaArgs = {
 
   availableLocales?: string[]
 
-  fallback?: { title?: string; description?: string }
+  fallback?: { title?: string; name?: string; description?: string }
 
   siteDefaults?: SiteDefaults
 }
@@ -106,7 +106,9 @@ export const generateMeta = ({
     social.ogTitle,
     social.twitterTitle,
     fallback?.title,
-    fallback?.['name']
+    fallback?.name,
+    // last resort: a page with no meta and no fallback still needs a title
+    'Not found'
   )
   const description = pickString(
     content.description,
