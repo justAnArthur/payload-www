@@ -6,7 +6,7 @@ import { paramsSlugToSlug, type SlugShape, slugToParamsSlug } from '../metadata/
 import { queryAllDocs, queryAllLocaleSlugs, queryDoc, seedPayloadCache } from '../metadata/query'
 import { setRequestLocale } from "next-intl/server"
 import { NextPageProps } from "./utils/checkParams"
-import { buildAlternates, RoutingConfig } from "./utils/buildLocalizedPath"
+import { buildAlternates, type PagePathPrefix, resolvePagePathPrefix, RoutingConfig } from "./utils/buildLocalizedPath"
 import { createSiteDefaults, generateMeta } from "@justanarthur/payload-plugin-seo/next-metadata"
 import { renderWWWDataModule } from "../renderWWWModule"
 
@@ -23,7 +23,7 @@ export type CreateCollectionPageExportsArgs<S extends string = 'pages'> = {
 
 export type CreateCollectionPageExportsDeps<S extends string> = {
   getServerSideURL: () => string
-  pagePathPrefix?: string
+  pagePathPrefix?: PagePathPrefix
 }
 
 export function createCollectionPageExports<S extends string = 'pages'>(
@@ -163,7 +163,8 @@ export function createCollectionPageExports<S extends string = 'pages'>(
   }
 
   generateSitemap.getServerSideURL = getServerSideURL
-  generateSitemap.pagePathPrefix = pagePathPrefix
+  // the sitemap index addresses a route, not a localized page, so it stays on one segment
+  generateSitemap.pagePathPrefix = resolvePagePathPrefix(pagePathPrefix, routing.defaultLocale, routing)
 
   return ({
     default: default_,
