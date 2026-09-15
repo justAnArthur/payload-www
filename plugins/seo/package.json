@@ -103,7 +103,7 @@
     "vitest": "4.0.18"
   },
   "peerDependencies": {
-    "@justanarthur/payload-www": "^1.4.2",
+    "@justanarthur/payload-www": "^2.0.0",
     "@payloadcms/next": "^3.85.0",
     "@payloadcms/translations": "^3.85.0",
     "@payloadcms/ui": "^3.85.0",
