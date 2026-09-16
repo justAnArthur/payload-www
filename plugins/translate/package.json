@@ -29,6 +29,12 @@
         "default": "./dist/types.js"
       }
     },
+    "./rsc": {
+      "import": {
+        "types": "./dist/rsc.d.ts",
+        "default": "./dist/rsc.js"
+      }
+    },
     "./client": {
       "import": {
         "types": "./dist/client.d.ts",
@@ -86,6 +92,7 @@
     "he": "^1.2.0"
   },
   "devDependencies": {
+    "@payloadcms/next": "3.88.0",
     "@payloadcms/translations": "3.88.0",
     "@payloadcms/ui": "3.88.0",
     "@types/he": "^1.2.3",
@@ -98,6 +105,7 @@
     "typescript": "^7.0.2"
   },
   "peerDependencies": {
+    "@payloadcms/next": "^3.85.0",
     "@payloadcms/translations": "^3.85.0",
     "@payloadcms/ui": "^3.85.0",
     "payload": "^3.85.0",

@@ -7,6 +7,8 @@ export default defineConfig({
     'src/exports/resolvers/*'
   ],
   format: ['esm'],
+  // the rsc entry imports the client entry by name so its `use client` banner stays intact
+  external: ['@justanarthur/payload-plugin-translator/client'],
   clean: true,
   dts: { inferTypes: true },
   sourceBase: './src/exports',
