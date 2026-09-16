@@ -6,6 +6,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [2.2.0] - 2026-09-16
+
+### Changed
+
+- Consumes the widened `SanitizedConfig | Promise<SanitizedConfig>` config argument on
+  `@justanarthur/payload-plugin-seo`'s `createSiteDefaults` / `RootJsonLdProps`. Compiled
+  output is unchanged from 2.1.0; this is a version bump for the seo minor that ships in
+  the same release.
+
 ## [2.0.0] - 2026-09-15
 
 ### Breaking changes
