@@ -1,6 +1,9 @@
-import type { CollectionSlug, GlobalSlug, TaskConfig, TaskHandler } from 'payload'
+import type { TaskConfig, TaskHandler } from 'payload'
 
+import { findEntityWithConfig } from '../translate/findEntityWithConfig'
 import { translateOperation } from '../translate/operation'
+import { updateEntity } from '../translate/updateEntity'
+import { recordTranslationStatus } from '../review/recordTranslationStatus'
 
 
 
@@ -31,7 +34,8 @@ export function createTranslateTask(options: CreateTranslateTaskOptions = {}): T
       { name: 'global', type: 'text', required: false },
       { name: 'fromLocale', type: 'text', required: true },
       { name: 'toLocale', type: 'text', required: true },
-      { name: 'resolver', type: 'text', required: false }
+      { name: 'resolver', type: 'text', required: false },
+      { name: 'mode', type: 'text', required: false }
     ],
     outputSchema: [],
     retries: 3,
@@ -44,11 +48,13 @@ export function createTranslateTask(options: CreateTranslateTaskOptions = {}): T
           fromLocale: string
           toLocale: string
           resolver?: string
+          mode?: 'all' | 'missing'
         }
         job: { id: string }
         req: import('payload').PayloadRequest
       }
       const { id, collection, global, fromLocale, toLocale, resolver: inputResolver } = input
+      const mode = input.mode ?? readAutoTranslateMode(req)
 
       if (!collection && !global) {
         throw new Error('translateTask: either `collection` or `global` must be provided')
@@ -74,7 +80,7 @@ export function createTranslateTask(options: CreateTranslateTaskOptions = {}): T
           req,
           collectionSlug: collection,
           globalSlug: global,
-          emptyOnly: false,
+          emptyOnly: mode !== 'all',
           id,
           locale: toLocale,
           localeFrom: fromLocale,
@@ -98,8 +104,26 @@ export function createTranslateTask(options: CreateTranslateTaskOptions = {}): T
         throw new Error(`translateTask: resolver returned success=false for ${entityLabel} → ${toLocale}`)
       }
 
+      // an edit that landed while the resolver ran queued its own job; this snapshot is stale
+      const latest = await findEntityWithConfig({
+        collectionSlug: collection,
+        globalSlug: global,
+        id,
+        locale: fromLocale,
+        overrideAccess: true,
+        req
+      })
+
+      if (String(latest.doc?.updatedAt) !== String(result.dataFrom?.updatedAt)) {
+        req.payload.logger.warn({
+          jobId: job.id,
+          msg: `[translate] ${entityLabel}#${id ?? global} changed during translation — skipping ${toLocale}, the newer save re-queues it`
+        })
+        return { output: { success: true } }
+      }
+
       const translated = result.translatedData ?? {}
-      const { _locale: _dropLocale, _parent_id: _dropParent, ...data } = translated
+      const { _locale: _dropLocale, _parent_id: _dropParent, updatedAt: _dropUpdatedAt, createdAt: _dropCreatedAt, ...data } = translated
 
       req.payload.logger.info({
         jobId: job.id,
@@ -107,24 +131,26 @@ export function createTranslateTask(options: CreateTranslateTaskOptions = {}): T
       })
 
       try {
-        if (collection) {
-          await req.payload.update({
-            collection: collection as CollectionSlug,
-            data,
-            id: id as number | string,
-            locale: toLocale,
-            overrideAccess: true,
-            req
-          })
-        } else {
-          await req.payload.updateGlobal({
-            slug: global as GlobalSlug,
-            data,
-            locale: toLocale,
-            overrideAccess: true,
-            req
-          })
-        }
+        await updateEntity({
+          collectionSlug: collection,
+          data,
+          depth: 0,
+          globalSlug: global,
+          id,
+          locale: toLocale,
+          overrideAccess: true,
+          req
+        })
+
+        await recordTranslationStatus({
+          req,
+          collectionSlug: collection,
+          globalSlug: global,
+          id,
+          locale: toLocale,
+          config: latest.config,
+          dataFrom: latest.doc
+        })
       } catch (error) {
         req.payload.logger.error({
           jobId: job.id,
@@ -150,4 +176,8 @@ function readFirstResolverKey(req: unknown): string {
   if (!Array.isArray(custom) || custom.length === 0) return ''
   const first = custom[0] as { key?: unknown }
   return typeof first?.key === 'string' ? first.key : ''
+}
+
+function readAutoTranslateMode(req: import('payload').PayloadRequest): 'all' | 'missing' {
+  return req.payload.config.custom?.translator?.autoTranslateMode === 'all' ? 'all' : 'missing'
 }

@@ -68,7 +68,9 @@ export function createAutoTranslateCollectionHook(
       // One workflow per document (not one per locale): it translates every
       // target locale sequentially, so the per-locale payload.update() calls
       // never race on the same document.
+      // queued inside the save transaction, so a rolled back save queues nothing
       const job = await req.payload.jobs.queue({
+        req,
         workflow: workflowSlug,
         input: {
           id: typed.id,

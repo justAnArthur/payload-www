@@ -2,7 +2,7 @@ import type { GlobalAfterChangeHook } from 'payload'
 
 import { TRANSLATE_WORKFLOW_SLUG } from './constants'
 
-type AnyDoc = { id?: number | string; updatedAt?: string | Date }
+type AnyDoc = { _status?: string; id?: number | string; updatedAt?: string | Date }
 
 export type CreateAutoTranslateGlobalHookOptions = {
   
@@ -37,6 +37,8 @@ export function createAutoTranslateGlobalHook(
 
     if (!requestLocale || !defaultLocale || requestLocale !== defaultLocale) return doc
     if (!req.user) return doc
+    // autosave and draft saves would queue a job every few seconds, for a version nobody published
+    if (typed._status && typed._status !== 'published') return doc
 
     const targetLocales = targetLocalesOption ?? readTargetLocales(req, defaultLocale)
     if (targetLocales.length === 0) return doc
@@ -57,7 +59,9 @@ export function createAutoTranslateGlobalHook(
     try {
       // One workflow per global (not one per locale): it translates every target
       // locale sequentially, so the per-locale updates never race on the same doc.
+      // queued inside the save transaction, so a rolled back save queues nothing
       const job = await req.payload.jobs.queue({
+        req,
         workflow: workflowSlug,
         input: {
           updatedAt,

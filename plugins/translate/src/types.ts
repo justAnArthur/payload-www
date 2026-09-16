@@ -15,6 +15,13 @@ export type TranslatorConfig = {
   
   autoTranslate?: boolean,
 
+  /**
+   * what a publish in the default locale does to the other locales.
+   * `missing` (default) fills empty fields and keeps existing translations and slugs;
+   * `all` re-translates every field.
+   */
+  autoTranslateMode?: 'all' | 'missing',
+
   
   _options?: {
     
