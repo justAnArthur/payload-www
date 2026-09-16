@@ -140,9 +140,11 @@ export const translateOperation = async (args: TranslateOperationArgs) => {
     })
 
     if (args.update) {
+      const { _locale, _parent_id, createdAt, updatedAt, ...data } = translatedData
+
       await updateEntity({
         collectionSlug,
-        data: translatedData,
+        data,
         depth: 0,
         globalSlug,
         id,

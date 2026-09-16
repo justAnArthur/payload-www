@@ -79,6 +79,8 @@ export const myResolver: TranslateResolver = {
 | `globals`     | `GlobalSlug[]`        | yes      | Globals to auto-translate.                                             |
 | `resolvers`   | `TranslateResolver[]` | yes      | Tried in order; first to succeed wins per chunk.                       |
 | `autoTranslate` | `boolean`           | no       | Default `true`. Set `false` to opt out of the auto-translate afterChange hook — useful when you drive translation manually via the `translateOperation` export. |
+| `autoTranslateMode` | `'missing' \| 'all'` | no | Default `'missing'`: a publish in the default locale fills empty fields in other locales and keeps existing translations and slugs. `'all'` re-translates everything. |
+| `review`      | `boolean`             | no       | Default `true`. Adds the `/admin/translations` review view, its endpoints and the hidden `translation-status` collection (needs a migration on postgres). |
 | `disabled`    | `boolean`             | no       | Skip the plugin entirely (no overrides, no jobs). Useful in tests.    |
 | `_options.additionalTraverseRichText` | function | no | Hook to extend rich-text traversal — see below.             |
 
@@ -100,8 +102,8 @@ translator({
 })
 ```
 
-The hook receives `onText` which mutates the data tree, plus the root node. It's called for every
-richText field before translation begins.
+The hook receives `onText` which mutates the data tree, plus the current node as `siblingData`.
+It is called for every node without a `text` property, including `block` and `inlineBlock` nodes.
 
 ## How it works under the hood
 
@@ -112,6 +114,22 @@ richText field before translation begins.
   into the `_locales` row.
 - The plugin de-duplicates via `AUTO_TRANSLATE_MARKER` — re-running it on an already-attached hook
   is a no-op, so it's safe to wrap multiple plugins around the same collection.
+
+## Reviewing translations
+
+With `review` on, **Translations** appears in the admin nav (`/admin/translations`):
+
+- **Overview**: one row per document (paged, newest first) or global, one column per target locale.
+  Each cell shows the share of translatable fields that have a translation. `404` means the locale
+  has no slug, `↻` means the source changed since the last translation, `✓` means someone reviewed
+  that locale against the current source.
+- **Detail** (click a cell): every translatable field with the source and target text side by side,
+  marked `missing`, `same as source` (likely never translated) or `placeholders differ`, plus the
+  last auto-translate job and its error. Actions: *Translate missing fields*, *Re-translate all*,
+  *Mark reviewed*.
+
+The view only lists collections and globals the signed-in user can read, and the endpoints behind
+the actions require a user.
 
 ## Manual translation
 

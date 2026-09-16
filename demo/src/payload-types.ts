@@ -77,6 +77,7 @@ export interface Config {
     categories: Category;
     media: Media;
     users: User;
+    'translation-status': TranslationStatus;
     'payload-mcp-api-keys': PayloadMcpApiKey;
     'payload-kv': PayloadKv;
     'payload-jobs': PayloadJob;
@@ -96,6 +97,7 @@ export interface Config {
     categories: CategoriesSelect<false> | CategoriesSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
+    'translation-status': TranslationStatusSelect<false> | TranslationStatusSelect<true>;
     'payload-mcp-api-keys': PayloadMcpApiKeysSelect<false> | PayloadMcpApiKeysSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-jobs': PayloadJobsSelect<false> | PayloadJobsSelect<true>;
@@ -560,6 +562,22 @@ export interface User {
   collection: 'users';
 }
 /**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "translation-status".
+ */
+export interface TranslationStatus {
+  id: number;
+  entity: string;
+  locale: string;
+  sourceHash?: string | null;
+  translatedAt?: string | null;
+  reviewedHash?: string | null;
+  reviewedAt?: string | null;
+  reviewedBy?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * API keys control which collections, resources, tools, and prompts MCP clients can access
  *
  * This interface was referenced by `Config`'s JSON-Schema
@@ -842,6 +860,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'users';
         value: number | User;
+      } | null)
+    | ({
+        relationTo: 'translation-status';
+        value: number | TranslationStatus;
       } | null)
     | ({
         relationTo: 'payload-mcp-api-keys';
@@ -1171,6 +1193,21 @@ export interface UsersSelect<T extends boolean = true> {
         createdAt?: T;
         expiresAt?: T;
       };
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "translation-status_select".
+ */
+export interface TranslationStatusSelect<T extends boolean = true> {
+  entity?: T;
+  locale?: T;
+  sourceHash?: T;
+  translatedAt?: T;
+  reviewedHash?: T;
+  reviewedAt?: T;
+  reviewedBy?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -1730,6 +1767,7 @@ export interface TaskTranslateEntityToLocale {
     fromLocale: string;
     toLocale: string;
     resolver?: string | null;
+    mode?: string | null;
   };
   output?: unknown;
 }

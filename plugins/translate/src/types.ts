@@ -22,6 +22,9 @@ export type TranslatorConfig = {
    */
   autoTranslateMode?: 'all' | 'missing',
 
+  /** adds the /admin/translations review view, its endpoints and the status collection (default true) */
+  review?: boolean,
+
   
   _options?: {
     

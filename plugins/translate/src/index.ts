@@ -18,6 +18,9 @@ import { createAutoTranslateCollectionHook } from './jobs/createAutoTranslateCol
 import { createAutoTranslateGlobalHook } from './jobs/createAutoTranslateGlobalHook'
 import { createTranslateTask } from './jobs/createTranslateTask'
 import { createTranslateWorkflow } from './jobs/createTranslateWorkflow'
+import { createTranslationStatusCollection } from './review/collection'
+import { REVIEW_VIEW_PATH } from './review/constants'
+import { reviewEndpoints } from './review/endpoints'
 import { translateEndpoint } from './translate/endpoint'
 import { translateOperation } from './translate/operation'
 import type { TranslatorConfig } from './types'
@@ -47,11 +50,30 @@ export const translator: (pluginConfig: TranslatorConfig) => Plugin = (pluginCon
       return config
 
     const autoTranslate = pluginConfig.autoTranslate ?? true
+    const review = pluginConfig.review ?? true
 
     const updatedConfig: Config = {
       ...config,
       admin: {
         ...(config.admin ?? {}),
+        ...(review
+          ? {
+              components: {
+                ...(config.admin?.components ?? {}),
+                afterNavLinks: [
+                  ...(config.admin?.components?.afterNavLinks ?? []),
+                  '@justanarthur/payload-plugin-translator/client#TranslationsNavLink'
+                ],
+                views: {
+                  ...(config.admin?.components?.views ?? {}),
+                  translations: {
+                    Component: '@justanarthur/payload-plugin-translator/rsc#TranslationsView',
+                    path: REVIEW_VIEW_PATH
+                  }
+                }
+              }
+            }
+          : {}),
         custom: {
           ...(config.admin?.custom ?? {}),
           translator: {
@@ -59,8 +81,8 @@ export const translator: (pluginConfig: TranslatorConfig) => Plugin = (pluginCon
           }
         }
       },
-      collections:
-        config.collections?.map((collection) => {
+      collections: [
+        ...(config.collections?.map((collection) => {
           if (!pluginConfig.collections.includes(collection.slug as CollectionSlug))
             return collection
 
@@ -86,7 +108,9 @@ export const translator: (pluginConfig: TranslatorConfig) => Plugin = (pluginCon
                 }
               : {})
           }
-        }) ?? [],
+        }) ?? []),
+        ...(review ? [createTranslationStatusCollection()] : [])
+      ],
       custom: {
         ...(config.custom ?? {}),
         translator: {
@@ -99,7 +123,8 @@ export const translator: (pluginConfig: TranslatorConfig) => Plugin = (pluginCon
           handler: translateEndpoint,
           method: 'post',
           path: '/translator/translate'
-        }
+        },
+        ...(review ? reviewEndpoints : [])
       ],
       globals:
         config.globals?.map((global) => {
