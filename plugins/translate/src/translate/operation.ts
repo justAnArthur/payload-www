@@ -3,6 +3,7 @@ import { APIError, type Payload, type PayloadRequest } from 'payload'
 
 import type { TranslateResolver } from '../resolvers/types'
 import { findEntityWithConfig } from './findEntityWithConfig'
+import { samePlaceholders } from '../utils/placeholders'
 import { traverseFields } from './traverseFields'
 import type { TranslateArgs, TranslateResult, ValueToTranslate } from './types'
 import { updateEntity } from './updateEntity'
@@ -38,6 +39,7 @@ export const translateOperation = async (args: TranslateOperationArgs) => {
     globalSlug,
     id,
     locale: localeFrom,
+    overrideAccess,
     req
   })
 
@@ -81,7 +83,9 @@ export const translateOperation = async (args: TranslateOperationArgs) => {
     msg: `[translate] ${entityLabel} ${direction}: traversed ${valuesToTranslate.length} translatable value(s)`
   })
 
-  const resolveResult = await resolver.resolve({
+  const resolveResult = valuesToTranslate.length === 0
+    ? { success: true as const, translatedTexts: [] as string[] }
+    : await resolver.resolve({
     localeFrom: args.localeFrom,
     localeTo: args.locale,
     req,
@@ -101,12 +105,29 @@ export const translateOperation = async (args: TranslateOperationArgs) => {
     result = {
       success: false
     }
+  } else if (resolveResult.translatedTexts.length !== valuesToTranslate.length) {
+    // results map back by position; a merged or split item would shift every later field
+    req.payload.logger.error({
+      msg: `[translate] ${entityLabel} ${direction}: resolver returned ${resolveResult.translatedTexts.length} value(s) for ${valuesToTranslate.length} — nothing applied`
+    })
+    result = {
+      success: false
+    }
   } else {
     const summary: string[] = []
 
     resolveResult.translatedTexts.forEach((translated, index) => {
-      const formattedValue = he.decode(translated)
       const entry = valuesToTranslate[index]
+      // resolvers html-escape their output; a source that already holds entities keeps them
+      const formattedValue = typeof entry.value === 'string' && /&[#\w]+;/.test(entry.value)
+        ? translated
+        : he.decode(translated)
+
+      if (typeof entry.value === 'string' && !samePlaceholders(entry.value, formattedValue)) {
+        summary.push(`  ${entry.path ?? '(unknown)'}: placeholders changed, kept source ${preview(entry.value)}`)
+        entry.onTranslate(entry.value)
+        return
+      }
 
       summary.push(`  ${entry.path ?? '(unknown)'}: ${preview(entry.value)} → ${preview(formattedValue)}`)
       entry.onTranslate(formattedValue)
