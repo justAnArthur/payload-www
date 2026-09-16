@@ -78,6 +78,7 @@
   "scripts": {
     "build": "NODE_ENV=production bunup",
     "clean": "rm -rf dist .tsbuildinfo",
+    "test": "bun test",
     "prepublishOnly": "bun run clean && bun run build"
   },
   "dependencies": {
