@@ -34,6 +34,7 @@ export const updateEntity = ({
     ? req.payload.updateGlobal({
       data,
       depth,
+      context: { disableAutoTranslate: true },
       locale: locale as any,
       overrideAccess,
       req,
@@ -41,6 +42,7 @@ export const updateEntity = ({
     })
     : req.payload.update({
       collection: collectionSlug as CollectionSlug,
+      context: { disableAutoTranslate: true },
       data,
       depth,
       id: id as number | string,

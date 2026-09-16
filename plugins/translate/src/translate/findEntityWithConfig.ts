@@ -51,7 +51,7 @@ export const findEntityWithConfig = async (
   const docPromise = isGlobal
     ? payload.findGlobal({
       depth: 0,
-      fallbackLocale: undefined,
+      fallbackLocale: false,
       locale: locale as any,
       overrideAccess,
       req,
@@ -60,7 +60,7 @@ export const findEntityWithConfig = async (
     : payload.findByID({
       collection: collectionSlug as CollectionSlug,
       depth: 0,
-      fallbackLocale: undefined,
+      fallbackLocale: false,
       id: id as number | string,
       locale: locale as any,
       overrideAccess,
