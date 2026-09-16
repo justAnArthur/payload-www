@@ -15,20 +15,24 @@ export const traverseRichText = ({
 }) => {
   siblingData = siblingData ?? root
 
-  if (siblingData.text) {
+  if (typeof siblingData.text === 'string' && siblingData.text.trim()) {
     onText(siblingData)
   }
 
-  if (Array.isArray(siblingData?.children)) {
-    for (const child of siblingData.children) {
-      traverseRichText({
-        onText,
-        root,
-        siblingData: child,
-        additionalTraverseRichText
-      })
-    }
-  } else {
+  // block and inline block nodes carry their own fields; the host decides what to translate
+  if (!('text' in siblingData)) {
     additionalTraverseRichText?.({ onText, root, siblingData })
+  }
+
+  if (Array.isArray(siblingData.children)) {
+    for (const child of siblingData.children) {
+      if (child && typeof child === 'object')
+        traverseRichText({
+          onText,
+          root,
+          siblingData: child as Record<string, unknown>,
+          additionalTraverseRichText
+        })
+    }
   }
 }
