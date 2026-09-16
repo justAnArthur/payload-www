@@ -80,14 +80,13 @@ export const TranslatorProvider = ({ children }: { children: ReactNode }) => {
 
   const [localeToTranslateFrom, setLocaleToTranslateFrom] = useState<string>('')
 
+  // reset only when the edited locale changes; `localesOptions` is rebuilt every render
   useEffect(() => {
-    const defaultFromOptions = localesOptions.find(
-      (each) => localization.defaultLocale === each.code
-    )
+    const options = localization.locales.filter((each) => each.code !== locale.code)
+    const defaultFromOptions = options.find((each) => localization.defaultLocale === each.code)
 
-    if (defaultFromOptions) setLocaleToTranslateFrom(defaultFromOptions.code)
-    setLocaleToTranslateFrom(localesOptions[0].code)
-  }, [locale, localesOptions, localization.defaultLocale])
+    setLocaleToTranslateFrom((defaultFromOptions ?? options[0])?.code ?? '')
+  }, [locale.code, localization.defaultLocale, localization.locales])
 
   const closeTranslator = () => modal.closeModal(modalSlug)
 
