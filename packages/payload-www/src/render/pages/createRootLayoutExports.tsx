@@ -8,6 +8,35 @@ import { NextIntlClientProvider } from "next-intl"
 import { RoutingConfig } from "./utils/buildLocalizedPath"
 import { renderWWWDataModule } from "../renderWWWModule"
 import { RootJsonLd } from "@justanarthur/payload-plugin-seo/root-jsonld"
+import * as rootParams from 'next/root-params'
+
+/**
+ * `next/root-params` exposes one getter per dynamic segment above the root
+ * layout. The getters are generated in the consuming app, so resolve ours
+ * defensively — a consumer whose locale segment is not a root param still
+ * falls back to `props.params` below.
+ */
+const readLocaleRootParam = (rootParams as Record<string, unknown>).locale as
+  | (() => Promise<string | undefined>)
+  | undefined
+
+/**
+ * Awaiting a *root param* is prerender-safe: its values come from
+ * `generateStaticParams`, so Next can still build the static shell. Awaiting
+ * `props.params` is not — under `cacheComponents` it counts as runtime data and
+ * fails instant-navigation validation for every route under this layout:
+ *
+ *   Route "/[locale]/[[...slug]]": Next.js encountered runtime data during
+ *   prerendering ... at RootLayout [Prerender]
+ */
+async function resolveLocale(props: NextLayoutProps): Promise<string> {
+  if (readLocaleRootParam) {
+    const locale = await readLocaleRootParam()
+    if (locale) return locale
+  }
+
+  return (await props.params).locale as string
+}
 
 export type CreateRootLayoutExportsArgs = {
   _payloadConfig: Promise<SanitizedConfig>
@@ -47,9 +76,7 @@ export function createRootLayoutExports(
   seedPayloadCache({ config: _payloadConfig })
 
   async function RootLayout(props: NextLayoutProps) {
-    const params = await props.params
-
-    const locale = params.locale as string
+    const locale = await resolveLocale(props)
     if (!routing.locales.includes(locale)) {
       const { notFound } = await import('next/navigation')
       return notFound()
