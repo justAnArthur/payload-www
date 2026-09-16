@@ -7,6 +7,14 @@ export type ValueToTranslate = {
   path?: string
 }
 
+/** one translatable field as the traversal sees it, before any translation happens */
+export type TranslatableField = {
+  path: string
+  type: 'json' | 'richText' | 'slug' | 'text'
+  source: unknown
+  target: unknown
+}
+
 export type TranslateArgs = {
   collectionSlug?: string
   data?: Record<string, any>
