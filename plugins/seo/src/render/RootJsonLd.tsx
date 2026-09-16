@@ -7,7 +7,7 @@ import { buildRootJsonLd } from './jsonld'
 
 
 export type RootJsonLdProps = {
-  config: Promise<SanitizedConfig>
+  config: SanitizedConfig | Promise<SanitizedConfig>
   locale: string
   getServerSideURL: () => string
   locales: readonly string[]

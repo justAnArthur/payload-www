@@ -7,7 +7,7 @@ import type { SiteDefaults } from '../types'
 
 export type CreateSiteDefaultsArgs = {
   
-  config: Promise<SanitizedConfig>
+  config: SanitizedConfig | Promise<SanitizedConfig>
   
   locale: string
   
