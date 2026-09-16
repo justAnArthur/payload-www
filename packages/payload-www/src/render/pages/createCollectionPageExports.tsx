@@ -24,6 +24,9 @@ export type CreateCollectionPageExportsArgs<S extends string = 'pages'> = {
 export type CreateCollectionPageExportsDeps<S extends string> = {
   getServerSideURL: () => string
   pagePathPrefix?: PagePathPrefix
+
+  /** Rendered while the document streams. Defaults to nothing. */
+  fallback?: ReactNode
 }
 
 export function createCollectionPageExports<S extends string = 'pages'>(
@@ -38,7 +41,8 @@ export function createCollectionPageExports<S extends string = 'pages'>(
   }: CreateCollectionPageExportsArgs<S>,
   {
     getServerSideURL,
-    pagePathPrefix
+    pagePathPrefix,
+    fallback
   }: CreateCollectionPageExportsDeps<S>
 ) {
   seedPayloadCache({ config: _payloadConfig })
@@ -54,7 +58,21 @@ export function createCollectionPageExports<S extends string = 'pages'>(
     })
   }
 
-  const default_ = async (props: NextPageProps): Promise<ReactNode> => {
+  /**
+   * The slug is only known at request time for any path `generateStaticParams`
+   * did not enumerate, and under `cacheComponents` awaiting it outside a
+   * boundary blocks the whole route from prerendering. Keeping the boundary
+   * here — rather than around the layout — means everything above the document
+   * (html, head, header, footer) still ships in the static shell, and only the
+   * document itself streams.
+   */
+  const default_ = (props: NextPageProps): ReactNode => (
+    <React.Suspense fallback={fallback ?? null}>
+      <CollectionDocument {...props}/>
+    </React.Suspense>
+  )
+
+  const CollectionDocument = async (props: NextPageProps): Promise<ReactNode> => {
     const params = await props.params
 
     const locale = params.locale as string
