@@ -186,6 +186,8 @@ export function createCollectionPageExports<S extends string = 'pages'>(
 
   return ({
     default: default_,
+    // noinspection JSUnusedProperty — Next.js's page module runtime reads
+    // `generateMetadata` off the exported object; TS / JetBrains can't see it.
     generateMetadata,
     generateStaticParams,
     generateSitemap
