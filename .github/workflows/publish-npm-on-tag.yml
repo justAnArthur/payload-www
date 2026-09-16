@@ -102,28 +102,43 @@ jobs:
         with:
           dir: ${{ steps.pkg.outputs.dir }}
 
+      - name: Check if version already published to npm
+        id: already_published
+        working-directory: ${{ steps.pkg.outputs.dir }}
+        env:
+          PKG_NAME: ${{ needs.resolve-meta.outputs.pkg_name }}
+          PKG_VERSION: ${{ needs.resolve-meta.outputs.version }}
+        run: |
+          if npm view "$PKG_NAME@$PKG_VERSION" version >/dev/null 2>&1; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "version $PKG_VERSION already published to npm — skipping"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+            echo "version $PKG_VERSION not on npm yet — proceeding"
+          fi
+
       - name: Install dependencies
-        if: steps.gate.outputs.skip != 'true'
+        if: steps.gate.outputs.skip != 'true' && steps.already_published.outputs.skip != 'true'
         run: bun install --frozen-lockfile
 
       - name: Build (if build script exists)
-        if: steps.gate.outputs.skip != 'true'
+        if: steps.gate.outputs.skip != 'true' && steps.already_published.outputs.skip != 'true'
         working-directory: ${{ steps.pkg.outputs.dir }}
         run: bun run --silent build 2>/dev/null || echo "no build script, skipping"
 
       - name: Publish to npm
-        if: steps.gate.outputs.skip != 'true'
+        if: steps.gate.outputs.skip != 'true' && steps.already_published.outputs.skip != 'true'
         working-directory: ${{ steps.pkg.outputs.dir }}
         run: bun publish -p --access public --tag ${{ needs.resolve-meta.outputs.npm_tag }}
         env:
           NPM_CONFIG_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Fetch all tags
-        if: steps.gate.outputs.skip != 'true'
+        if: steps.gate.outputs.skip != 'true' && steps.already_published.outputs.skip != 'true'
         uses: justAnArthur/just-github-actions-n-workflows/actions/fetch-tags@main
 
       - name: Generate release notes
-        if: steps.gate.outputs.skip != 'true'
+        if: steps.gate.outputs.skip != 'true' && steps.already_published.outputs.skip != 'true'
         id: release_notes
         uses: justAnArthur/just-github-actions-n-workflows/actions/generate-release-notes@main
         with:
@@ -131,7 +146,7 @@ jobs:
           root_dir: ${{ github.workspace }}
 
       - name: Create GitHub release
-        if: steps.gate.outputs.skip != 'true'
+        if: steps.gate.outputs.skip != 'true' && steps.already_published.outputs.skip != 'true'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ needs.resolve-meta.outputs.tag }}
