@@ -1793,6 +1793,7 @@ export interface WorkflowTranslateEntityToLocales {
       | null;
     toLocale?: string | null;
     resolver?: string | null;
+    mode?: string | null;
   };
 }
 /**
