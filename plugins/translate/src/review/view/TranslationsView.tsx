@@ -2,12 +2,14 @@ import { DefaultTemplate } from '@payloadcms/next/templates'
 import { Gutter } from '@payloadcms/ui'
 import type { AdminViewServerProps } from 'payload'
 
-import { ReviewStyles } from '@justanarthur/payload-plugin-translator/client'
 import type { TranslatorConfig } from '../../types'
 import { loadCollectionReview, loadEntityLocaleReview, loadGlobalsReview, readLocales } from '../loadReview'
 import { Detail } from './Detail'
 import { reviewHref } from './href'
 import { Overview } from './Overview'
+import { reviewStyles } from './styles'
+
+const PAGE_SIZE = 50
 
 const param = (value: string | string[] | undefined) => Array.isArray(value) ? value[0] : value
 
@@ -29,15 +31,15 @@ export const TranslationsView = async ({ initPageResult, params, searchParams }:
   const { defaultLocale, targetLocales } = readLocales(req)
 
   const content = async () => {
-    if (!req.user) return <p>Log in to review translations.</p>
+    if (!req.user) return <p className="tr__empty">Log in to review translations.</p>
     if (!tab) return <p>No translated collections or globals are readable for your user.</p>
 
     if (entity && targetLocale && targetLocales.includes(targetLocale)) {
       try {
         const review = await loadEntityLocaleReview({ req, entity, locale: targetLocale })
-        return <Detail adminRoute={adminRoute} onlyIssues={onlyIssues} review={review} tab={tab}/>
+        return <Detail adminRoute={adminRoute} onlyIssues={onlyIssues} page={page} review={review} tab={tab}/>
       } catch (error) {
-        return <p className="translator-review__error">Could not load {entity}: {String(error)}</p>
+        return <p className="tr__error">Could not load {entity}: {String(error)}</p>
       }
     }
 
@@ -46,18 +48,24 @@ export const TranslationsView = async ({ initPageResult, params, searchParams }:
       return <Overview adminRoute={adminRoute} defaultLocale={defaultLocale} entities={entities} locales={locales} onlyIssues={onlyIssues} tab={tab}/>
     }
 
-    const review = await loadCollectionReview({ req, collectionSlug: tab, page })
+    const review = await loadCollectionReview({ req, collectionSlug: tab, page, limit: PAGE_SIZE })
+    const first = review.totalDocs ? (review.page - 1) * PAGE_SIZE + 1 : 0
+    const last = Math.min(review.page * PAGE_SIZE, review.totalDocs)
+    const pageHref = (target: number) => reviewHref(adminRoute, { tab, page: target, issues: onlyIssues ? 1 : undefined })
 
     return (
       <>
-        <Overview adminRoute={adminRoute} defaultLocale={defaultLocale} entities={review.entities} locales={review.locales} onlyIssues={onlyIssues} tab={tab}/>
-        {review.totalPages > 1 && (
-          <div className="translator-review__pager">
-            {page > 1 && <a href={reviewHref(adminRoute, { tab, page: page - 1, issues: onlyIssues ? 1 : undefined })}>← Newer</a>}
-            <span>Page {page} of {review.totalPages} · {review.totalDocs} documents</span>
-            {page < review.totalPages && <a href={reviewHref(adminRoute, { tab, page: page + 1, issues: onlyIssues ? 1 : undefined })}>Older →</a>}
-          </div>
-        )}
+        <Overview adminRoute={adminRoute} defaultLocale={defaultLocale} entities={review.entities} locales={review.locales} onlyIssues={onlyIssues} page={page} tab={tab}/>
+        <div className="tr__pager">
+          <span>{first}–{last} of {review.totalDocs} documents{onlyIssues ? ' (complete ones hidden)' : ''}</span>
+          {review.totalPages > 1 && (
+            <nav>
+              {review.page > 1 ? <a href={pageHref(review.page - 1)}>← Newer</a> : <span aria-disabled>← Newer</span>}
+              <span>{review.page} / {review.totalPages}</span>
+              {review.page < review.totalPages ? <a href={pageHref(review.page + 1)}>Older →</a> : <span aria-disabled>Older →</span>}
+            </nav>
+          )}
+        </div>
       </>
     )
   }
@@ -78,23 +86,28 @@ export const TranslationsView = async ({ initPageResult, params, searchParams }:
       user={req.user || undefined}
       visibleEntities={visibleEntities}
     >
-      <ReviewStyles/>
-      <Gutter className="translator-review">
+      <style dangerouslySetInnerHTML={{ __html: reviewStyles }}/>
+      <Gutter className="tr">
         {!entity && (
           <>
-            <div className="translator-review__header">
-              <h1>Translations</h1>
-              <a href={reviewHref(adminRoute, { tab, issues: onlyIssues ? undefined : 1 })}>
-                {onlyIssues ? 'Show everything' : 'Show only incomplete'}
+            <div className="tr__head">
+              <div>
+                <h1>Translations</h1>
+                <p className="tr__lead">How much of each document is translated from {defaultLocale.toUpperCase()}. Open a cell to compare it field by field.</p>
+              </div>
+            </div>
+            <div className="tr__toolbar">
+              <nav className="tr__tabs">
+                {tabs.map((each) => (
+                  <a aria-current={each === tab} className="tr__tab" href={reviewHref(adminRoute, { tab: each, issues: onlyIssues ? 1 : undefined })} key={each}>
+                    {each}
+                  </a>
+                ))}
+              </nav>
+              <a aria-pressed={onlyIssues} className="tr__toggle" href={reviewHref(adminRoute, { tab, issues: onlyIssues ? undefined : 1 })}>
+                Only incomplete
               </a>
             </div>
-            <nav className="translator-review__tabs">
-              {tabs.map((each) => (
-                <a aria-current={each === tab} className="translator-review__tab" href={reviewHref(adminRoute, { tab: each, issues: onlyIssues ? 1 : undefined })} key={each}>
-                  {each}
-                </a>
-              ))}
-            </nav>
           </>
         )}
         {body}

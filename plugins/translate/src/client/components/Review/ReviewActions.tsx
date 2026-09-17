@@ -1,7 +1,5 @@
 'use client'
 
-import './styles.css'
-
 import { Button, toast, useConfig } from '@payloadcms/ui'
 import { useState } from 'react'
 
