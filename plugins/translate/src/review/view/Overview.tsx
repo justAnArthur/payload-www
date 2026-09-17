@@ -1,77 +1,99 @@
 import type { EntityReview, LocaleReview } from '../loadReview'
 import { editHref, reviewHref } from './href'
 
-const cellTone = ({ summary, stale }: LocaleReview) =>
-  [
-    'translator-review__cell',
-    summary.slugMissing || summary.coverage === 0 ? 'translator-review__cell--missing'
-      : summary.coverage === 100 ? 'translator-review__cell--ok' : 'translator-review__cell--partial',
-    stale ? 'translator-review__cell--stale' : ''
-  ].filter(Boolean).join(' ')
+type Tone = 'bad' | 'ok' | 'warn'
 
-const hasIssue = ({ summary, stale, reviewed }: LocaleReview) =>
-  summary.coverage < 100 || summary.slugMissing || stale || !reviewed
+const toneOf = ({ summary }: LocaleReview): Tone =>
+  summary.slugMissing || summary.coverage < 50 ? 'bad' : summary.coverage < 100 ? 'warn' : 'ok'
 
-export const Overview = ({ adminRoute, defaultLocale, entities, locales, onlyIssues, tab }: {
+const coverageTone = (coverage: number): Tone => coverage < 50 ? 'bad' : coverage < 100 ? 'warn' : 'ok'
+
+const isIncomplete = ({ summary, stale }: LocaleReview) => summary.coverage < 100 || summary.slugMissing || stale
+
+export const Overview = ({ adminRoute, defaultLocale, entities, locales, onlyIssues, tab, page }: {
   adminRoute: string
   defaultLocale: string
   entities: EntityReview[]
   locales: string[]
   onlyIssues: boolean
   tab: string
+  page?: number
 }) => {
   const rows = onlyIssues
-    ? entities.filter((entity) => Object.values(entity.locales).some((each) => each.summary.coverage < 100 || each.summary.slugMissing || each.stale))
+    ? entities.filter((entity) => Object.values(entity.locales).some(isIncomplete))
     : entities
 
-  const totals = Object.fromEntries(locales.map((locale) => {
+  const stats = locales.map((locale) => {
     const reviews = entities.map((entity) => entity.locales[locale])
     const fields = reviews.reduce((sum, each) => sum + each.summary.total, 0)
     const ok = reviews.reduce((sum, each) => sum + each.summary.ok, 0)
-    return [locale, fields ? Math.floor((ok / fields) * 100) : 100]
-  }))
+    return {
+      locale,
+      coverage: fields ? Math.floor((ok / fields) * 100) : 100,
+      incomplete: reviews.filter(isIncomplete).length
+    }
+  })
 
   return (
     <>
-      <div className="translator-review__scroll">
+      <div className="tr__stats">
+        {stats.map(({ locale, coverage, incomplete }) => (
+          <div className="tr__stat" key={locale}>
+            <span className="tr__stat-label">{locale}</span>
+            <span className="tr__stat-value">{coverage}%</span>
+            <div className="tr__bar" style={{ ['--tr-tone' as string]: `var(--tr-${coverageTone(coverage)})` }}>
+              <span style={{ width: `${coverage}%` }}/>
+            </div>
+            <span className="tr__stat-note">{incomplete ? `${incomplete} incomplete` : 'all complete'}</span>
+          </div>
+        ))}
+      </div>
+
+      <div className="tr__card">
         <table>
           <thead>
             <tr>
               <th>Document</th>
               {locales.map((locale) => (
-                <th key={locale}>{locale} <small>{totals[locale]}%</small></th>
+                <th className="tr__locale-col" key={locale}>{locale.toUpperCase()}</th>
               ))}
             </tr>
           </thead>
           <tbody>
             {rows.map((entity) => (
               <tr key={entity.key}>
-                <td className="translator-review__doc">
+                <td className="tr__doc">
                   <a href={editHref(adminRoute, entity, defaultLocale)}>{entity.label}</a>
-                  <small>{entity.key}</small>
+                  <span className="tr__key">{entity.key}</span>
                 </td>
                 {locales.map((locale) => {
                   const review = entity.locales[locale]
+                  const { summary } = review
                   const title = [
-                    `${review.summary.ok}/${review.summary.total} fields translated`,
-                    review.summary.missing && `${review.summary.missing} missing`,
-                    review.summary.identical && `${review.summary.identical} same as ${defaultLocale}`,
-                    review.summary.placeholders && `${review.summary.placeholders} broken placeholders`,
-                    review.summary.slugMissing && 'no slug: page 404s',
-                    review.stale && `source changed since translation`,
+                    `${summary.ok}/${summary.total} fields translated`,
+                    summary.missing && `${summary.missing} missing`,
+                    summary.identical && `${summary.identical} same as ${defaultLocale}`,
+                    summary.placeholders && `${summary.placeholders} broken placeholders`,
+                    summary.slugMissing && 'no slug: the page 404s',
+                    review.stale && 'source changed since translation',
                     review.reviewed && 'reviewed'
                   ].filter(Boolean).join(' · ')
 
                   return (
-                    <td key={locale}>
+                    <td className="tr__locale-col" key={locale}>
                       <a
-                        className={cellTone(review)}
-                        href={reviewHref(adminRoute, { tab, entity: entity.key, locale, issues: hasIssue(review) ? 1 : undefined })}
+                        className="tr__cell"
+                        data-tone={toneOf(review)}
+                        href={reviewHref(adminRoute, { tab, page, entity: entity.key, locale, issues: isIncomplete(review) ? 1 : undefined })}
                         title={title}
                       >
-                        {review.summary.slugMissing ? '404' : `${review.summary.coverage}%`}
-                        {review.reviewed ? ' ✓' : ''}
-                        {review.stale ? ' ↻' : ''}
+                        <span>
+                          {summary.slugMissing ? '404' : `${summary.coverage}%`}
+                          {(review.stale || review.reviewed) && (
+                            <span className="tr__marks"> {[review.stale && '↻', review.reviewed && '✓'].filter(Boolean).join(' ')}</span>
+                          )}
+                        </span>
+                        <span className="tr__bar"><span style={{ width: `${summary.slugMissing ? 100 : summary.coverage}%` }}/></span>
                       </a>
                     </td>
                   )
@@ -79,16 +101,18 @@ export const Overview = ({ adminRoute, defaultLocale, entities, locales, onlyIss
               </tr>
             ))}
             {rows.length === 0 && (
-              <tr><td colSpan={locales.length + 1}>Nothing to review here.</td></tr>
+              <tr><td className="tr__empty" colSpan={locales.length + 1}>Everything here is fully translated.</td></tr>
             )}
           </tbody>
         </table>
       </div>
-      <div className="translator-review__legend">
-        <span>% share of fields translated</span>
-        <span>404 no slug in that locale</span>
+
+      <div className="tr__legend">
+        <span><i className="tr__dot" style={{ ['--tr-tone' as string]: 'var(--tr-ok)' }}/>fully translated</span>
+        <span><i className="tr__dot" style={{ ['--tr-tone' as string]: 'var(--tr-warn)' }}/>partly translated</span>
+        <span><i className="tr__dot" style={{ ['--tr-tone' as string]: 'var(--tr-bad)' }}/>under half, or 404 without a slug</span>
         <span>↻ source changed since the last translation</span>
-        <span>✓ reviewed against the current source</span>
+        <span>✓ reviewed</span>
       </div>
     </>
   )

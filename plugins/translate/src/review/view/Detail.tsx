@@ -6,11 +6,11 @@ import { editHref, reviewHref } from './href'
 
 type Review = Awaited<ReturnType<typeof loadEntityLocaleReview>>
 
-const STATE_LABEL: Record<FieldState, string> = {
-  identical: 'same as source',
-  missing: 'missing',
-  ok: 'translated',
-  placeholders: 'placeholders differ'
+const STATE: Record<FieldState, { label: string; tone: 'bad' | 'ok' | 'warn' }> = {
+  identical: { label: 'same as source', tone: 'warn' },
+  missing: { label: 'missing', tone: 'bad' },
+  ok: { label: 'translated', tone: 'ok' },
+  placeholders: { label: 'placeholders differ', tone: 'warn' }
 }
 
 const preview = (text: string) => text.length > 600 ? `${text.slice(0, 597)}…` : text
@@ -24,68 +24,97 @@ const readablePath = (path: string) =>
     .split('.')
     .join(' › ')
 
-export const Detail = ({ adminRoute, review, onlyIssues, tab }: {
+export const Detail = ({ adminRoute, review, onlyIssues, tab, page }: {
   adminRoute: string
   review: Review
   onlyIssues: boolean
   tab: string
+  page?: number
 }) => {
   const rows = onlyIssues ? review.fields.filter((field) => field.state !== 'ok') : review.fields
   const { summary } = review
+  const tone = summary.slugMissing || summary.coverage < 50 ? 'bad' : summary.coverage < 100 ? 'warn' : 'ok'
+
+  const counters = [
+    { label: 'translated', value: `${summary.coverage}%`, note: `${summary.ok} of ${summary.total} fields`, bar: true },
+    { label: 'missing', value: summary.missing, note: 'empty in this locale' },
+    { label: 'same as source', value: summary.identical, note: `identical to ${review.defaultLocale}` },
+    { label: 'placeholders', value: summary.placeholders, note: 'differ from source' }
+  ]
 
   return (
     <>
-      <div className="translator-review__header">
+      <div className="tr__head">
         <div>
-          <a href={reviewHref(adminRoute, { tab })}>← All {tab === 'globals' ? 'globals' : tab}</a>
-          <h2>{review.label} · {review.defaultLocale} → {review.locale}</h2>
+          <a className="tr__back" href={reviewHref(adminRoute, { tab, page })}>← All {tab}</a>
+          <h1>{review.label}</h1>
+          <p className="tr__lead">{review.defaultLocale.toUpperCase()} → {review.locale.toUpperCase()} · {review.entity}</p>
         </div>
         <ReviewActions entity={review.entity} locale={review.locale} reviewed={review.reviewed}/>
       </div>
 
-      <div className="translator-review__meta">
-        <span>{summary.ok}/{summary.total} translated ({summary.coverage}%)</span>
-        {summary.missing > 0 && <span>{summary.missing} missing</span>}
-        {summary.identical > 0 && <span>{summary.identical} same as {review.defaultLocale}</span>}
-        {summary.placeholders > 0 && <span>{summary.placeholders} placeholder mismatches</span>}
-        {summary.slugMissing && <span className="translator-review__error">no slug, the page 404s in {review.locale}</span>}
-        {review.stale && <span>source changed since the last translation</span>}
-        {review.translatedAt && <span>translated {new Date(review.translatedAt).toLocaleString()}</span>}
-        {review.reviewedAt && <span>reviewed {new Date(review.reviewedAt).toLocaleString()} by {review.reviewedBy}</span>}
+      <div className="tr__stats">
+        {counters.map((counter) => (
+          <div className="tr__stat" key={counter.label}>
+            <span className="tr__stat-label">{counter.label}</span>
+            <span className="tr__stat-value">{counter.value}</span>
+            {counter.bar && (
+              <div className="tr__bar" style={{ ['--tr-tone' as string]: `var(--tr-${tone})` }}>
+                <span style={{ width: `${summary.coverage}%` }}/>
+              </div>
+            )}
+            <span className="tr__stat-note">{counter.note}</span>
+          </div>
+        ))}
+      </div>
+
+      <div className="tr__meta">
+        {summary.slugMissing && <span className="tr__chip tr__chip--bad">no slug: the page 404s in {review.locale}</span>}
+        {review.stale && <span className="tr__chip">↻ source changed since the last translation</span>}
+        {review.translatedAt && <span className="tr__chip">translated {new Date(review.translatedAt).toLocaleString()}</span>}
+        {review.reviewedAt && <span className="tr__chip">✓ reviewed {new Date(review.reviewedAt).toLocaleString()} by {review.reviewedBy}</span>}
         {review.lastJob && (
-          <span className={review.lastJob.error ? 'translator-review__error' : undefined}>
-            last auto-translate job #{review.lastJob.id}: {review.lastJob.error ? `failed — ${preview(review.lastJob.error)}` : review.lastJob.completedAt ? 'completed' : review.lastJob.processing ? 'running' : 'queued'}
+          <span className={`tr__chip${review.lastJob.error ? ' tr__chip--bad' : ''}`} title={review.lastJob.error}>
+            job #{review.lastJob.id}: {review.lastJob.error ? `failed — ${preview(review.lastJob.error).slice(0, 80)}` : review.lastJob.completedAt ? 'completed' : review.lastJob.processing ? 'running' : 'queued'}
           </span>
         )}
-        <a href={editHref(adminRoute, review, review.locale)}>Edit in {review.locale}</a>
-        <a href={reviewHref(adminRoute, { tab, entity: review.entity, locale: review.locale, issues: onlyIssues ? undefined : 1 })}>
-          {onlyIssues ? 'Show all fields' : 'Show only problems'}
+        <a className="tr__chip" href={editHref(adminRoute, review, review.locale)}>Edit in {review.locale.toUpperCase()} ↗</a>
+      </div>
+
+      <div className="tr__toolbar">
+        <span className="tr__filters">{rows.length} of {review.fields.length} fields</span>
+        <a
+          aria-pressed={onlyIssues}
+          className="tr__toggle"
+          href={reviewHref(adminRoute, { tab, page, entity: review.entity, locale: review.locale, issues: onlyIssues ? undefined : 1 })}
+        >
+          Only problems
         </a>
       </div>
 
-      <div className="translator-review__scroll">
+      <div className="tr__card">
         <table>
           <thead>
             <tr>
               <th>Field</th>
               <th>State</th>
-              <th>{review.defaultLocale}</th>
-              <th>{review.locale}</th>
+              <th>{review.defaultLocale.toUpperCase()}</th>
+              <th>{review.locale.toUpperCase()}</th>
             </tr>
           </thead>
           <tbody>
             {rows.map((field) => (
               <tr key={field.path}>
-                <td className="translator-review__path" title={field.path}>{readablePath(field.path)}</td>
-                <td><span className={`translator-review__state translator-review__state--${field.state}`}>{STATE_LABEL[field.state]}</span></td>
-                <td className="translator-review__text">{preview(field.sourceText)}</td>
-                <td className={`translator-review__text${field.targetText.trim() ? '' : ' translator-review__text--empty'}`}>
+                <td className="tr__path" title={field.path}>{readablePath(field.path)}</td>
+                <td><span className="tr__pill" data-tone={STATE[field.state].tone}>{STATE[field.state].label}</span></td>
+                <td className="tr__text">{preview(field.sourceText)}</td>
+                <td className={`tr__text${field.targetText.trim() ? '' : ' tr__text--empty'}`}>
                   {field.targetText.trim() ? preview(field.targetText) : 'empty'}
                 </td>
               </tr>
             ))}
             {rows.length === 0 && (
-              <tr><td colSpan={4}>Every field is translated.</td></tr>
+              <tr><td className="tr__empty" colSpan={4}>Every field is translated.</td></tr>
             )}
           </tbody>
         </table>
