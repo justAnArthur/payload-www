@@ -69,6 +69,7 @@ export const translateOperation = async (args: TranslateOperationArgs) => {
   traverseFields({
     dataFrom,
     emptyOnly: args.emptyOnly,
+    retranslateIdentical: args.retranslateIdentical,
     fields: config.fields,
     translatedData,
     valuesToTranslate,
@@ -139,7 +140,7 @@ export const translateOperation = async (args: TranslateOperationArgs) => {
         (summary.length ? `\n${summary.join('\n')}` : '')
     })
 
-    if (args.update) {
+    if (args.update && valuesToTranslate.length > 0) {
       const { _locale, _parent_id, createdAt, updatedAt, ...data } = translatedData
 
       await updateEntity({
@@ -157,6 +158,7 @@ export const translateOperation = async (args: TranslateOperationArgs) => {
     result = {
       success: true,
       translatedData,
+      translatedCount: valuesToTranslate.length,
       dataFrom
     }
   }

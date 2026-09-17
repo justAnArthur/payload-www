@@ -27,6 +27,10 @@ export const reviewStyles = /* css */ `
 .tr__toggle::before { content: ''; width: 26px; height: 14px; border-radius: 999px; background: var(--theme-elevation-200) radial-gradient(circle at 7px 50%, var(--theme-elevation-0) 4px, transparent 4.5px); }
 .tr__toggle[aria-pressed='true']::before { background: var(--tr-ok) radial-gradient(circle at 19px 50%, var(--theme-elevation-0) 4px, transparent 4.5px); }
 
+.tr__bulk { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: calc(var(--base) * 1.25); padding: 10px 12px; border: 1px dashed var(--tr-line); border-radius: var(--style-radius-m); }
+.tr__bulk-main, .tr__bulk-progress { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.tr__bulk .btn { margin: 0; }
+.tr__select { height: 28px; padding: 0 8px; border: 1px solid var(--tr-line); border-radius: var(--style-radius-s, 4px); background: var(--theme-input-bg, var(--theme-elevation-0)); color: var(--theme-text); font: inherit; font-size: 13px; }
 .tr__card { border: 1px solid var(--tr-line); border-radius: var(--style-radius-m); overflow: auto; background: var(--theme-elevation-0); }
 .tr table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 13px; }
 .tr th { position: sticky; top: 0; z-index: 1; background: var(--tr-card); text-align: left; font-weight: 500; color: var(--tr-muted); padding: 10px 12px; border-bottom: 1px solid var(--tr-line); white-space: nowrap; }

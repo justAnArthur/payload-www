@@ -3,6 +3,8 @@ import { Gutter } from '@payloadcms/ui'
 import type { AdminViewServerProps } from 'payload'
 
 import type { TranslatorConfig } from '../../types'
+import { BulkActions } from '@justanarthur/payload-plugin-translator/client'
+import { loadJobsProgress } from '../bulk'
 import { loadCollectionReview, loadEntityLocaleReview, loadGlobalsReview, readLocales } from '../loadReview'
 import { Detail } from './Detail'
 import { reviewHref } from './href'
@@ -72,6 +74,7 @@ export const TranslationsView = async ({ initPageResult, params, searchParams }:
 
   // loaders read through the page req, which moves `req.locale`; put the admin locale back after
   const adminLocale = req.locale
+  const progress = entity || !req.user ? null : await loadJobsProgress(req)
   const body = await content()
   req.locale = adminLocale
 
@@ -108,6 +111,7 @@ export const TranslationsView = async ({ initPageResult, params, searchParams }:
                 Only incomplete
               </a>
             </div>
+            {req.user && tab && <BulkActions locales={targetLocales} progress={progress} tab={tab}/>}
           </>
         )}
         {body}

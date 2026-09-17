@@ -3,7 +3,7 @@
 import { Button, toast, useConfig } from '@payloadcms/ui'
 import { useState } from 'react'
 
-type Action = 'mark-reviewed' | 'translate-all' | 'translate-missing'
+type Action = 'mark-reviewed' | 'translate-all' | 'translate-untranslated'
 
 export const ReviewActions = ({ entity, locale, reviewed }: { entity: string; locale: string; reviewed: boolean }) => {
   const { config: { routes: { api }, serverURL } } = useConfig()
@@ -21,7 +21,7 @@ export const ReviewActions = ({ entity, locale, reviewed }: { entity: string; lo
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ entity, locale, mode: action === 'translate-all' ? 'all' : 'missing' })
+        body: JSON.stringify({ entity, locale, mode: action === 'translate-all' ? 'all' : 'untranslated' })
       })
       const result = await res.json().catch(() => ({}))
 
@@ -39,8 +39,8 @@ export const ReviewActions = ({ entity, locale, reviewed }: { entity: string; lo
 
   return (
     <div className="translator-review__actions">
-      <Button buttonStyle="primary" disabled={Boolean(pending)} onClick={() => run('translate-missing')} size="small">
-        {pending === 'translate-missing' ? 'Translating…' : 'Translate missing fields'}
+      <Button buttonStyle="primary" disabled={Boolean(pending)} onClick={() => run('translate-untranslated')} size="small">
+        {pending === 'translate-untranslated' ? 'Translating…' : 'Translate untranslated fields'}
       </Button>
       <Button buttonStyle="secondary" disabled={Boolean(pending)} onClick={() => run('translate-all')} size="small">
         {pending === 'translate-all' ? 'Translating…' : 'Re-translate all'}

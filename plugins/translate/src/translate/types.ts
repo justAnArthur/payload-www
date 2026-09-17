@@ -20,6 +20,8 @@ export type TranslateArgs = {
   data?: Record<string, any>
   emptyOnly?: boolean
   globalSlug?: string
+  /** with `emptyOnly`, also replace fields that still hold the source copy */
+  retranslateIdentical?: boolean
   id?: number | string
   
   locale: string
@@ -36,6 +38,8 @@ export type TranslateResult =
   | {
   success: true
   translatedData: Record<string, any>,
+  /** values sent to the resolver; 0 means the target needed nothing */
+  translatedCount: number,
   dataFrom: Doc
 }
 

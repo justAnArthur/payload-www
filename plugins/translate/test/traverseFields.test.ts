@@ -4,10 +4,10 @@ import type { Field } from 'payload'
 import { traverseFields } from '../src/translate/traverseFields'
 import type { TranslatableField, ValueToTranslate } from '../src/translate/types'
 
-const run = (fields: Field[], dataFrom: Record<string, unknown>, translatedData: Record<string, unknown>, emptyOnly = false) => {
+const run = (fields: Field[], dataFrom: Record<string, unknown>, translatedData: Record<string, unknown>, emptyOnly = false, retranslateIdentical = false) => {
   const values: ValueToTranslate[] = []
   const seen: TranslatableField[] = []
-  traverseFields({ dataFrom, emptyOnly, fields, translatedData, valuesToTranslate: values, onField: (f) => seen.push(f) })
+  traverseFields({ dataFrom, emptyOnly, retranslateIdentical, fields, translatedData, valuesToTranslate: values, onField: (f) => seen.push(f) })
   return { values, seen }
 }
 
@@ -126,5 +126,19 @@ describe('traverseFields', () => {
     })
 
     expect(values.map((v) => v.value)).toEqual(['Intro', 'Great tool'])
+  })
+
+  it('replaces fields that still hold the source copy in untranslated mode only', () => {
+    const fields = [
+      { name: 'title', type: 'text', localized: true },
+      { name: 'brand', type: 'text', localized: true },
+      { name: 'lead', type: 'text', localized: true },
+      { name: 'content', type: 'richText', localized: true }
+    ] as Field[]
+    const source = { title: 'Book a demo', brand: 'Camasys', lead: 'Pick a time', content: lexical('We walk through your fleet') }
+    const target = { title: 'Book a demo', brand: 'Camasys', lead: 'Vyberte si čas', content: lexical('We walk through your fleet') }
+
+    expect(run(fields, source, structuredClone(target), true).values).toHaveLength(0)
+    expect(run(fields, source, structuredClone(target), true, true).values.map((v) => v.path)).toEqual(['title', 'content#0'])
   })
 })

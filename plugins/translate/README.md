@@ -79,7 +79,7 @@ export const myResolver: TranslateResolver = {
 | `globals`     | `GlobalSlug[]`        | yes      | Globals to auto-translate.                                             |
 | `resolvers`   | `TranslateResolver[]` | yes      | Tried in order; first to succeed wins per chunk.                       |
 | `autoTranslate` | `boolean`           | no       | Default `true`. Set `false` to opt out of the auto-translate afterChange hook — useful when you drive translation manually via the `translateOperation` export. |
-| `autoTranslateMode` | `'missing' \| 'all'` | no | Default `'missing'`: a publish in the default locale fills empty fields in other locales and keeps existing translations and slugs. `'all'` re-translates everything. |
+| `autoTranslateMode` | `'missing' \| 'untranslated' \| 'all'` | no | Default `'missing'`: a publish in the default locale fills empty fields in other locales and keeps existing translations and slugs. `'untranslated'` also replaces fields that still hold the source copy. `'all'` re-translates everything. |
 | `review`      | `boolean`             | no       | Default `true`. Adds the `/admin/translations` review view, its endpoints and the hidden `translation-status` collection (needs a migration on postgres). |
 | `disabled`    | `boolean`             | no       | Skip the plugin entirely (no overrides, no jobs). Useful in tests.    |
 | `_options.additionalTraverseRichText` | function | no | Hook to extend rich-text traversal — see below.             |
@@ -127,6 +127,12 @@ With `review` on, **Translations** appears in the admin nav (`/admin/translation
   marked `missing`, `same as source` (likely never translated) or `placeholders differ`, plus the
   last auto-translate job and its error. Actions: *Translate missing fields*, *Re-translate all*,
   *Mark reviewed*.
+
+- **Bulk fix**: *Translate untranslated* queues one translate workflow per incomplete document,
+  for all locales or one, in `untranslated` mode (empty fields and fields still holding the source
+  copy; existing translations and slugs stay). Locales a pending job already covers are skipped.
+  The overview shows queued, running and failed jobs, and *Run a batch now* processes a few without
+  waiting for the job runner. Needs `autoTranslate` on, since that registers the jobs.
 
 The view only lists collections and globals the signed-in user can read, and the endpoints behind
 the actions require a user.
