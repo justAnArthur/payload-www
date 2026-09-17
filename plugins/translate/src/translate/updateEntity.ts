@@ -32,9 +32,6 @@ export const updateEntity = ({
 
   const depth = incomingDepth ?? req.payload.config.defaultDepth
 
-  // the write must own its `req.locale` end to end: Payload's beforeChange re-reads
-  // `req.locale` when it merges the incoming values into the per-locale rows, and a
-  // concurrently-shared req would file this update's values under another locale
   const isolatedReq = isolateReqLocale(req)
 
   const promise = isGlobal

@@ -336,8 +336,7 @@ export const traverseFields = (args: TraverseArgs) => {
         onField?.({ path: richTextPath, type: 'richText', source: richTextDataFrom, target: current })
 
         if (!richTextDataFrom || !hasText(richTextDataFrom)) {
-          // nothing to translate, but the target still needs the (empty) structure —
-          // payload rejects a missing required richText field at validation time
+          // carry the empty structure over: a missing required richText fails validation
           if (richTextDataFrom && current === undefined) {
             siblingDataTranslated[field.name] = structuredClone(richTextDataFrom)
           }
