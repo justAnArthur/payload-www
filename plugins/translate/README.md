@@ -80,6 +80,7 @@ export const myResolver: TranslateResolver = {
 | `resolvers`   | `TranslateResolver[]` | yes      | Tried in order; first to succeed wins per chunk.                       |
 | `autoTranslate` | `boolean`           | no       | Default `true`. Set `false` to opt out of the auto-translate afterChange hook — useful when you drive translation manually via the `translateOperation` export. |
 | `autoTranslateMode` | `'missing' \| 'untranslated' \| 'all'` | no | Default `'missing'`: a publish in the default locale fills empty fields in other locales and keeps existing translations and slugs. `'untranslated'` also replaces fields that still hold the source copy. `'all'` re-translates everything. |
+| `languageDetection` | `boolean`       | no       | Default `true`. The review view flags translated fields written in another locale's language, and `untranslated` mode re-translates them. |
 | `review`      | `boolean`             | no       | Default `true`. Adds the `/admin/translations` review view, its endpoints and the hidden `translation-status` collection (needs a migration on postgres). |
 | `disabled`    | `boolean`             | no       | Skip the plugin entirely (no overrides, no jobs). Useful in tests.    |
 | `_options.additionalTraverseRichText` | function | no | Hook to extend rich-text traversal — see below.             |
@@ -128,6 +129,13 @@ With `review` on, **Translations** appears in the admin nav (`/admin/translation
   last auto-translate job and its error. Actions: *Translate missing fields*, *Re-translate all*,
   *Mark reviewed*.
 
+- **Wrong language**: translated fields are checked with [eld](https://github.com/nitotm/efficient-language-detector-js)
+  (small n-gram set, loaded lazily on the server, limited to the configured locales). A field is
+  flagged, shown as `⚑` in the overview and `xx detected` in the detail, only when it has at least 40
+  characters and 5 words after dropping emails, urls, numbers and slashed loanwords, is not a
+  list of short lines, and the detected language leads the expected one by a margin (wider for close
+  pairs such as cs/sk and es/pt, and for text under 80 characters). Flagged fields count against
+  coverage, so bulk and per-document fixes re-translate them.
 - **Bulk fix**: *Translate untranslated* queues one translate workflow per incomplete document,
   for all locales or one, in `untranslated` mode (empty fields and fields still holding the source
   copy; existing translations and slugs stay). Locales a pending job already covers are skipped.

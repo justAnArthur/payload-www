@@ -50,6 +50,7 @@ export const reviewStyles = /* css */ `
 .tr__cell[data-tone='warn'] { --tr-tone: var(--tr-warn); color: var(--tr-warn); }
 .tr__cell[data-tone='bad'] { --tr-tone: var(--tr-bad); color: var(--tr-bad); }
 .tr__marks { font-size: 11px; color: var(--tr-muted); }
+.tr__lang { color: var(--tr-bad); font-weight: 500; }
 
 .tr__legend { display: flex; flex-wrap: wrap; gap: 8px 18px; margin-top: 12px; font-size: 12px; color: var(--tr-muted); }
 .tr__legend span { display: inline-flex; align-items: center; gap: 6px; }

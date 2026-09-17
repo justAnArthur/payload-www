@@ -24,7 +24,7 @@ export const BulkActions = ({ tab, locales, progress }: { tab: string; locales: 
 
   const queue = async () => {
     const scope = `${locale ? locale.toUpperCase() : 'every locale'} of all ${tab}`
-    if (!window.confirm(`Queue translation of empty and untranslated fields in ${scope}? Existing translations are kept.`)) return
+    if (!window.confirm(`Queue translation of empty, untranslated and wrong-language fields in ${scope}? Correct translations are kept.`)) return
 
     setPending('bulk')
     try {

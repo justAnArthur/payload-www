@@ -21,6 +21,8 @@ type TraverseArgs = {
   emptyOnly?: boolean
   /** with `emptyOnly`, also replace targets that still hold the source copy */
   retranslateIdentical?: boolean
+  /** with `retranslateIdentical`, also replace targets written in another language */
+  isWrongLanguage?: (target: unknown) => boolean
   fields: Field[]
   localizedParent?: boolean
   path?: string
@@ -65,6 +67,7 @@ export const traverseFields = (args: TraverseArgs) => {
     dataFrom,
     emptyOnly,
     retranslateIdentical,
+    isWrongLanguage,
     fields,
     localizedParent,
     path,
@@ -79,7 +82,8 @@ export const traverseFields = (args: TraverseArgs) => {
 
   // in fill-only modes a target is kept unless it is empty, or still the source copy when asked
   const keepsTarget = (source: unknown, target: unknown) =>
-    Boolean(emptyOnly) && hasText(target) && !(retranslateIdentical && looksUntranslated(source, target))
+    Boolean(emptyOnly) && hasText(target) &&
+    !(retranslateIdentical && (looksUntranslated(source, target) || Boolean(isWrongLanguage?.(target))))
 
   const recurse = (overrides: Partial<TraverseArgs> & Pick<TraverseArgs, 'fields'>) =>
     traverseFields({ ...args, siblingDataFrom, siblingDataTranslated, ...overrides })

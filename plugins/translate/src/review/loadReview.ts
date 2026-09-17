@@ -12,6 +12,7 @@ import { computeStatus, type FieldStatus, type LocaleSummary } from './computeSt
 import { TRANSLATION_STATUS_SLUG } from './constants'
 import { entityKey } from './entityKey'
 import { sourceHash } from './sourceHash'
+import { loadWrongLanguageCheck, type WrongLanguageCheck } from '../utils/languageDetector'
 
 export type LocaleReview = {
   summary: LocaleSummary
@@ -59,20 +60,28 @@ const loadStatusRows = async (req: PayloadRequest, keys: string[]): Promise<Stat
   return docs as unknown as StatusRow[]
 }
 
+/** the wrong-language check, unless the host turned `languageDetection` off */
+export const loadLanguageCheck = (req: PayloadRequest) =>
+  pluginOptions(req)?.languageDetection === false
+    ? Promise.resolve(null)
+    : loadWrongLanguageCheck(readLocales(req).targetLocales.concat(readLocales(req).defaultLocale))
+
 const reviewLocale = (
   config: SanitizedCollectionConfig | SanitizedGlobalConfig,
   source: Doc,
   target: Doc | undefined,
   hash: string,
   row: StatusRow | undefined,
-  req: PayloadRequest
+  req: PayloadRequest,
+  locale: string,
+  check: WrongLanguageCheck | null
 ): LocaleReview & { fields: FieldStatus[] } => {
   const { fields, summary } = computeStatus(collectTranslatableFields({
     config,
     dataFrom: source,
     dataTarget: target ?? {},
     options: pluginOptions(req)?._options
-  }))
+  }), { locale, check })
 
   return {
     fields,
@@ -103,6 +112,7 @@ export const loadCollectionReview = async ({ req, collectionSlug, page = 1, limi
   if (!config) throw new Error(`unknown collection ${collectionSlug}`)
 
   const { defaultLocale, targetLocales } = readLocales(req)
+  const check = await loadLanguageCheck(req)
 
   const sources = await req.payload.find({
     collection: collectionSlug as CollectionSlug,
@@ -154,7 +164,7 @@ export const loadCollectionReview = async ({ req, collectionSlug, page = 1, limi
       locales: Object.fromEntries(targetLocales.map((locale) => {
         const { fields: _fields, ...review } = reviewLocale(
           config, source, targets[locale].get(String(source.id)), hash,
-          rows.find((row) => row.entity === key && row.locale === locale), req
+          rows.find((row) => row.entity === key && row.locale === locale), req, locale, check
         )
         return [locale, review]
       }))
@@ -173,6 +183,7 @@ export const loadCollectionReview = async ({ req, collectionSlug, page = 1, limi
 /** every configured global with a summary for every target locale */
 export const loadGlobalsReview = async ({ req, globalSlugs }: { req: PayloadRequest; globalSlugs: string[] }) => {
   const { defaultLocale, targetLocales } = readLocales(req)
+  const check = await loadLanguageCheck(req)
   const rows = await loadStatusRows(req, globalSlugs.map((globalSlug) => entityKey({ globalSlug })))
 
   const entities: EntityReview[] = []
@@ -198,7 +209,7 @@ export const loadGlobalsReview = async ({ req, globalSlugs }: { req: PayloadRequ
     for (const locale of targetLocales) {
       const { fields: _fields, ...review } = reviewLocale(
         config, source, await read(locale), hash,
-        rows.find((row) => row.entity === key && row.locale === locale), req
+        rows.find((row) => row.entity === key && row.locale === locale), req, locale, check
       )
       locales[locale] = review
     }
@@ -235,7 +246,7 @@ export const loadEntityLocaleReview = async ({ req, entity, locale }: { req: Pay
   const rows = await loadStatusRows(req, [entity])
   const row = rows.find((each) => each.locale === locale)
 
-  const review = reviewLocale(config, source, target, hashOf(config, source, req), row, req)
+  const review = reviewLocale(config, source, target, hashOf(config, source, req), row, req, locale, await loadLanguageCheck(req))
 
   return {
     ...review,
