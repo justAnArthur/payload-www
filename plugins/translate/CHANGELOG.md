@@ -8,6 +8,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 
+- **Short fields copied from another locale are now flagged and retranslated.** The statistical
+  wrong-language check only fires on long prose (≥40 chars, ≥5 words), so the damage left by the
+  old locale race — one locale's translation filed under another, concentrated in titles,
+  headings and labels — was invisible: the translations view showed the locales as fully
+  covered and "translate untranslated" had nothing to act on. The review and the untranslated
+  retranslation now also treat a value that is byte-identical to the same field in another
+  non-close-pair locale (and differs from the source) as wrong language. Values equal to the
+  source are excluded, so brands, addresses and shared labels never trigger it.
+
+- **The language detector's locale subset is now set per call.** eld keeps global state, and the
+  first `loadWrongLanguageCheck` caller's locale list previously decided what every later caller
+  in the process could detect.
+
 - **Edits that only change non-translatable fields now propagate to every locale.**
   The traversal always copied localized relationships/selects (and row-count changes)
   from the source locale into the outgoing payload, but both persist paths skipped the

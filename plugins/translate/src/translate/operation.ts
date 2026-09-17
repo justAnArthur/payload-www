@@ -1,8 +1,10 @@
 import he from 'he'
-import { APIError, type Payload, type PayloadRequest } from 'payload'
+import { APIError, type Payload, type PayloadRequest, type SanitizedCollectionConfig, type SanitizedGlobalConfig } from 'payload'
 
 import type { TranslateResolver } from '../resolvers/types'
 import { findEntityWithConfig } from './findEntityWithConfig'
+import { buildCrossLocaleTexts, crossLocaleMatch } from '../utils/crossLocale'
+import { collectTranslatableFields } from '../review/collectTranslatableFields'
 import { loadWrongLanguageCheck } from '../utils/languageDetector'
 import { samePlaceholders } from '../utils/placeholders'
 import { plainText } from '../utils/plainText'
@@ -19,6 +21,44 @@ const preview = (value: unknown) => {
 const localeCodes = (req: PayloadRequest) =>
   (req.payload.config.localization ? req.payload.config.localization.locales : [])
     .map((each) => typeof each === 'string' ? each : each.code)
+
+/** the document's field texts from every other target locale, for duplicate detection */
+const buildCrossLocaleTextsFor = async ({
+  config,
+  dataFrom,
+  req,
+  args
+}: {
+  config: SanitizedCollectionConfig | SanitizedGlobalConfig
+  dataFrom: Record<string, unknown>
+  req: PayloadRequest
+  args: TranslateOperationArgs
+}) => {
+  const others = localeCodes(req).filter((each) => each !== args.locale && each !== args.localeFrom)
+
+  const fieldsPerLocale: { locale: string; fields: ReturnType<typeof collectTranslatableFields> }[] = []
+  for (const locale of others) {
+    const { doc } = await findEntityWithConfig({
+      collectionSlug: args.collectionSlug,
+      globalSlug: args.globalSlug,
+      id: args.id,
+      locale,
+      overrideAccess: args.overrideAccess,
+      req
+    })
+    fieldsPerLocale.push({
+      locale,
+      fields: collectTranslatableFields({
+        config,
+        dataFrom,
+        dataTarget: doc,
+        options: req.payload.config.custom?.translator?._options
+      })
+    })
+  }
+
+  return buildCrossLocaleTexts(fieldsPerLocale)
+}
 
 export type TranslateOperationArgs = (
   | {
@@ -83,12 +123,17 @@ export const translateOperation = async (args: TranslateOperationArgs) => {
     translatedData = doc
   }
 
-  // untranslated mode also replaces copy written in another locale's language
-  const wrongLanguageCheck = args.retranslateIdentical && req.payload.config.custom?.translator?.languageDetection !== false
-    ? await loadWrongLanguageCheck(localeCodes(req))
-    : null
-  const isWrongLanguage = wrongLanguageCheck
-    ? (target: unknown) => Boolean(wrongLanguageCheck(plainText(target), args.locale))
+  // untranslated mode also replaces copy written in another locale's language: long prose
+  // via the statistical check, short fields via an exact duplicate of another locale's value
+  const detectionOn = args.retranslateIdentical && req.payload.config.custom?.translator?.languageDetection !== false
+  const wrongLanguageCheck = detectionOn ? await loadWrongLanguageCheck(localeCodes(req)) : null
+  const crossLocale = detectionOn ? await buildCrossLocaleTextsFor({ config, dataFrom, req, args }) : undefined
+  const isWrongLanguage = wrongLanguageCheck || crossLocale
+    ? (target: unknown, path?: string) =>
+        Boolean(wrongLanguageCheck?.(plainText(target), args.locale)) ||
+        (path !== undefined && crossLocale !== undefined
+          ? crossLocaleMatch(crossLocale, path, args.locale, plainText(target)) !== undefined
+          : false)
     : undefined
 
   traverseFields({

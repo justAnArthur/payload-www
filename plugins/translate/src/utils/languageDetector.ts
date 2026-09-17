@@ -2,7 +2,7 @@
 export type WrongLanguageCheck = (text: string, expectedLocale: string) => string | null
 
 // pairs the detector confuses most; they need a clearer lead before a text counts as foreign
-const CLOSE_PAIRS = new Set(['cs|sk', 'sk|cs', 'es|pt', 'pt|es', 'es|it', 'it|es', 'nl|de', 'de|nl'])
+export const CLOSE_PAIRS = new Set(['cs|sk', 'sk|cs', 'es|pt', 'pt|es', 'es|it', 'it|es', 'nl|de', 'de|nl'])
 
 const MIN_LENGTH = 40
 const MIN_WORDS = 5
@@ -29,14 +29,19 @@ const looksLikeList = (text: string) => {
   return lengths[Math.floor(lengths.length / 2)] < MIN_LENGTH
 }
 
-let detector: Promise<WrongLanguageCheck | null> | undefined
+let eldModule: Promise<typeof import('eld/small')> | undefined
 
 /**
  * lazily loads eld's small n-gram database, limited to the configured locales. thresholds were tuned
  * on real site copy: no false positives on ~4900 paragraphs, ~99% of misplaced ones caught.
+ *
+ * the subset is set per call, not once: eld keeps global state, and the first caller's
+ * locale list would otherwise decide what every later caller can detect.
  */
 export const loadWrongLanguageCheck = (locales: string[]): Promise<WrongLanguageCheck | null> => {
-  detector ??= import('eld/small')
+  eldModule ??= import('eld/small')
+
+  return eldModule
     .then(({ eld }) => {
       const languages = [...new Set(locales.map(base))]
       eld.setLanguageSubset(languages)
@@ -62,6 +67,4 @@ export const loadWrongLanguageCheck = (locales: string[]): Promise<WrongLanguage
       }
     })
     .catch(() => null)
-
-  return detector
 }

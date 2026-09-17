@@ -107,3 +107,34 @@ describe('translateOperation field sync', () => {
     expect(updates[0].data.reference).toEqual({ relationTo: 'pages', value: 2 })
   })
 })
+
+describe('translateOperation cross-locale duplicates', () => {
+  it('retranslates a short field duplicating another locale, which the statistical check cannot see', async () => {
+    const upper: TranslateResolver = { key: 'u', resolve: ({ texts }) => ({ success: true, translatedTexts: texts.map((t) => t.toUpperCase()) }) }
+    const docs = {
+      en: { id: 1, updatedAt: 't0', title: 'About us' },
+      sk: { id: 1, updatedAt: 't0', title: 'Sobre nós' },
+      pt: { id: 1, updatedAt: 't0', title: 'Sobre nós' }
+    }
+    const req = {
+      payload: {
+        logger,
+        config: {
+          collections: [{ slug: 'pages', fields: [{ name: 'title', type: 'text', localized: true }] }],
+          globals: [],
+          localization: { defaultLocale: 'en', locales: ['en', 'sk', 'pt'] },
+          custom: { translator: { resolvers: [upper] } }
+        },
+        findByID: async ({ locale }: { locale: string }) => docs[locale]
+      }
+    } as any
+
+    const result = await translateOperation({
+      req, collectionSlug: 'pages', id: 1, locale: 'sk', localeFrom: 'en',
+      resolver: 'u', emptyOnly: true, retranslateIdentical: true
+    })
+
+    expect(result.success && result.translatedCount).toBe(1)
+    expect(result.success && result.translatedData.title).toBe('ABOUT US')
+  })
+})

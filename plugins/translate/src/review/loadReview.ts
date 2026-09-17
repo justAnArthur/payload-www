@@ -7,6 +7,7 @@ import type {
 } from 'payload'
 
 import type { TranslatorConfig } from '../types'
+import { buildCrossLocaleTexts } from '../utils/crossLocale'
 import { collectTranslatableFields } from './collectTranslatableFields'
 import { computeStatus, type FieldStatus, type LocaleSummary } from './computeStatus'
 import { TRANSLATION_STATUS_SLUG } from './constants'
@@ -66,29 +67,42 @@ export const loadLanguageCheck = (req: PayloadRequest) =>
     ? Promise.resolve(null)
     : loadWrongLanguageCheck(readLocales(req).targetLocales.concat(readLocales(req).defaultLocale))
 
-const reviewLocale = (
+/**
+ * Reviews every target locale of one entity. Fields are collected once per locale so the
+ * cross-locale duplicate check can see the same field across all of them — the fingerprint
+ * of a translation filed under the wrong locale.
+ */
+const reviewEntity = (
   config: SanitizedCollectionConfig | SanitizedGlobalConfig,
   source: Doc,
-  target: Doc | undefined,
+  targetByLocale: Record<string, Doc | undefined>,
+  targetLocales: string[],
   hash: string,
-  row: StatusRow | undefined,
+  rowByLocale: (locale: string) => StatusRow | undefined,
   req: PayloadRequest,
-  locale: string,
   check: WrongLanguageCheck | null
-): LocaleReview & { fields: FieldStatus[] } => {
-  const { fields, summary } = computeStatus(collectTranslatableFields({
-    config,
-    dataFrom: source,
-    dataTarget: target ?? {},
-    options: pluginOptions(req)?._options
-  }), { locale, check })
+): Record<string, LocaleReview & { fields: FieldStatus[] }> => {
+  const options = pluginOptions(req)?._options
+  const fieldsPerLocale = targetLocales.map((locale) => ({
+    locale,
+    fields: collectTranslatableFields({
+      config,
+      dataFrom: source,
+      dataTarget: targetByLocale[locale] ?? {},
+      options
+    })
+  }))
+  const crossLocale = buildCrossLocaleTexts(fieldsPerLocale)
 
-  return {
-    fields,
-    summary,
-    stale: Boolean(row?.sourceHash) && row?.sourceHash !== hash,
-    reviewed: Boolean(row?.reviewedHash) && row?.reviewedHash === hash
-  }
+  return Object.fromEntries(fieldsPerLocale.map(({ locale, fields }) => {
+    const row = rowByLocale(locale)
+    const { fields: _fields, ...review } = {
+      ...computeStatus(fields, { locale, check, crossLocale }),
+      stale: Boolean(row?.sourceHash) && row?.sourceHash !== hash,
+      reviewed: Boolean(row?.reviewedHash) && row?.reviewedHash === hash
+    }
+    return [locale, review]
+  }))
 }
 
 const labelOf = (config: SanitizedCollectionConfig, doc: Doc) => {
@@ -161,13 +175,16 @@ export const loadCollectionReview = async ({ req, collectionSlug, page = 1, limi
       label: labelOf(config, source),
       collectionSlug,
       id: source.id,
-      locales: Object.fromEntries(targetLocales.map((locale) => {
-        const { fields: _fields, ...review } = reviewLocale(
-          config, source, targets[locale].get(String(source.id)), hash,
-          rows.find((row) => row.entity === key && row.locale === locale), req, locale, check
-        )
-        return [locale, review]
-      }))
+      locales: reviewEntity(
+        config,
+        source,
+        Object.fromEntries(targetLocales.map((locale) => [locale, targets[locale].get(String(source.id))])),
+        targetLocales,
+        hash,
+        (locale) => rows.find((row) => row.entity === key && row.locale === locale),
+        req,
+        check
+      )
     }
   })
 
@@ -204,15 +221,16 @@ export const loadGlobalsReview = async ({ req, globalSlugs }: { req: PayloadRequ
     const source = await read(defaultLocale)
     const hash = hashOf(config, source, req)
     const key = entityKey({ globalSlug })
-    const locales: Record<string, LocaleReview> = {}
 
+    const targetByLocale: Record<string, Doc | undefined> = {}
     for (const locale of targetLocales) {
-      const { fields: _fields, ...review } = reviewLocale(
-        config, source, await read(locale), hash,
-        rows.find((row) => row.entity === key && row.locale === locale), req, locale, check
-      )
-      locales[locale] = review
+      targetByLocale[locale] = await read(locale)
     }
+
+    const locales = reviewEntity(
+      config, source, targetByLocale, targetLocales, hash,
+      (locale) => rows.find((row) => row.entity === key && row.locale === locale), req, check
+    )
 
     entities.push({ key, label: globalLabel(config), globalSlug, locales })
   }
@@ -242,11 +260,20 @@ export const loadEntityLocaleReview = async ({ req, entity, locale }: { req: Pay
     : req.payload.findByID({ collection: collectionSlug as CollectionSlug, id: id as string, locale: readLocale as never, fallbackLocale: false as never, depth: 0, overrideAccess: false, req })) as Promise<Doc>
 
   const source = await read(defaultLocale)
-  const target = await read(locale)
   const rows = await loadStatusRows(req, [entity])
   const row = rows.find((each) => each.locale === locale)
 
-  const review = reviewLocale(config, source, target, hashOf(config, source, req), row, req, locale, await loadLanguageCheck(req))
+  // every locale's fields feed the cross-locale map; only the requested locale's status is returned
+  const { targetLocales } = readLocales(req)
+  const targetByLocale: Record<string, Doc | undefined> = {}
+  for (const each of targetLocales) {
+    targetByLocale[each] = await read(each)
+  }
+
+  const review = reviewEntity(
+    config, source, targetByLocale, targetLocales, hashOf(config, source, req),
+    (each) => rows.find((row2) => row2.locale === each), req, await loadLanguageCheck(req)
+  )[locale]
 
   return {
     ...review,

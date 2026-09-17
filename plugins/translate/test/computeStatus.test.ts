@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'bun:test'
 
 import { computeStatus } from '../src/review/computeStatus'
+import { buildCrossLocaleTexts } from '../src/utils/crossLocale'
 
 describe('computeStatus', () => {
   it('classifies missing, identical, placeholder and ok fields', () => {
@@ -34,5 +35,25 @@ describe('computeStatus', () => {
 
     expect(fields.map((f) => [f.path, f.state, f.detectedLanguage])).toEqual([['lead', 'wrongLanguage', 'cs'], ['title', 'ok', undefined]])
     expect(summary).toMatchObject({ wrongLanguage: 1, coverage: 50 })
+  })
+
+  it('flags a short field that duplicates another locale, with no statistical check at all', () => {
+    const crossLocale = buildCrossLocaleTexts([
+      { locale: 'sk', fields: [{ path: 'title', type: 'text', source: 'About us', target: 'Sobre nós' }] },
+      { locale: 'pt', fields: [{ path: 'title', type: 'text', source: 'About us', target: 'Sobre nós' }] },
+      { locale: 'sk', fields: [{ path: 'slug', type: 'slug', source: 'about-us', target: 'sobre-nos' }] },
+      { locale: 'pt', fields: [{ path: 'slug', type: 'slug', source: 'about-us', target: 'sobre-nos' }] }
+    ])
+
+    const { fields, summary } = computeStatus([
+      { path: 'title', type: 'text', source: 'About us', target: 'Sobre nós' },
+      { path: 'slug', type: 'slug', source: 'about-us', target: 'sobre-nos' }
+    ], { locale: 'sk', crossLocale })
+
+    expect(fields.map((f) => [f.path, f.state, f.detectedLanguage])).toEqual([
+      ['title', 'wrongLanguage', 'pt'],
+      ['slug', 'ok', undefined]
+    ])
+    expect(summary).toMatchObject({ wrongLanguage: 1, ok: 1 })
   })
 })

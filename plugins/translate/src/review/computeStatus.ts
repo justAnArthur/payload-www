@@ -1,8 +1,10 @@
 import type { TranslatableField } from '../translate/types'
+import { crossLocaleMatch, type CrossLocaleTexts } from '../utils/crossLocale'
 import type { WrongLanguageCheck } from '../utils/languageDetector'
 import { looksUntranslated } from '../utils/looksUntranslated'
 import { samePlaceholders } from '../utils/placeholders'
 import { plainText } from '../utils/plainText'
+import { isOpaqueText } from '../utils/isOpaqueText'
 
 export type FieldState = 'identical' | 'missing' | 'ok' | 'placeholders' | 'wrongLanguage'
 
@@ -41,7 +43,13 @@ const classify = (field: TranslatableField, sourceText: string, targetText: stri
 /** per-field state for one target locale; fields empty in the source are left out */
 export const computeStatus = (
   fields: TranslatableField[],
-  language?: { locale: string; check: WrongLanguageCheck | null }
+  options?: {
+    locale: string
+    /** statistical detection, blind below ~40 chars / 5 words */
+    check?: WrongLanguageCheck | null
+    /** same-document field texts per locale; an exact duplicate of a non-close-pair locale is the race fingerprint */
+    crossLocale?: CrossLocaleTexts
+  }
 ): { fields: FieldStatus[]; summary: LocaleSummary } => {
   const statuses: FieldStatus[] = []
 
@@ -49,10 +57,15 @@ export const computeStatus = (
     const sourceText = plainText(field.source)
     if (!normalize(sourceText)) continue
 
-    const targetText = plainText(field.target)
+    const targetText = normalize(plainText(field.target))
     const state = classify(field, sourceText, targetText)
-    const detectedLanguage = state === 'ok' && field.type !== 'slug' && language?.check
-      ? language.check(targetText, language.locale) ?? undefined
+
+    // the statistical check needs prose; the duplicate check covers the short fields it skips
+    const detectedLanguage = state === 'ok' && field.type !== 'slug' && !isOpaqueText(targetText)
+      ? options?.check?.(targetText, options.locale)
+        ?? (options?.crossLocale
+          ? crossLocaleMatch(options.crossLocale, field.path, options.locale, targetText)
+          : undefined)
       : undefined
 
     statuses.push({
