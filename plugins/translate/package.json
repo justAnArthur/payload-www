@@ -1,7 +1,7 @@
 {
   "name": "@justanarthur/payload-plugin-translator",
   "description": "Translator plugin for Payload CMS — automatic localization via Google, OpenAI, LibreTranslate, or custom resolvers.",
-  "version": "3.1.1",
+  "version": "3.2.0",
   "type": "module",
   "private": false,
   "files": [
