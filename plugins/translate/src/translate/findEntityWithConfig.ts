@@ -6,7 +6,16 @@ import type {
   SanitizedGlobalConfig,
   TypeWithID
 } from 'payload'
-import { APIError } from 'payload'
+import { APIError, isolateObjectProperty } from 'payload'
+
+/**
+ * Concurrent translate jobs share one `req` (the jobs runner isolates only `transactionID`),
+ * and every local API call writes `req.locale`/`req.fallbackLocale` onto it. Payload resolves
+ * localized reads and writes lazily from `req.locale` mid-flight, so without isolation one
+ * job's locale can decide where another job's values land. Each call gets its own copy.
+ */
+export const isolateReqLocale = (req: PayloadRequest): PayloadRequest =>
+  isolateObjectProperty(req, ['locale', 'fallbackLocale'])
 
 type Args = {
   collectionSlug?: string
@@ -48,24 +57,26 @@ export const findEntityWithConfig = async (
 
   if (!entityConfig) throw new APIError('Bad Request', 400)
 
+  const isolatedReq = isolateReqLocale(req)
+
   const docPromise = isGlobal
     ? payload.findGlobal({
-      depth: 0,
-      fallbackLocale: false,
-      locale: locale as any,
-      overrideAccess,
-      req,
-      slug: args.globalSlug as GlobalSlug
-    })
+        depth: 0,
+        fallbackLocale: false,
+        locale: locale as any,
+        overrideAccess,
+        req: isolatedReq,
+        slug: args.globalSlug as GlobalSlug
+      })
     : payload.findByID({
-      collection: collectionSlug as CollectionSlug,
-      depth: 0,
-      fallbackLocale: false,
-      id: id as number | string,
-      locale: locale as any,
-      overrideAccess,
-      req
-    })
+        collection: collectionSlug as CollectionSlug,
+        depth: 0,
+        fallbackLocale: false,
+        id: id as number | string,
+        locale: locale as any,
+        overrideAccess,
+        req: isolatedReq
+      })
 
   const doc = (await docPromise) as any
 

@@ -49,3 +49,27 @@ describe('translateOperation', () => {
     expect(result.success && result.translatedData.title).toBe('Hi {name}')
   })
 })
+
+describe('translateOperation source-of-truth guard', () => {
+  it('refuses to translate into the default locale', async () => {
+    const copy: TranslateResolver = { key: 'c', resolve: ({ texts }) => ({ success: true, translatedTexts: texts }) }
+    const req = {
+      payload: {
+        logger,
+        config: {
+          collections: [{ slug: 'pages', fields: [{ name: 'title', type: 'text', localized: true }] }],
+          globals: [],
+          localization: { defaultLocale: 'en', locales: ['en', 'sk'] },
+          custom: { translator: { resolvers: [copy] } }
+        },
+        findByID: async () => ({ id: 1, title: 'One' })
+      }
+    } as any
+
+    const attempt = translateOperation({ req, collectionSlug: 'pages', id: 1, locale: 'en', localeFrom: 'sk', resolver: 'c' })
+
+    // the existing harness config has no localization block, so build one inline above;
+    // the operation must reject before any translation work happens
+    await expect(attempt).rejects.toThrow('Refusing to translate into the default locale')
+  })
+})

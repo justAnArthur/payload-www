@@ -2,7 +2,7 @@
 
 import './styles.css'
 
-import { PublishButton, SaveButton, useConfig, useDocumentInfo } from '@payloadcms/ui'
+import { PublishButton, SaveButton, useConfig, useDocumentInfo, useLocale } from '@payloadcms/ui'
 
 import type { TranslateResolver } from '../../../resolvers/types'
 import { TranslatorProvider } from '../../providers/Translator/TranslatorProvider'
@@ -16,9 +16,18 @@ export const CustomButtonWithTranslator = ({ type }: { type: 'publish' | 'save' 
 
   const { globalSlug, id } = useDocumentInfo()
 
+  const locale = useLocale()
+
   const resolvers = (config.admin?.custom?.translator?.resolvers as TranslateResolver[]) ?? []
 
   if (!id && !globalSlug) return <DefaultButton/>
+
+  // the default locale is the translation source — never offer to translate into it
+  const { localization } = config
+  const isSourceLocale =
+    Boolean(localization) && locale.code === (localization as Exclude<typeof localization, false>).defaultLocale
+
+  if (isSourceLocale) return <DefaultButton/>
 
   return (
     <TranslatorProvider>

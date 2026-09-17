@@ -40,6 +40,17 @@ export const translateOperation = async (args: TranslateOperationArgs) => {
 
   const { collectionSlug, globalSlug, id, locale, localeFrom, overrideAccess } = args
 
+  // the default locale is the source every other locale is translated from; writing
+  // machine translations back into it destroys the source of truth
+  const localization = req.payload.config.localization
+  const defaultLocale = localization ? localization.defaultLocale : undefined
+  if (defaultLocale && locale === defaultLocale) {
+    throw new APIError(
+      `Refusing to translate into the default locale "${defaultLocale}" — it is the source of truth. Translate from it into a target locale instead.`,
+      400
+    )
+  }
+
   const { config, doc: dataFrom } = await findEntityWithConfig({
     collectionSlug,
     globalSlug,
