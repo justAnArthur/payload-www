@@ -18,6 +18,7 @@ export const collectTranslatableFields = ({ config, dataFrom, dataTarget, option
     fields: config.fields,
     translatedData: structuredClone(dataTarget ?? {}),
     valuesToTranslate: [],
+    syncedValues: { count: 0 },
     onField: (field) => fields.push(field),
     _options: options
   })

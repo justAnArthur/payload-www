@@ -30,6 +30,8 @@ type TraverseArgs = {
   siblingDataTranslated?: Record<string, unknown>
   translatedData: Record<string, unknown>
   valuesToTranslate: ValueToTranslate[]
+  /** counts value copies that changed the target — a sync-only run must still persist */
+  syncedValues: { count: number }
   /** called for every translatable field, whether or not it gets queued; used by the review view */
   onField?: (field: TranslatableField) => void
 
@@ -76,6 +78,7 @@ export const traverseFields = (args: TraverseArgs) => {
     path,
     translatedData,
     valuesToTranslate,
+    syncedValues,
     onField,
     _options
   } = args
@@ -164,6 +167,9 @@ export const traverseFields = (args: TraverseArgs) => {
 
         const localized = Boolean(field.localized || localizedParent)
 
+        // row count drift is a change no resolver will ever report; it must still persist
+        if (localized && existing.length !== rowsFrom.length) syncedValues.count++
+
         const rows = localized
           ? buildLocalizedRows(rowsFrom, existing, isBlocks, emptyOnly)
           : existing.length ? existing : structuredClone(rowsFrom)
@@ -215,6 +221,8 @@ export const traverseFields = (args: TraverseArgs) => {
       case 'relationship':
       case 'select':
       case 'upload':
+        if (JSON.stringify(siblingDataTranslated[field.name]) !== JSON.stringify(siblingDataFrom[field.name]))
+          syncedValues.count++
         siblingDataTranslated[field.name] = siblingDataFrom[field.name]
         break
 

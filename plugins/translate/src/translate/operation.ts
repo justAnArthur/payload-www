@@ -66,6 +66,7 @@ export const translateOperation = async (args: TranslateOperationArgs) => {
   if (!resolver) throw new APIError(`Resolver with the key ${args.resolver} was not found`)
 
   const valuesToTranslate: ValueToTranslate[] = []
+  const syncedValues = { count: 0 }
 
   let translatedData = args.data
 
@@ -98,6 +99,7 @@ export const translateOperation = async (args: TranslateOperationArgs) => {
     fields: config.fields,
     translatedData,
     valuesToTranslate,
+    syncedValues,
 
     _options: req.payload.config.custom?.translator?._options
   })
@@ -106,7 +108,9 @@ export const translateOperation = async (args: TranslateOperationArgs) => {
   const direction = `${args.localeFrom}→${args.locale}`
 
   req.payload.logger.info({
-    msg: `[translate] ${entityLabel} ${direction}: traversed ${valuesToTranslate.length} translatable value(s)`
+    msg:
+      `[translate] ${entityLabel} ${direction}: traversed ${valuesToTranslate.length} translatable value(s)` +
+      (syncedValues.count ? `, synced ${syncedValues.count} field value(s)` : '')
   })
 
   const resolveResult = valuesToTranslate.length === 0
@@ -165,7 +169,7 @@ export const translateOperation = async (args: TranslateOperationArgs) => {
         (summary.length ? `\n${summary.join('\n')}` : '')
     })
 
-    if (args.update && valuesToTranslate.length > 0) {
+    if (args.update && (valuesToTranslate.length > 0 || syncedValues.count > 0)) {
       const { _locale, _parent_id, createdAt, updatedAt, ...data } = translatedData
 
       await updateEntity({
@@ -184,6 +188,7 @@ export const translateOperation = async (args: TranslateOperationArgs) => {
       success: true,
       translatedData,
       translatedCount: valuesToTranslate.length,
+      syncedCount: syncedValues.count,
       dataFrom
     }
   }

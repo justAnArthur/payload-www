@@ -73,3 +73,37 @@ describe('translateOperation source-of-truth guard', () => {
     await expect(attempt).rejects.toThrow('Refusing to translate into the default locale')
   })
 })
+
+describe('translateOperation field sync', () => {
+  it('persists a relationship change even when nothing needs translating', async () => {
+    const copy: TranslateResolver = { key: 'c', resolve: ({ texts }) => ({ success: true, translatedTexts: texts }) }
+    const docs = {
+      en: { id: 1, updatedAt: 't0', title: 'Hello', reference: { relationTo: 'pages', value: 2 } },
+      sk: { id: 1, updatedAt: 't0', title: 'Ahoj', reference: { relationTo: 'pages', value: 8 } }
+    }
+    const updates: any[] = []
+    const req = {
+      payload: {
+        logger,
+        config: {
+          collections: [{ slug: 'pages', fields: [
+            { name: 'title', type: 'text', localized: true },
+            { name: 'reference', type: 'relationship', localized: true, relationTo: ['pages'] }
+          ] }],
+          globals: [],
+          custom: { translator: { resolvers: [copy] } }
+        },
+        findByID: async ({ locale }: { locale: string }) => docs[locale],
+        update: async (args: any) => updates.push(args)
+      }
+    } as any
+
+    const result = await translateOperation({ req, collectionSlug: 'pages', id: 1, locale: 'sk', localeFrom: 'en', resolver: 'c', update: true, emptyOnly: true })
+
+    expect(result.success && result.translatedCount).toBe(0)
+    expect(result.success && result.syncedCount).toBe(1)
+    expect(updates).toHaveLength(1)
+    expect(updates[0].data.title).toBe('Ahoj')
+    expect(updates[0].data.reference).toEqual({ relationTo: 'pages', value: 2 })
+  })
+})

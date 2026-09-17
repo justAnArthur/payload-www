@@ -123,7 +123,9 @@ export function createTranslateTask(options: CreateTranslateTaskOptions = {}): T
         return { output: { success: true } }
       }
 
-      if (result.translatedCount === 0) {
+      // a run that only synced relationships/selects still has to persist —
+      // no resolver will ever report those changes as translated values
+      if (result.translatedCount === 0 && result.syncedCount === 0) {
         req.payload.logger.info({ jobId: job.id, msg: `[translate] ${entityLabel}#${id ?? global} → ${toLocale}: nothing to translate` })
         return { output: { success: true } }
       }
@@ -133,7 +135,8 @@ export function createTranslateTask(options: CreateTranslateTaskOptions = {}): T
 
       req.payload.logger.info({
         jobId: job.id,
-        msg: `[translate] persisting ${entityLabel}#${id ?? global} → ${toLocale}`
+        msg: `[translate] persisting ${entityLabel}#${id ?? global} → ${toLocale}` +
+          (result.translatedCount === 0 ? ' (field sync only)' : '')
       })
 
       try {

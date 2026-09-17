@@ -8,6 +8,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 
+- **Edits that only change non-translatable fields now propagate to every locale.**
+  The traversal always copied localized relationships/selects (and row-count changes)
+  from the source locale into the outgoing payload, but both persist paths skipped the
+  write when the resolver had nothing to translate — so switching a nav link from a
+  custom URL to an internal document reference in the default locale left every other
+  locale holding its stale reference, exposed the moment the shared `type` field
+  flipped. The traversal now counts value copies that changed the target
+  (`syncedCount` on the result), and both the task and the endpoint persist whenever
+  anything was translated *or* synced.
+
 - **Translating a locale that is missing block rows no longer fails required-field
   validation on empty rich text.** Rebuilt localized block rows started as bare
   `id`/`blockType` skeletons, and fields the traversal skips — rich text with no

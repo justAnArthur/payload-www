@@ -40,6 +40,8 @@ export type TranslateResult =
   translatedData: Record<string, any>,
   /** values sent to the resolver; 0 means the target needed nothing */
   translatedCount: number,
+  /** non-translatable values (relationships, selects, …) copied from the source because they differed; a sync-only run still persists */
+  syncedCount: number,
   dataFrom: Doc
 }
 

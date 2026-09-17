@@ -7,8 +7,9 @@ import type { TranslatableField, ValueToTranslate } from '../src/translate/types
 const run = (fields: Field[], dataFrom: Record<string, unknown>, translatedData: Record<string, unknown>, emptyOnly = false, retranslateIdentical = false) => {
   const values: ValueToTranslate[] = []
   const seen: TranslatableField[] = []
-  traverseFields({ dataFrom, emptyOnly, retranslateIdentical, fields, translatedData, valuesToTranslate: values, onField: (f) => seen.push(f) })
-  return { values, seen }
+  const syncedValues = { count: 0 }
+  traverseFields({ dataFrom, emptyOnly, retranslateIdentical, fields, translatedData, valuesToTranslate: values, syncedValues, onField: (f) => seen.push(f) })
+  return { values, seen, syncedValues }
 }
 
 const lexical = (...texts: string[]) => ({
@@ -119,7 +120,7 @@ describe('traverseFields', () => {
     const values: ValueToTranslate[] = []
 
     traverseFields({
-      dataFrom: source, fields, translatedData: {}, valuesToTranslate: values,
+      dataFrom: source, fields, translatedData: {}, valuesToTranslate: values, syncedValues: { count: 0 },
       _options: { additionalTraverseRichText: ({ onText, siblingData }) => {
         if ((siblingData as any)?.type === 'block') onText((siblingData as any).fields, 'quote')
       } }
@@ -153,10 +154,43 @@ describe('traverseFields', () => {
       retranslateIdentical: true,
       isWrongLanguage: (target) => String(target).startsWith('Náš software'),
       fields,
-      valuesToTranslate: values
+      valuesToTranslate: values,
+      syncedValues: { count: 0 }
     })
 
     expect(values.map((v) => v.path)).toEqual(['lead'])
+  })
+
+  it('counts a changed relationship copy as a synced value', () => {
+    const fields = [{ name: 'reference', type: 'relationship', localized: true, relationTo: ['pages'] }] as unknown as Field[]
+    const target = { reference: { relationTo: 'pages', value: 8 } }
+
+    const { values, syncedValues } = run(fields, { reference: { relationTo: 'pages', value: 2 } }, target)
+
+    expect(values).toHaveLength(0)
+    expect(syncedValues.count).toBe(1)
+    expect(target.reference).toEqual({ relationTo: 'pages', value: 2 })
+  })
+
+  it('does not count relationship copies that already match', () => {
+    const fields = [{ name: 'reference', type: 'relationship', localized: true, relationTo: ['pages'] }] as unknown as Field[]
+
+    const { syncedValues } = run(fields, { reference: { relationTo: 'pages', value: 8 } }, { reference: { relationTo: 'pages', value: 8 } })
+
+    expect(syncedValues.count).toBe(0)
+  })
+
+  it('counts localized rows added or dropped in the source', () => {
+    const fields = [{
+      name: 'links', type: 'array', localized: true,
+      fields: [{ name: 'label', type: 'text', localized: true }]
+    }] as Field[]
+
+    const dropped = run(fields, { links: [{ label: 'A' }] }, { links: [{ label: 'A' }, { label: 'B' }] }, true)
+    const added = run(fields, { links: [{ label: 'A' }, { label: 'B' }] }, { links: [{ label: 'A' }] }, true)
+
+    expect(dropped.syncedValues.count).toBe(1)
+    expect(added.syncedValues.count).toBe(1)
   })
 })
 
