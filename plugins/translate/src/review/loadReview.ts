@@ -93,12 +93,11 @@ const reviewEntity = (
 
   return Object.fromEntries(fieldsPerLocale.map(({ locale, fields }) => {
     const row = rowByLocale(locale)
-    const { fields: _fields, ...review } = {
+    return [locale, {
       ...computeStatus(fields, { locale, check, crossLocale }),
       stale: Boolean(row?.sourceHash) && row?.sourceHash !== hash,
       reviewed: Boolean(row?.reviewedHash) && row?.reviewedHash === hash
-    }
-    return [locale, review]
+    }]
   }))
 }
 
@@ -167,21 +166,24 @@ export const loadCollectionReview = async ({ req, collectionSlug, page = 1, limi
     const key = entityKey({ collectionSlug, id: source.id })
     const hash = hashOf(config, source, req)
 
+    // the overview needs summaries only; the field rows stay with the detail view
+    const byLocale = reviewEntity(
+      config,
+      source,
+      Object.fromEntries(targetLocales.map((locale) => [locale, targets[locale].get(String(source.id))])),
+      targetLocales,
+      hash,
+      (locale) => rows.find((row) => row.entity === key && row.locale === locale),
+      req,
+      check
+    )
+
     return {
       key,
       label: labelOf(config, source),
       collectionSlug,
       id: source.id,
-      locales: reviewEntity(
-        config,
-        source,
-        Object.fromEntries(targetLocales.map((locale) => [locale, targets[locale].get(String(source.id))])),
-        targetLocales,
-        hash,
-        (locale) => rows.find((row) => row.entity === key && row.locale === locale),
-        req,
-        check
-      )
+      locales: Object.fromEntries(Object.entries(byLocale).map(([locale, { fields: _fields, ...review }]) => [locale, review]))
     }
   })
 
@@ -224,10 +226,11 @@ export const loadGlobalsReview = async ({ req, globalSlugs }: { req: PayloadRequ
       targetByLocale[locale] = await read(locale)
     }
 
-    const locales = reviewEntity(
+    const reviews = reviewEntity(
       config, source, targetByLocale, targetLocales, hash,
       (locale) => rows.find((row) => row.entity === key && row.locale === locale), req, check
     )
+    const locales = Object.fromEntries(Object.entries(reviews).map(([locale, { fields: _fields, ...review }]) => [locale, review]))
 
     entities.push({ key, label: globalLabel(config), globalSlug, locales })
   }

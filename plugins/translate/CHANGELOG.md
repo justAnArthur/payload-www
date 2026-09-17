@@ -8,6 +8,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 
+- **The translations detail view renders again** (regression in 3.4.0): the per-entity review
+  loader stripped the field rows from every locale's result the way the overview does, so
+  opening a locale cell crashed the admin with
+  `Cannot read properties of undefined (reading 'filter')` — `review.fields` was undefined.
+  Field rows now stay on the entity review; the overview strips them where it always did.
+
 - **Short fields copied from another locale are now flagged and retranslated.** The statistical
   wrong-language check only fires on long prose (≥40 chars, ≥5 words), so the damage left by the
   old locale race — one locale's translation filed under another, concentrated in titles,
