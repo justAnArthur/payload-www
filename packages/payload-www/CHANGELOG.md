@@ -6,6 +6,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+
+- Requires `@justanarthur/payload-plugin-translator` `^3.3.1`, which stops concurrent
+  translate jobs from writing one locale's translations into another locale's rows (the
+  default-locale document could end up holding another language's titles and slugs after a
+  bulk translation run) and refuses to translate into the default locale altogether.
+
 ## [2.2.0] - 2026-09-16
 
 ### Changed
