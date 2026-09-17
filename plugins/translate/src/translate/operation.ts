@@ -40,13 +40,12 @@ export const translateOperation = async (args: TranslateOperationArgs) => {
 
   const { collectionSlug, globalSlug, id, locale, localeFrom, overrideAccess } = args
 
-  // the default locale is the source every other locale is translated from; writing
-  // machine translations back into it destroys the source of truth
-  const localization = req.payload.config.localization
-  const defaultLocale = localization ? localization.defaultLocale : undefined
-  if (defaultLocale && locale === defaultLocale) {
+  // the default locale is the translation source; machine output must never overwrite it
+  const { localization } = req.payload.config
+
+  if (localization && locale === localization.defaultLocale) {
     throw new APIError(
-      `Refusing to translate into the default locale "${defaultLocale}" — it is the source of truth. Translate from it into a target locale instead.`,
+      `Refusing to translate into the default locale "${localization.defaultLocale}" — it is the source of truth. Translate from it into a target locale instead.`,
       400
     )
   }

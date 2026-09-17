@@ -24,10 +24,8 @@ export const CustomButtonWithTranslator = ({ type }: { type: 'publish' | 'save' 
 
   // the default locale is the translation source — never offer to translate into it
   const { localization } = config
-  const isSourceLocale =
-    Boolean(localization) && locale.code === (localization as Exclude<typeof localization, false>).defaultLocale
 
-  if (isSourceLocale) return <DefaultButton/>
+  if (localization && locale.code === localization.defaultLocale) return <DefaultButton/>
 
   return (
     <TranslatorProvider>
