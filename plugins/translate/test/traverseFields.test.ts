@@ -159,3 +159,26 @@ describe('traverseFields', () => {
     expect(values.map((v) => v.path)).toEqual(['lead'])
   })
 })
+
+  it('carries an empty richText into rebuilt block rows so required fields stay valid', () => {
+    const fields = [{
+      name: 'layout', type: 'blocks', localized: true,
+      blocks: [{ slug: 'richText', fields: [{ name: 'richText', type: 'richText' }] }]
+    }] as unknown as Field[]
+    const emptyLexical = { root: { type: 'root', children: [{ type: 'paragraph', children: [] }] } }
+    const target: Record<string, unknown> = {}
+
+    run(fields, { layout: [{ blockType: 'richText', richText: emptyLexical }] }, target)
+
+    expect((target.layout as any)[0].richText).toEqual(emptyLexical)
+  })
+
+  it('carries a top-level empty richText when the target locale has no value', () => {
+    const fields = [{ name: 'content', type: 'richText', localized: true }] as Field[]
+    const emptyLexical = { root: { type: 'root', children: [] } }
+    const target: Record<string, unknown> = {}
+
+    run(fields, { content: emptyLexical }, target)
+
+    expect(target.content).toEqual(emptyLexical)
+  })

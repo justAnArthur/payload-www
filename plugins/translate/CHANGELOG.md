@@ -8,6 +8,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 
+- **Translating a locale that is missing block rows no longer fails required-field
+  validation on empty rich text.** Rebuilt localized block rows started as bare
+  `id`/`blockType` skeletons, and fields the traversal skips — rich text with no
+  translatable text, empty text/json — never made it into the outgoing payload, so a
+  required `richText` field failed with
+  `ValidationError: The following field is invalid: … RichText`. Rows are now seeded
+  from a clone of their source row (existing target values still win), and a top-level
+  empty rich text is carried over when the target locale has no value.
+
 - **Concurrent translate jobs can no longer write one locale's translations into another
   locale's rows** (including the default locale). Payload's jobs runner hands every
   concurrently-running job the same `req` object (only `transactionID` is isolated), and each

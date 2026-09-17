@@ -41,6 +41,8 @@ type TraverseArgs = {
 /**
  * rows for a localized array/blocks field in the target locale. existing rows are reused by
  * index (same block type) so ids, `blockName` and untranslatable values survive a re-run.
+ * each row starts as a clone of its source row: fields the traversal skips (empty rich text,
+ * empty text/json) must still reach the target payload, or required-field validation fails.
  */
 const buildLocalizedRows = (from: Row[], existing: Row[], isBlocks: boolean, emptyOnly?: boolean): Row[] => {
   const sameShape =
@@ -55,6 +57,7 @@ const buildLocalizedRows = (from: Row[], existing: Row[], isBlocks: boolean, emp
       : undefined
 
     return {
+      ...structuredClone(row),
       ...(previous ?? {}),
       id: previous?.id ?? ObjectID().toHexString(),
       ...(isBlocks ? { blockType: row.blockType, blockName: row.blockName ?? previous?.blockName } : {})
@@ -332,7 +335,14 @@ export const traverseFields = (args: TraverseArgs) => {
 
         onField?.({ path: richTextPath, type: 'richText', source: richTextDataFrom, target: current })
 
-        if (!richTextDataFrom || !hasText(richTextDataFrom)) break
+        if (!richTextDataFrom || !hasText(richTextDataFrom)) {
+          // nothing to translate, but the target still needs the (empty) structure —
+          // payload rejects a missing required richText field at validation time
+          if (richTextDataFrom && current === undefined) {
+            siblingDataTranslated[field.name] = structuredClone(richTextDataFrom)
+          }
+          break
+        }
         if (keepsTarget(richTextDataFrom, current)) break
 
         const isSlate = Array.isArray(richTextDataFrom)
