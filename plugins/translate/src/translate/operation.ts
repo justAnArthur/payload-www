@@ -22,7 +22,6 @@ const localeCodes = (req: PayloadRequest) =>
   (req.payload.config.localization ? req.payload.config.localization.locales : [])
     .map((each) => typeof each === 'string' ? each : each.code)
 
-/** the document's field texts from every other target locale, for duplicate detection */
 const buildCrossLocaleTextsFor = async ({
   config,
   dataFrom,
@@ -131,9 +130,7 @@ export const translateOperation = async (args: TranslateOperationArgs) => {
   const isWrongLanguage = wrongLanguageCheck || crossLocale
     ? (target: unknown, path?: string) =>
         Boolean(wrongLanguageCheck?.(plainText(target), args.locale)) ||
-        (path !== undefined && crossLocale !== undefined
-          ? crossLocaleMatch(crossLocale, path, args.locale, plainText(target)) !== undefined
-          : false)
+        Boolean(crossLocale && path && crossLocaleMatch(crossLocale, path, args.locale, plainText(target)))
     : undefined
 
   traverseFields({

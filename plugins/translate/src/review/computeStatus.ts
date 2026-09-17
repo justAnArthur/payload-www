@@ -45,9 +45,7 @@ export const computeStatus = (
   fields: TranslatableField[],
   options?: {
     locale: string
-    /** statistical detection, blind below ~40 chars / 5 words */
     check?: WrongLanguageCheck | null
-    /** same-document field texts per locale; an exact duplicate of a non-close-pair locale is the race fingerprint */
     crossLocale?: CrossLocaleTexts
   }
 ): { fields: FieldStatus[]; summary: LocaleSummary } => {
@@ -60,7 +58,7 @@ export const computeStatus = (
     const targetText = normalize(plainText(field.target))
     const state = classify(field, sourceText, targetText)
 
-    // the statistical check needs prose; the duplicate check covers the short fields it skips
+    // statistical detection needs prose; the duplicate check covers the short fields it skips
     const detectedLanguage = state === 'ok' && field.type !== 'slug' && !isOpaqueText(targetText)
       ? options?.check?.(targetText, options.locale)
         ?? (options?.crossLocale

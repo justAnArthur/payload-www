@@ -35,8 +35,8 @@ let eldModule: Promise<typeof import('eld/small')> | undefined
  * lazily loads eld's small n-gram database, limited to the configured locales. thresholds were tuned
  * on real site copy: no false positives on ~4900 paragraphs, ~99% of misplaced ones caught.
  *
- * the subset is set per call, not once: eld keeps global state, and the first caller's
- * locale list would otherwise decide what every later caller can detect.
+ * the subset is set per call: eld keeps global state, so the first caller's locale list
+ * would otherwise decide what every later caller can detect.
  */
 export const loadWrongLanguageCheck = (locales: string[]): Promise<WrongLanguageCheck | null> => {
   eldModule ??= import('eld/small')

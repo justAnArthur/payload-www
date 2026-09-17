@@ -67,11 +67,8 @@ export const loadLanguageCheck = (req: PayloadRequest) =>
     ? Promise.resolve(null)
     : loadWrongLanguageCheck(readLocales(req).targetLocales.concat(readLocales(req).defaultLocale))
 
-/**
- * Reviews every target locale of one entity. Fields are collected once per locale so the
- * cross-locale duplicate check can see the same field across all of them — the fingerprint
- * of a translation filed under the wrong locale.
- */
+// fields are collected per locale in one place so the duplicate check can compare
+// the same field across all of them
 const reviewEntity = (
   config: SanitizedCollectionConfig | SanitizedGlobalConfig,
   source: Doc,

@@ -3,23 +3,21 @@ import { CLOSE_PAIRS } from './languageDetector'
 import { plainText } from './plainText'
 
 /**
- * Field texts of one document per target locale, keyed by field path — the input for
- * cross-locale duplicate detection.
+ * Field texts of one document per target locale, keyed by field path.
  *
- * The statistical language check only fires on long prose (≥40 chars, ≥5 words), so the
- * locale race's damage — one locale's translation filed under another locale — hides in
- * exactly the short fields it skips. But the same field exists in every locale of the
- * document: a value that is byte-identical to another locale's value while differing from
- * the source is the race's fingerprint, no statistics required.
+ * The statistical language check needs long prose, so the locale race's damage — one
+ * locale's translation filed under another — hides in exactly the short fields it skips.
+ * A value byte-identical to another locale's value while differing from the source is
+ * that race's fingerprint; no statistics required.
  */
 export type CrossLocaleTexts = Map<string /* path */, Map<string /* locale */, string /* normalized text */>>
 
 const normalize = (text: string) => text.replace(/\s+/g, ' ').trim()
 
 /**
- * Values equal to the source are left out: a string shared by every locale is an
- * untranslatable (brand, address, label), not a duplicate, and this exclusion makes the
- * check safe on both the review and the retranslate side without extra guards.
+ * values equal to the source are left out: shared by every locale, they are untranslatables
+ * (brands, addresses, labels), not duplicates — which keeps the check safe on the review and
+ * retranslate side alike without extra guards
  */
 export const buildCrossLocaleTexts = (
   fieldsPerLocale: { locale: string; fields: TranslatableField[] }[]
@@ -40,11 +38,7 @@ export const buildCrossLocaleTexts = (
   return texts
 }
 
-/**
- * The first non-close-pair locale holding the exact same value, if any. Close pairs
- * (cs/sk, es/pt, …) legitimately converge on the same words, so a duplicate confined to
- * one proves nothing.
- */
+/** close pairs legitimately converge on the same words, so a duplicate within one proves nothing */
 export const crossLocaleMatch = (
   texts: CrossLocaleTexts,
   path: string,
