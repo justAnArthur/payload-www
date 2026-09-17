@@ -141,4 +141,21 @@ describe('traverseFields', () => {
     expect(run(fields, source, structuredClone(target), true).values).toHaveLength(0)
     expect(run(fields, source, structuredClone(target), true, true).values.map((v) => v.path)).toEqual(['title', 'content#0'])
   })
+
+  it('replaces wrong-language targets in untranslated mode', () => {
+    const fields = [{ name: 'lead', type: 'text', localized: true }, { name: 'title', type: 'text', localized: true }] as Field[]
+    const values: ValueToTranslate[] = []
+
+    traverseFields({
+      dataFrom: { lead: 'Our software helps rentals', title: 'Pricing plans' },
+      translatedData: { lead: 'Náš software pomáhá půjčovnám', title: 'Cenové plány' },
+      emptyOnly: true,
+      retranslateIdentical: true,
+      isWrongLanguage: (target) => String(target).startsWith('Náš software'),
+      fields,
+      valuesToTranslate: values
+    })
+
+    expect(values.map((v) => v.path)).toEqual(['lead'])
+  })
 })

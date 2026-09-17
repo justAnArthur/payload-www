@@ -26,6 +26,9 @@ export type TranslatorConfig = {
   /** adds the /admin/translations review view, its endpoints and the status collection (default true) */
   review?: boolean,
 
+  /** flag translated fields written in another locale's language (default true) */
+  languageDetection?: boolean,
+
   
   _options?: {
     

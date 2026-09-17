@@ -89,6 +89,7 @@
   },
   "dependencies": {
     "bson-objectid": "^2.0.4",
+    "eld": "^2.1.0",
     "he": "^1.2.0"
   },
   "devDependencies": {

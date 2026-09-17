@@ -24,4 +24,15 @@ describe('computeStatus', () => {
     ])
     expect(summary).toMatchObject({ total: 6, ok: 2, missing: 2, identical: 1, placeholders: 1, coverage: 33, slugMissing: true })
   })
+
+  it('marks translated text written in another language and drops it from coverage', () => {
+    const check = (text: string) => text.startsWith('Náš software') ? 'cs' : null
+    const { fields, summary } = computeStatus([
+      { path: 'lead', type: 'text', source: 'Our software helps', target: 'Náš software pro půjčovny' },
+      { path: 'title', type: 'text', source: 'Pricing', target: 'Cenník' }
+    ], { locale: 'sk', check })
+
+    expect(fields.map((f) => [f.path, f.state, f.detectedLanguage])).toEqual([['lead', 'wrongLanguage', 'cs'], ['title', 'ok', undefined]])
+    expect(summary).toMatchObject({ wrongLanguage: 1, coverage: 50 })
+  })
 })

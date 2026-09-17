@@ -10,7 +10,8 @@ const STATE: Record<FieldState, { label: string; tone: 'bad' | 'ok' | 'warn' }> 
   identical: { label: 'same as source', tone: 'warn' },
   missing: { label: 'missing', tone: 'bad' },
   ok: { label: 'translated', tone: 'ok' },
-  placeholders: { label: 'placeholders differ', tone: 'warn' }
+  placeholders: { label: 'placeholders differ', tone: 'warn' },
+  wrongLanguage: { label: 'wrong language', tone: 'bad' }
 }
 
 const preview = (text: string) => text.length > 600 ? `${text.slice(0, 597)}…` : text
@@ -39,6 +40,7 @@ export const Detail = ({ adminRoute, review, onlyIssues, tab, page }: {
     { label: 'translated', value: `${summary.coverage}%`, note: `${summary.ok} of ${summary.total} fields`, bar: true },
     { label: 'missing', value: summary.missing, note: 'empty in this locale' },
     { label: 'same as source', value: summary.identical, note: `identical to ${review.defaultLocale}` },
+    { label: 'wrong language', value: summary.wrongLanguage, note: `not written in ${review.locale}` },
     { label: 'placeholders', value: summary.placeholders, note: 'differ from source' }
   ]
 
@@ -106,7 +108,11 @@ export const Detail = ({ adminRoute, review, onlyIssues, tab, page }: {
             {rows.map((field) => (
               <tr key={field.path}>
                 <td className="tr__path" title={field.path}>{readablePath(field.path)}</td>
-                <td><span className="tr__pill" data-tone={STATE[field.state].tone}>{STATE[field.state].label}</span></td>
+                <td>
+                  <span className="tr__pill" data-tone={STATE[field.state].tone}>
+                    {field.detectedLanguage ? `${field.detectedLanguage} detected` : STATE[field.state].label}
+                  </span>
+                </td>
                 <td className="tr__text">{preview(field.sourceText)}</td>
                 <td className={`tr__text${field.targetText.trim() ? '' : ' tr__text--empty'}`}>
                   {field.targetText.trim() ? preview(field.targetText) : 'empty'}

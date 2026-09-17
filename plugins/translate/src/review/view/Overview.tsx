@@ -30,14 +30,15 @@ export const Overview = ({ adminRoute, defaultLocale, entities, locales, onlyIss
     return {
       locale,
       coverage: fields ? Math.floor((ok / fields) * 100) : 100,
-      incomplete: reviews.filter(isIncomplete).length
+      incomplete: reviews.filter(isIncomplete).length,
+      wrongLanguage: reviews.filter((each) => each.summary.wrongLanguage > 0).length
     }
   })
 
   return (
     <>
       <div className="tr__stats">
-        {stats.map(({ locale, coverage, incomplete }) => (
+        {stats.map(({ locale, coverage, incomplete, wrongLanguage }) => (
           <div className="tr__stat" key={locale}>
             <span className="tr__stat-label">{locale}</span>
             <span className="tr__stat-value">{coverage}%</span>
@@ -45,6 +46,7 @@ export const Overview = ({ adminRoute, defaultLocale, entities, locales, onlyIss
               <span style={{ width: `${coverage}%` }}/>
             </div>
             <span className="tr__stat-note">{incomplete ? `${incomplete} incomplete` : 'all complete'}</span>
+            {wrongLanguage > 0 && <span className="tr__stat-note tr__lang">⚑ {wrongLanguage} in another language</span>}
           </div>
         ))}
       </div>
@@ -74,6 +76,7 @@ export const Overview = ({ adminRoute, defaultLocale, entities, locales, onlyIss
                     summary.missing && `${summary.missing} missing`,
                     summary.identical && `${summary.identical} same as ${defaultLocale}`,
                     summary.placeholders && `${summary.placeholders} broken placeholders`,
+                    summary.wrongLanguage && `${summary.wrongLanguage} written in another language`,
                     summary.slugMissing && 'no slug: the page 404s',
                     review.stale && 'source changed since translation',
                     review.reviewed && 'reviewed'
@@ -92,6 +95,7 @@ export const Overview = ({ adminRoute, defaultLocale, entities, locales, onlyIss
                           {(review.stale || review.reviewed) && (
                             <span className="tr__marks"> {[review.stale && '↻', review.reviewed && '✓'].filter(Boolean).join(' ')}</span>
                           )}
+                          {summary.wrongLanguage > 0 && <span className="tr__lang"> ⚑{summary.wrongLanguage}</span>}
                         </span>
                         <span className="tr__bar"><span style={{ width: `${summary.slugMissing ? 100 : summary.coverage}%` }}/></span>
                       </a>
@@ -111,6 +115,7 @@ export const Overview = ({ adminRoute, defaultLocale, entities, locales, onlyIss
         <span><i className="tr__dot" style={{ ['--tr-tone' as string]: 'var(--tr-ok)' }}/>fully translated</span>
         <span><i className="tr__dot" style={{ ['--tr-tone' as string]: 'var(--tr-warn)' }}/>partly translated</span>
         <span><i className="tr__dot" style={{ ['--tr-tone' as string]: 'var(--tr-bad)' }}/>under half, or 404 without a slug</span>
+        <span className="tr__lang">⚑ fields written in another language</span>
         <span>↻ source changed since the last translation</span>
         <span>✓ reviewed</span>
       </div>

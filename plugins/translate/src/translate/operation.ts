@@ -3,7 +3,9 @@ import { APIError, type Payload, type PayloadRequest } from 'payload'
 
 import type { TranslateResolver } from '../resolvers/types'
 import { findEntityWithConfig } from './findEntityWithConfig'
+import { loadWrongLanguageCheck } from '../utils/languageDetector'
 import { samePlaceholders } from '../utils/placeholders'
+import { plainText } from '../utils/plainText'
 import { traverseFields } from './traverseFields'
 import type { TranslateArgs, TranslateResult, ValueToTranslate } from './types'
 import { updateEntity } from './updateEntity'
@@ -13,6 +15,10 @@ const preview = (value: unknown) => {
   const flat = (typeof value === 'string' ? value : String(value ?? '')).replace(/\s+/g, ' ').trim()
   return JSON.stringify(flat.length > 60 ? `${flat.slice(0, 57)}…` : flat)
 }
+
+const localeCodes = (req: PayloadRequest) =>
+  (req.payload.config.localization ? req.payload.config.localization.locales : [])
+    .map((each) => typeof each === 'string' ? each : each.code)
 
 export type TranslateOperationArgs = (
   | {
@@ -66,10 +72,19 @@ export const translateOperation = async (args: TranslateOperationArgs) => {
     translatedData = doc
   }
 
+  // untranslated mode also replaces copy written in another locale's language
+  const wrongLanguageCheck = args.retranslateIdentical && req.payload.config.custom?.translator?.languageDetection !== false
+    ? await loadWrongLanguageCheck(localeCodes(req))
+    : null
+  const isWrongLanguage = wrongLanguageCheck
+    ? (target: unknown) => Boolean(wrongLanguageCheck(plainText(target), args.locale))
+    : undefined
+
   traverseFields({
     dataFrom,
     emptyOnly: args.emptyOnly,
     retranslateIdentical: args.retranslateIdentical,
+    isWrongLanguage,
     fields: config.fields,
     translatedData,
     valuesToTranslate,
