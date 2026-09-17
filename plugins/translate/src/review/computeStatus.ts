@@ -1,7 +1,7 @@
 import type { TranslatableField } from '../translate/types'
-import { isOpaqueText } from '../utils/isOpaqueText'
+import { looksUntranslated } from '../utils/looksUntranslated'
 import { samePlaceholders } from '../utils/placeholders'
-import { plainText } from './plainText'
+import { plainText } from '../utils/plainText'
 
 export type FieldState = 'identical' | 'missing' | 'ok' | 'placeholders'
 
@@ -29,10 +29,7 @@ const classify = (field: TranslatableField, sourceText: string, targetText: stri
 
   if (field.type === 'json' && !samePlaceholders(sourceText, targetText)) return 'placeholders'
 
-  // short strings, brand names and opaque values are legitimately the same in every locale
-  const same = normalize(sourceText) === normalize(targetText)
-  if (same && field.type !== 'slug' && normalize(sourceText).length > 3 && !isOpaqueText(sourceText) && /\s/.test(normalize(sourceText)))
-    return 'identical'
+  if (field.type !== 'slug' && looksUntranslated(sourceText, targetText)) return 'identical'
 
   return 'ok'
 }

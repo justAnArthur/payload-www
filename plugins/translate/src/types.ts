@@ -1,6 +1,7 @@
 import type { CollectionSlug, GlobalSlug } from 'payload'
 
 import type { TranslateResolver } from './resolvers/types'
+import type { TranslateMode } from './utils/translateMode'
 
 export type TranslatorConfig = {
   
@@ -20,7 +21,7 @@ export type TranslatorConfig = {
    * `missing` (default) fills empty fields and keeps existing translations and slugs;
    * `all` re-translates every field.
    */
-  autoTranslateMode?: 'all' | 'missing',
+  autoTranslateMode?: TranslateMode,
 
   /** adds the /admin/translations review view, its endpoints and the status collection (default true) */
   review?: boolean,

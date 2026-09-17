@@ -5,6 +5,7 @@ import { tabHasName } from 'payload/shared'
 import { hasText } from '../utils/hasText'
 import { isEmpty } from '../utils/isEmpty'
 import { isOpaqueText } from '../utils/isOpaqueText'
+import { looksUntranslated } from '../utils/looksUntranslated'
 import { sanitizeSlug } from '../utils/sanitizeSlug'
 import { traverseRichText } from './traverseRichText'
 import type { TranslatableField, ValueToTranslate } from './types'
@@ -18,6 +19,8 @@ type Row = Record<string, unknown> & { id?: string; blockType?: string; blockNam
 type TraverseArgs = {
   dataFrom: Record<string, unknown>
   emptyOnly?: boolean
+  /** with `emptyOnly`, also replace targets that still hold the source copy */
+  retranslateIdentical?: boolean
   fields: Field[]
   localizedParent?: boolean
   path?: string
@@ -61,6 +64,7 @@ export const traverseFields = (args: TraverseArgs) => {
   const {
     dataFrom,
     emptyOnly,
+    retranslateIdentical,
     fields,
     localizedParent,
     path,
@@ -72,6 +76,10 @@ export const traverseFields = (args: TraverseArgs) => {
   const { additionalTraverseRichText } = _options ?? {}
   const siblingDataFrom = args.siblingDataFrom ?? dataFrom
   const siblingDataTranslated = args.siblingDataTranslated ?? translatedData
+
+  // in fill-only modes a target is kept unless it is empty, or still the source copy when asked
+  const keepsTarget = (source: unknown, target: unknown) =>
+    Boolean(emptyOnly) && hasText(target) && !(retranslateIdentical && looksUntranslated(source, target))
 
   const recurse = (overrides: Partial<TraverseArgs> & Pick<TraverseArgs, 'fields'>) =>
     traverseFields({ ...args, siblingDataFrom, siblingDataTranslated, ...overrides })
@@ -232,7 +240,7 @@ export const traverseFields = (args: TraverseArgs) => {
               onField?.({ path: keyPath, type: 'json', source: value, target: previous })
 
               if (!value.trim()) continue
-              if (emptyOnly && typeof previous === 'string' && previous.trim()) continue
+              if (keepsTarget(value, previous)) continue
 
               target[key] = value
               if (isOpaqueText(value)) continue
@@ -277,7 +285,7 @@ export const traverseFields = (args: TraverseArgs) => {
         const hasCurrent = typeof current === 'string' && current.trim().length > 0
 
         // an existing slug is a live url: never re-translate it
-        if (hasCurrent && (emptyOnly || isSlug)) break
+        if (isSlug ? hasCurrent : keepsTarget(value, current)) break
 
         if (isOpaqueText(value)) {
           siblingDataTranslated[field.name] = value
@@ -321,7 +329,7 @@ export const traverseFields = (args: TraverseArgs) => {
         onField?.({ path: richTextPath, type: 'richText', source: richTextDataFrom, target: current })
 
         if (!richTextDataFrom || !hasText(richTextDataFrom)) break
-        if (emptyOnly && hasText(current)) break
+        if (keepsTarget(richTextDataFrom, current)) break
 
         const isSlate = Array.isArray(richTextDataFrom)
         const isLexical = typeof richTextDataFrom === 'object' && 'root' in richTextDataFrom

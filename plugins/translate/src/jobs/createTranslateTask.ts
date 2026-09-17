@@ -4,6 +4,7 @@ import { findEntityWithConfig } from '../translate/findEntityWithConfig'
 import { translateOperation } from '../translate/operation'
 import { updateEntity } from '../translate/updateEntity'
 import { recordTranslationStatus } from '../review/recordTranslationStatus'
+import { isTranslateMode, type TranslateMode, translateModeArgs } from '../utils/translateMode'
 
 
 
@@ -48,13 +49,13 @@ export function createTranslateTask(options: CreateTranslateTaskOptions = {}): T
           fromLocale: string
           toLocale: string
           resolver?: string
-          mode?: 'all' | 'missing'
+          mode?: TranslateMode
         }
         job: { id: string }
         req: import('payload').PayloadRequest
       }
       const { id, collection, global, fromLocale, toLocale, resolver: inputResolver } = input
-      const mode = input.mode ?? readAutoTranslateMode(req)
+      const mode = isTranslateMode(input.mode) ? input.mode : readAutoTranslateMode(req)
 
       if (!collection && !global) {
         throw new Error('translateTask: either `collection` or `global` must be provided')
@@ -80,7 +81,7 @@ export function createTranslateTask(options: CreateTranslateTaskOptions = {}): T
           req,
           collectionSlug: collection,
           globalSlug: global,
-          emptyOnly: mode !== 'all',
+          ...translateModeArgs(mode),
           id,
           locale: toLocale,
           localeFrom: fromLocale,
@@ -119,6 +120,11 @@ export function createTranslateTask(options: CreateTranslateTaskOptions = {}): T
           jobId: job.id,
           msg: `[translate] ${entityLabel}#${id ?? global} changed during translation — skipping ${toLocale}, the newer save re-queues it`
         })
+        return { output: { success: true } }
+      }
+
+      if (result.translatedCount === 0) {
+        req.payload.logger.info({ jobId: job.id, msg: `[translate] ${entityLabel}#${id ?? global} → ${toLocale}: nothing to translate` })
         return { output: { success: true } }
       }
 
@@ -178,6 +184,7 @@ function readFirstResolverKey(req: unknown): string {
   return typeof first?.key === 'string' ? first.key : ''
 }
 
-function readAutoTranslateMode(req: import('payload').PayloadRequest): 'all' | 'missing' {
-  return req.payload.config.custom?.translator?.autoTranslateMode === 'all' ? 'all' : 'missing'
+function readAutoTranslateMode(req: import('payload').PayloadRequest): TranslateMode {
+  const mode = req.payload.config.custom?.translator?.autoTranslateMode
+  return isTranslateMode(mode) ? mode : 'missing'
 }

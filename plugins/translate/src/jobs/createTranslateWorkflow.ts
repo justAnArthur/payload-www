@@ -31,7 +31,8 @@ export function createTranslateWorkflow(
       { name: 'toLocales', type: 'json', required: false },
       // Kept for backward-compatibility with jobs queued by older versions.
       { name: 'toLocale', type: 'text', required: false },
-      { name: 'resolver', type: 'text', required: false }
+      { name: 'resolver', type: 'text', required: false },
+      { name: 'mode', type: 'text', required: false }
     ],
     handler: async (args) => {
       const { job, req, tasks } = args as unknown as {
@@ -46,12 +47,13 @@ export function createTranslateWorkflow(
             toLocales?: string[]
             toLocale?: string
             resolver?: string
+            mode?: string
           }
         }
         req: import('payload').PayloadRequest
         tasks: Record<string, (taskSlug: string, opts: { input: unknown }) => Promise<unknown>>
       }
-      const { id, collection, global, fromLocale, toLocales, toLocale, updatedAt, resolver } = job.input
+      const { id, collection, global, fromLocale, toLocales, toLocale, updatedAt, resolver, mode } = job.input
 
       if (!collection && !global) {
         throw new Error('translateWorkflow: either `collection` or `global` must be provided')
@@ -100,7 +102,8 @@ export function createTranslateWorkflow(
             global,
             fromLocale,
             toLocale: target,
-            resolver
+            resolver,
+            mode
           }
         })
       }
