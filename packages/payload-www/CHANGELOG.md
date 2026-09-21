@@ -12,6 +12,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   `createCollectionPageExports`, returns every document again. It passed no limit to
   `findIds`, so Payload's default `limit: 10` applied, and sitemaps and prerendered paths
   stopped at 10 documents per collection and locale.
+- Unknown slugs return HTTP 404 again under `cacheComponents`. The page looked up the
+  document and called `notFound()` inside its Suspense boundary. By then the shell had
+  already streamed with status 200, so Next could only add `noindex`, a soft 404. The lookup
+  now runs before the boundary. Slugs from `generateStaticParams` still prerender. Next
+  serves any other slug as a blocking render, so a missing document gets a real 404 and a
+  document published after the build renders on its first request. The `fallback` dep now
+  wraps only the rendered document. Add `export const instant = false` next to the page
+  exports to tell Next's dev-time instant validation that the route blocks on purpose.
+  With `partialPrefetching: true`, Next still serves the layout shell for slugs it did not
+  prerender, so those slugs still get a soft 404.
 
 ### Changed
 
