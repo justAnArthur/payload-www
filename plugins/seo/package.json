@@ -83,7 +83,8 @@
     "clean": "rm -rf dist .tsbuildinfo",
     "prepublishOnly": "bun run clean && bun run build",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "bson-objectid": "^2.0.4",
