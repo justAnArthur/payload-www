@@ -5,7 +5,7 @@ import * as React from 'react'
 import { paramsSlugToSlug, type SlugShape, slugToParamsSlug } from '../metadata/slug'
 import { queryAllDocs, queryAllLocaleSlugs, queryDoc, seedPayloadCache } from '../metadata/query'
 import { setRequestLocale } from "next-intl/server"
-import { NextPageProps } from "./utils/checkParams"
+import { type GenerateStaticParamsProps, NextPageProps } from "./utils/checkParams"
 import { buildAlternates, type PagePathPrefix, resolvePagePathPrefix, RoutingConfig } from "./utils/buildLocalizedPath"
 import { createSiteDefaults, generateMeta } from "@justanarthur/payload-plugin-seo/next-metadata"
 import { renderWWWDataModule } from "../renderWWWModule"
@@ -126,7 +126,7 @@ export function createCollectionPageExports<S extends string = 'pages'>(
     return { ...meta, alternates }
   }
 
-  async function generateStaticParams(props: NextPageProps) {
+  async function generateStaticParams(props: GenerateStaticParamsProps) {
     await props.params
     // Return every (locale, slug) pair across all declared locales. Next 16's
     // static shell pre-renders each pair; the layout's generateStaticParams
