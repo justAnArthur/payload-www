@@ -27,6 +27,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   every page that re-exported it failed `tsc` against Next's generated route validator
   (TS2344, "Types of property 'params' are incompatible"). Its `params` is now `P | Promise<P>`,
   and pages no longer need a cast.
+- Draft-only documents are no longer public. In 2.x, the cached query getters called the
+  `@pro-laico/payload-revalidate` finders without `overrideAccess`, so the Local API default
+  of `true` skipped the collection's read access. A document that was never published
+  therefore rendered with a 200 and showed up in `generateStaticParams`, sitemaps and hreflang
+  alternates. The 1.x behaviour is back: public reads (`queryDocBySlug`, `queryDocByID`
+  without `draft`, `queryAllDocs`, `queryAllLocaleSlugs`) pass `overrideAccess: false`, so
+  `authenticatedOrPublished` filters them to published documents. Draft reads keep
+  `overrideAccess: true`. `queryGlobal` still skips access, as it did in 1.x.
 
 ### Changed
 
