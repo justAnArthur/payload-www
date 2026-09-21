@@ -22,6 +22,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   exports to tell Next's dev-time instant validation that the route blocks on purpose.
   With `partialPrefetching: true`, Next still serves the layout shell for slugs it did not
   prerender, so those slugs still get a soft 404.
+- `generateStaticParams` from `createCollectionPageExports` now accepts the plain params
+  object Next passes it. It was typed with `NextPageProps`, whose `params` is a `Promise`, so
+  every page that re-exported it failed `tsc` against Next's generated route validator
+  (TS2344, "Types of property 'params' are incompatible"). Its `params` is now `P | Promise<P>`,
+  and pages no longer need a cast.
 
 ### Changed
 
