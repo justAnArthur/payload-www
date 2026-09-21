@@ -1,4 +1,6 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
+
+vi.mock('server-only', () => ({}))
 
 import { anyone, authenticated, authenticatedOrPublished } from '../src/collections/access'
 import { createFooterGlobal } from '../src/collections/createFooterGlobal'
@@ -11,12 +13,12 @@ import { slugField } from '../src/collections/fields/slug'
 import { createWWWConfig } from '../src/createWWWConfig'
 import { generateImportName } from '../src/render/generateImportName'
 import { getFromImportMap } from '../src/render/getFromImportMap'
-import { buildArticleLd, buildBreadcrumbsLd, buildOrganizationLd } from '../src/render/metadata/jsonld'
+import { buildArticleLd, buildBreadcrumbsLd } from '../src/render/metadata/jsonld'
 import { paramsSlugToSlug, slugToParamsSlug } from '../src/render/metadata/slug'
 
 import { link as linkFromShim, linkGroup as linkGroupFromShim, appearanceOptions as appearanceOptionsFromShim } from '../src/exports/fields'
 import { anyone as anyoneFromShim } from '../src/exports/access'
-import { buildArticleLd as articleFromShim, paramsSlugToSlug as segFromShim } from '../src/exports/metadata'
+import { buildArticleLd as articleFromShim, buildOrganizationLd, paramsSlugToSlug as segFromShim } from '../src/exports/metadata'
 import { getFromImportMap as gimFromShim } from '../src/exports/utils'
 import { createWWWConfig as createWWWConfigFromShim } from '../src/exports/config'
 
@@ -283,24 +285,29 @@ describe('createWWWConfig', () => {
 
 describe('metadata/slug', () => {
   it('paramsSlugToSlug joins an array of segments with _', () => {
-    expect(paramsSlugToSlug(['a', 'b', 'c'])).toBe('a_b_c')
+    expect(paramsSlugToSlug(['a', 'b', 'c'], 'catch-all')).toBe('a_b_c')
   })
 
   it('paramsSlugToSlug passes a string through unchanged', () => {
-    expect(paramsSlugToSlug('hello')).toBe('hello')
+    expect(paramsSlugToSlug('hello', 'single')).toBe('hello')
   })
 
   it('paramsSlugToSlug returns empty for empty input', () => {
-    expect(paramsSlugToSlug([])).toBe('')
-    expect(paramsSlugToSlug('')).toBe('')
+    expect(paramsSlugToSlug([], 'catch-all')).toBe('')
+    expect(paramsSlugToSlug('', 'single')).toBe('')
   })
 
-  it('slugToParamsSlug splits on _', () => {
-    expect(slugToParamsSlug('a_b_c')).toEqual(['a', 'b', 'c'])
+  it('slugToParamsSlug splits on _ for a catch-all route', () => {
+    expect(slugToParamsSlug('a_b_c', 'catch-all')).toEqual(['a', 'b', 'c'])
   })
 
-  it('slugToParamsSlug returns undefined for empty input', () => {
-    expect(slugToParamsSlug('')).toBeUndefined()
+  it('slugToParamsSlug keeps the stored slug for a single-segment route', () => {
+    expect(slugToParamsSlug('a_b_c', 'single')).toBe('a_b_c')
+  })
+
+  it('slugToParamsSlug returns an empty value of the route shape for empty input', () => {
+    expect(slugToParamsSlug('', 'catch-all')).toEqual([])
+    expect(slugToParamsSlug('', 'single')).toBe('')
   })
 
   it('shim matches src', () => {
@@ -352,14 +359,14 @@ describe('metadata/jsonld', () => {
   })
 
   it('buildOrganizationLd merges optional fields', () => {
-    const ld = buildOrganizationLd({ siteUrl: 'https://x.com', name: 'X' })
+    const ld = buildOrganizationLd({ siteUrl: 'https://x.com', shared: { name: 'X' } })
     expect(ld['@type']).toBe('Organization')
-    expect((ld as any).name).toBe('X')
+    expect(ld.name).toBe('X')
   })
 
   it('buildOrganizationLd omits name when not provided', () => {
     const ld = buildOrganizationLd({ siteUrl: 'https://x.com' })
-    expect((ld as any).name).toBeUndefined()
+    expect(ld.name).toBeUndefined()
   })
 
   it('shim re-export matches src', () => {

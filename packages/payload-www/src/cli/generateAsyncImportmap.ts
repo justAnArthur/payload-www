@@ -55,9 +55,9 @@ export async function generateAsyncImportmap(
   options: GenerateAsyncImportmapOptions
 ): Promise<GenerateAsyncImportmapResult> {
   const pkg = options.packageName ?? packageName
-  const blocks = ((config.blocks ?? []) as unknown as BlockLike[]) ?? []
-  const collections = ((config.collections ?? []) as unknown as CollectionOrGlobalLike[]) ?? []
-  const globals = ((config.globals ?? []) as unknown as CollectionOrGlobalLike[]) ?? []
+  const blocks = (config.blocks ?? []) as unknown as BlockLike[]
+  const collections = (config.collections ?? []) as unknown as CollectionOrGlobalLike[]
+  const globals = (config.globals ?? []) as unknown as CollectionOrGlobalLike[]
 
   const keys = new Set<string>()
 
