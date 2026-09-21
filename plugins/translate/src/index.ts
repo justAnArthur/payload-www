@@ -164,7 +164,7 @@ export const translator: (pluginConfig: TranslatorConfig) => Plugin = (pluginCon
             jobs: {
               ...(config.jobs ?? {}),
               tasks: ensureJobBySlug<TaskConfig>(config.jobs?.tasks, createTranslateTask()),
-              workflows: ensureJobBySlug<WorkflowConfig>(
+              workflows: ensureJobBySlug<WorkflowConfig<any>>(
                 config.jobs?.workflows,
                 createTranslateWorkflow()
                ),
