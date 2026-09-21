@@ -25,8 +25,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - `generateStaticParams` from `createCollectionPageExports` now accepts the plain params
   object Next passes it. It was typed with `NextPageProps`, whose `params` is a `Promise`, so
   every page that re-exported it failed `tsc` against Next's generated route validator
-  (TS2344, "Types of property 'params' are incompatible"). Its `params` is now `P | Promise<P>`,
-  and pages no longer need a cast.
+  (TS2344, "Types of property 'params' are incompatible"). Its `params` now takes the plain
+  object or a promise of it, and pages no longer need a cast.
 - Draft-only documents are no longer public. In 2.x, the cached query getters called the
   `@pro-laico/payload-revalidate` finders without `overrideAccess`, so the Local API default
   of `true` skipped the collection's read access. A document that was never published

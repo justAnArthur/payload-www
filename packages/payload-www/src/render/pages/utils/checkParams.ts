@@ -12,6 +12,6 @@ export type NextLayoutProps = {
 type RouteParams = Record<string, string | string[] | undefined>
 
 // next passes generateStaticParams the parent segments' params as a plain object
-export type GenerateStaticParamsProps<P extends RouteParams = RouteParams> = {
-  params: P | Promise<P>
+export type GenerateStaticParamsProps = {
+  params: RouteParams | Promise<RouteParams>
 }
