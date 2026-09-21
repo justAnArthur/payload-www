@@ -85,6 +85,7 @@ describe('createAutoTranslateCollectionHook', () => {
     // One workflow per document (locales handled sequentially inside it), not one per locale.
     expect(payload.jobs.queue).toHaveBeenCalledTimes(1)
     expect(payload.jobs.queue).toHaveBeenCalledWith({
+      req,
       workflow: 'translateEntityToLocales',
       input: {
         id: 42,
@@ -345,6 +346,7 @@ describe('createAutoTranslateGlobalHook', () => {
 
     expect(payload.jobs.queue).toHaveBeenCalledTimes(1)
     expect(payload.jobs.queue).toHaveBeenCalledWith({
+      req,
       workflow: 'translateEntityToLocales',
       input: {
         updatedAt: '2026-06-22T10:00:00.000Z',

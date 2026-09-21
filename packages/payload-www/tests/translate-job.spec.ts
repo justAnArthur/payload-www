@@ -21,30 +21,49 @@ import {
   createTranslateWorkflow
 } from '../../../plugins/translate/src/jobs'
 
-type MockLogger = { error: ReturnType<typeof vi.fn>; info: ReturnType<typeof vi.fn> }
+type MockLogger = { error: ReturnType<typeof vi.fn>; info: ReturnType<typeof vi.fn>; warn: ReturnType<typeof vi.fn> }
 type MockPayload = {
   update: ReturnType<typeof vi.fn>
   updateGlobal: ReturnType<typeof vi.fn>
+  findByID: ReturnType<typeof vi.fn>
+  findGlobal: ReturnType<typeof vi.fn>
+  collections: Record<string, unknown>
   logger: MockLogger
 }
 
+const UPDATED_AT = '2026-06-22T10:00:00.000Z'
+
+// the task re-reads the doc after translating and only persists while updatedAt still matches
 function mockPayload(): MockPayload {
   return {
     update: vi.fn().mockResolvedValue({}),
     updateGlobal: vi.fn().mockResolvedValue({}),
-    logger: { error: vi.fn(), info: vi.fn() }
+    findByID: vi.fn().mockResolvedValue({ id: 7, updatedAt: UPDATED_AT }),
+    findGlobal: vi.fn().mockResolvedValue({ updatedAt: UPDATED_AT }),
+    collections: {},
+    logger: { error: vi.fn(), info: vi.fn(), warn: vi.fn() }
   }
 }
 
-function buildTaskReq(payload: MockPayload, opts: { localization?: unknown } = {}) {
-  const config: { localization: unknown } = {
-    localization:
-      'localization' in opts ? opts.localization : { defaultLocale: 'en', locales: ['en', 'uk'] }
-  }
+const translated = (translatedData: Record<string, unknown>) => ({
+  success: true,
+  translatedData,
+  translatedCount: Object.keys(translatedData).length,
+  syncedCount: 0,
+  dataFrom: { updatedAt: UPDATED_AT }
+})
+
+function buildTaskReq(payload: MockPayload, opts: { localization?: unknown; custom?: unknown } = {}) {
   return {
     payload: {
       ...payload,
-      config
+      config: {
+        localization:
+          'localization' in opts ? opts.localization : { defaultLocale: 'en', locales: ['en', 'uk'] },
+        collections: [{ slug: 'pages', fields: [] }],
+        globals: [{ slug: 'header', fields: [] }],
+        custom: opts.custom
+      }
     }
   } as never
 }
@@ -63,11 +82,7 @@ describe('createTranslateTask', () => {
   })
 
   it('calls translateOperation with the right resolver + locale pair', async () => {
-    translateOperationMock.mockResolvedValue({
-      success: true,
-      translatedData: { title: 'Привіт' },
-      dataFrom: { title: 'Hello' }
-    })
+    translateOperationMock.mockResolvedValue(translated({ title: 'Привіт' }))
 
     const task = createTranslateTask({ resolverKey: 'openai' })
     await task.handler({
@@ -86,16 +101,13 @@ describe('createTranslateTask', () => {
         resolver: 'openai',
         update: false,
         overrideAccess: true,
-        emptyOnly: false
+        emptyOnly: true
       })
     )
   })
 
   it('persists translated data via req.payload.update for collections', async () => {
-    translateOperationMock.mockResolvedValue({
-      success: true,
-      translatedData: { title: 'Привіт', body: 'Тіло' }
-    })
+    translateOperationMock.mockResolvedValue(translated({ title: 'Привіт', body: 'Тіло' }))
 
     const task = createTranslateTask({ resolverKey: 'openai' })
     await task.handler({
@@ -106,7 +118,9 @@ describe('createTranslateTask', () => {
 
     expect(payload.update).toHaveBeenCalledWith({
       collection: 'pages',
+      context: { disableAutoTranslate: true },
       data: { title: 'Привіт', body: 'Тіло' },
+      depth: 0,
       id: 7,
       locale: 'uk',
       overrideAccess: true,
@@ -116,10 +130,7 @@ describe('createTranslateTask', () => {
   })
 
   it('persists translated data via req.payload.updateGlobal for globals', async () => {
-    translateOperationMock.mockResolvedValue({
-      success: true,
-      translatedData: { navTitle: 'Меню' }
-    })
+    translateOperationMock.mockResolvedValue(translated({ navTitle: 'Меню' }))
 
     const task = createTranslateTask({ resolverKey: 'openai' })
     await task.handler({
@@ -130,7 +141,9 @@ describe('createTranslateTask', () => {
 
     expect(payload.updateGlobal).toHaveBeenCalledWith({
       slug: 'header',
+      context: { disableAutoTranslate: true },
       data: { navTitle: 'Меню' },
+      depth: 0,
       locale: 'uk',
       overrideAccess: true,
       req: expect.anything()
@@ -139,14 +152,7 @@ describe('createTranslateTask', () => {
   })
 
   it('strips synthetic _locale and _parent_id from translated data', async () => {
-    translateOperationMock.mockResolvedValue({
-      success: true,
-      translatedData: {
-        title: 'Привіт',
-        _locale: 'uk',
-        _parent_id: 7
-      }
-    })
+    translateOperationMock.mockResolvedValue(translated({ title: 'Привіт', _locale: 'uk', _parent_id: 7 }))
 
     const task = createTranslateTask({ resolverKey: 'openai' })
     await task.handler({
@@ -201,7 +207,7 @@ describe('createTranslateTask', () => {
   })
 
   it('propagates persist throws (triggers retry)', async () => {
-    translateOperationMock.mockResolvedValue({ success: true, translatedData: { title: 'ok' } })
+    translateOperationMock.mockResolvedValue(translated({ title: 'ok' }))
     payload.update.mockRejectedValue(new Error('db down'))
 
     const task = createTranslateTask({ resolverKey: 'openai' })
@@ -242,15 +248,7 @@ describe('createTranslateTask', () => {
     await task.handler({
       input: { id: 7, collection: 'pages', fromLocale: 'en', toLocale: 'uk' },
       job: { id: 'job-1' } as never,
-      req: {
-        payload: {
-          ...payload,
-          config: {
-            localization: { defaultLocale: 'en', locales: ['en', 'uk'] },
-            custom: { translator: { resolvers: [{ key: 'openai' }, { key: 'google' }] } }
-          }
-        }
-      } as never
+      req: buildTaskReq(payload, { custom: { translator: { resolvers: [{ key: 'openai' }, { key: 'google' }] } } })
     } as never)
 
     expect(translateOperationMock).toHaveBeenCalledWith(
