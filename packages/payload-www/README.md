@@ -112,7 +112,17 @@ const {
 
 export default Page
 export { generateMetadata, generateStaticParams, generateSitemap }
+
+// the doc lookup blocks so unknown slugs can return a real 404
+export const instant = false
 ```
+
+The page looks up the document before it renders anything, so a missing slug returns HTTP 404
+rather than a streamed not-found body with status 200. Slugs from `generateStaticParams`
+prerender. Next renders any other slug on its first request, and blocks until the lookup is
+done. `export const instant = false` tells Next's dev-time instant validation that the route
+blocks on purpose. With `partialPrefetching: true`, Next streams the layout shell for slugs it did
+not prerender, so those slugs still get a soft 404.
 
 `slugShape` is `'single'` (default) or `'catch-all'`. Use `'catch-all'` if your route segment is
 `[[...slug]]` (Pages-style), `'single'` for `[slug]` (Posts-style — file convention).
@@ -141,6 +151,7 @@ const { default: PostPage, generateMetadata, generateStaticParams } = createColl
 |---|---|---|
 | `getServerSideURL` | `() => string` | host's absolute-URL helper |
 | `pagePathPrefix` | `string \| Record<locale, string>` | URL segment the collection is mounted under, used for `generateSitemap` and for canonical/hreflang URLs. Pass a record to localize the segment (`{ en: 'posts', sk: 'prispevky' }`); locales absent from it fall back to the default locale. The sitemap *index* route always uses the default locale's segment. |
+| `fallback` | `ReactNode` | rendered while the found document streams. Defaults to nothing. The lookup itself never streams, so a missing document still returns a 404. |
 
 ### What you get back
 

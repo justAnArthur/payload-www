@@ -58,21 +58,9 @@ export function createCollectionPageExports<S extends string = 'pages'>(
     })
   }
 
-  /**
-   * The slug is only known at request time for any path `generateStaticParams`
-   * did not enumerate, and under `cacheComponents` awaiting it outside a
-   * boundary blocks the whole route from prerendering. Keeping the boundary
-   * here — rather than around the layout — means everything above the document
-   * (html, head, header, footer) still ships in the static shell, and only the
-   * document itself streams.
-   */
-  const default_ = (props: NextPageProps): ReactNode => (
-    <React.Suspense fallback={fallback ?? null}>
-      <CollectionDocument {...props}/>
-    </React.Suspense>
-  )
-
-  const CollectionDocument = async (props: NextPageProps): Promise<ReactNode> => {
+  // lookup and notFound() stay outside the boundary: once a shell streams the status is
+  // already 200. unknown slugs get a blocking render instead, so they return a real 404
+  const default_ = async (props: NextPageProps): Promise<ReactNode> => {
     const params = await props.params
 
     const locale = params.locale as string
@@ -94,9 +82,9 @@ export function createCollectionPageExports<S extends string = 'pages'>(
       doc, { collectionSlug, config: _payloadConfig, importMap }, { ...props, locale }
     )
 
-    return <>
+    return <React.Suspense fallback={fallback ?? null}>
       {rendered}
-    </>
+    </React.Suspense>
   }
 
   async function generateMetadata(props: NextPageProps): Promise<Metadata> {

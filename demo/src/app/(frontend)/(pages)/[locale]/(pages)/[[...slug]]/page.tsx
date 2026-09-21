@@ -24,3 +24,6 @@ const generateSitemap = built.generateSitemap
 
 export default Page
 export { generateMetadata, generateStaticParams, generateSitemap }
+
+// the doc lookup blocks so unknown slugs can return a real 404
+export const instant = false
