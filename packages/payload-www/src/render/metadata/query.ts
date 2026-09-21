@@ -63,6 +63,8 @@ export type QueryDocArgs =
   | ({ globalSlug: string; locale: string; draft?: boolean })
   | ({ collectionSlug: string; slug: string; slugField?: string; locale: string; draft?: boolean; depth?: number })
 
+// public reads go through the collection's read access so draft-only docs stay hidden,
+// draft reads skip it. globals keep bypassing access, as they did in 1.x
 export async function queryDocBySlug<S extends string>(args: QueryCollectionArgs<S>): Promise<DataFromCollectionSlug<S> | null> {
   'use cache'
   cacheLife('weeks')
@@ -72,6 +74,7 @@ export async function queryDocBySlug<S extends string>(args: QueryCollectionArgs
     where: { [slugField]: { equals: args.slug } },
     locale: args.locale,
     draft: args.draft ?? false,
+    overrideAccess: args.draft ?? false,
     depth: args.depth
   } as never)
   return (result ?? null) as unknown as DataFromCollectionSlug<S> | null
@@ -100,10 +103,10 @@ export async function queryAllDocs<S extends string = string>(args: QueryListArg
   const { findIds, findDocByID } = await requireCacheHelpers()
   const collection = args.collectionSlug as CollectionSlug
   // findIds spreads into payload.find, which caps at 10 docs unless pagination is off
-  const { ids } = await findIds(collection, { locale: args.locale, pagination: false } as never)
+  const { ids } = await findIds(collection, { locale: args.locale, pagination: false, overrideAccess: false } as never)
   if (ids.length === 0) return []
   const docs = await Promise.all(
-    ids.map((id) => findDocByID(collection, id, { locale: args.locale } as never))
+    ids.map((id) => findDocByID(collection, id, { locale: args.locale, overrideAccess: false } as never))
   )
   return docs.filter((d): d is NonNullable<typeof d> => d !== null) as unknown as DataFromCollectionSlug<S>[]
 }
@@ -125,7 +128,7 @@ export async function queryAllLocaleSlugs(args: {
   const doc = await findDocByID(
     args.collectionSlug as CollectionSlug,
     args.id,
-    { locale: 'all', select: { [slugField]: true } as never }
+    { locale: 'all', select: { [slugField]: true } as never, overrideAccess: false }
   )
   const localeMap = doc?.[slugField]
   if (localeMap && typeof localeMap === 'object') return localeMap as unknown as Record<string, string>
@@ -145,6 +148,7 @@ export async function queryDocByID<S extends string = string>(args: {
   return (await findDocByID(args.collectionSlug as CollectionSlug, args.id, {
     locale: args.locale,
     draft: args.draft ?? false,
+    overrideAccess: args.draft ?? false,
     depth: args.depth
   } as never)) as DataFromCollectionSlug<S> | null
 }
