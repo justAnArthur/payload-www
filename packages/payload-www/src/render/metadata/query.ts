@@ -99,7 +99,8 @@ export async function queryAllDocs<S extends string = string>(args: QueryListArg
   cacheLife('weeks')
   const { findIds, findDocByID } = await requireCacheHelpers()
   const collection = args.collectionSlug as CollectionSlug
-  const { ids } = await findIds(collection, { locale: args.locale } as never)
+  // findIds spreads into payload.find, which caps at 10 docs unless pagination is off
+  const { ids } = await findIds(collection, { locale: args.locale, pagination: false } as never)
   if (ids.length === 0) return []
   const docs = await Promise.all(
     ids.map((id) => findDocByID(collection, id, { locale: args.locale } as never))

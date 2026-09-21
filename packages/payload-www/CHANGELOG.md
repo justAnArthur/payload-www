@@ -6,6 +6,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed
+
+- `queryAllDocs`, and with it `generateSitemap` and `generateStaticParams` from
+  `createCollectionPageExports`, returns every document again. It passed no limit to
+  `findIds`, so Payload's default `limit: 10` applied, and sitemaps and prerendered paths
+  stopped at 10 documents per collection and locale.
+
 ### Changed
 
 - Requires `@justanarthur/payload-plugin-translator` `^3.3.1`, which stops concurrent
