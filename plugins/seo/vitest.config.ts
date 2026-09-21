@@ -37,6 +37,8 @@ export default defineConfig(() => ({
     include: ['tests/**/*.spec.ts'],
     testTimeout: 60_000,
     pool: 'forks',
+    // inlined so tests can mock its `server-only` import
+    server: { deps: { inline: ['@pro-laico/payload-revalidate'] } },
     env: {
       ...parseEnvFile('.env.test.local'),
       ...parseEnvFile('.env.test')
