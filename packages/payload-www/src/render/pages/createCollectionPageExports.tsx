@@ -58,8 +58,7 @@ export function createCollectionPageExports<S extends string = 'pages'>(
     })
   }
 
-  // lookup and notFound() stay outside the boundary: once a shell streams the status is
-  // already 200. unknown slugs get a blocking render instead, so they return a real 404
+  // notFound() has to run before the suspense boundary: once the shell streams, the status is already 200
   const default_ = async (props: NextPageProps): Promise<ReactNode> => {
     const params = await props.params
 

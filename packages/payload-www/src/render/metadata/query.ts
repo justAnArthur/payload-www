@@ -63,8 +63,6 @@ export type QueryDocArgs =
   | ({ globalSlug: string; locale: string; draft?: boolean })
   | ({ collectionSlug: string; slug: string; slugField?: string; locale: string; draft?: boolean; depth?: number })
 
-// public reads go through the collection's read access so draft-only docs stay hidden,
-// draft reads skip it. globals keep bypassing access, as they did in 1.x
 export async function queryDocBySlug<S extends string>(args: QueryCollectionArgs<S>): Promise<DataFromCollectionSlug<S> | null> {
   'use cache'
   cacheLife('weeks')
@@ -74,6 +72,7 @@ export async function queryDocBySlug<S extends string>(args: QueryCollectionArgs
     where: { [slugField]: { equals: args.slug } },
     locale: args.locale,
     draft: args.draft ?? false,
+    // the local api skips read access by default, and that access is what hides draft-only docs
     overrideAccess: args.draft ?? false,
     depth: args.depth
   } as never)
@@ -85,6 +84,7 @@ export async function queryGlobal<G extends string>(args: QueryGlobalArgs<G>): P
   cacheLife('weeks')
   const { findGlobal } = await requireCacheHelpers()
   try {
+    // no access check, as in 1.x: a header or footer that was never published would render empty
     const result = await findGlobal(args.globalSlug as never, {
       locale: args.locale,
       draft: args.draft ?? false,

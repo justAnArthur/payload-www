@@ -17,18 +17,16 @@ type FindArgs = {
   where?: { slug?: { equals?: string } }
 }
 
-// like payload's local api: access is skipped unless overrideAccess is false, and then the
-// collection's authenticatedOrPublished read access only lets published docs through
+// the local api skips access unless overrideAccess is false, then authenticatedOrPublished keeps published docs
 const visible = (doc: Doc, overrideAccess = true) => overrideAccess || doc._status === 'published'
 
 // like payload's find operation: without a limit, paginated reads cap at 10
 const find = vi.fn(async ({ limit, pagination = true, overrideAccess, where }: FindArgs) => {
-  const usePagination = pagination && limit !== 0
-  const sanitizedLimit = limit ?? (usePagination ? 10 : 0)
+  const cap = limit ?? (pagination ? 10 : 0)
   const matching = docs
     .filter((doc) => visible(doc, overrideAccess))
-    .filter((doc) => where?.slug?.equals === undefined || doc.slug === where.slug.equals)
-  const page = sanitizedLimit > 0 ? matching.slice(0, sanitizedLimit) : matching
+    .filter((doc) => !where?.slug || doc.slug === where.slug.equals)
+  const page = cap ? matching.slice(0, cap) : matching
   return { docs: page, totalDocs: matching.length, page: 1, totalPages: 1 }
 })
 
