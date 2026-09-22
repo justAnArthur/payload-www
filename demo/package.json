@@ -29,6 +29,7 @@
     "@payloadcms/db-sqlite": "3.88.0",
     "@payloadcms/live-preview-react": "3.88.0",
     "@payloadcms/next": "3.88.0",
+    "@payloadcms/plugin-mcp": "3.88.0",
     "@payloadcms/richtext-lexical": "3.88.0",
     "@payloadcms/ui": "3.88.0",
     "@radix-ui/react-slot": "^1.0.2",

@@ -35,6 +35,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   without `draft`, `queryAllDocs`, `queryAllLocaleSlugs`) pass `overrideAccess: false`, so
   `authenticatedOrPublished` filters them to published documents. Draft reads keep
   `overrideAccess: true`. `queryGlobal` still skips access, as it did in 1.x.
+- `next` is no longer a runtime dependency, only a peer (`^16.2.6`). It was also pinned in
+  `dependencies` at `16.3.4`, so a host on a different Next version installed a second copy
+  under the lib, and `next/cache` in the query helpers could run against a different Next
+  instance than the app.
+- `@payloadcms/next` is no longer a runtime dependency, only a peer (`^3.85.0`). The
+  `3.88.0` pin in `dependencies` gave a host on any other Payload version a second copy
+  next to its own, while Payload requires every `@payloadcms/*` package at the version of
+  `payload`.
+- `@payloadcms/richtext-lexical`, `@payloadcms/live-preview-react` and `next-intl` are no
+  longer runtime dependencies either, only peers (`^3.85.0`, `^3.85.0`, `^4.0.0`). The
+  pinned copies could split from the host's. For `next-intl` that means the lib's
+  `NextIntlClientProvider` and `setRequestLocale` no longer share the app's request config.
 
 ### Changed
 
@@ -42,6 +54,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   translate jobs from writing one locale's translations into another locale's rows (the
   default-locale document could end up holding another language's titles and slugs after a
   bulk translation run) and refuses to translate into the default locale altogether.
+- `@payloadcms/plugin-mcp` is now a peer (`^3.85.0`) instead of a `3.88.0` dependency.
+  `createWWWConfig` and the `./mcp` subpath import it, and it peers on `payload` at its own
+  exact version, so the pinned copy clashed with any host not on Payload 3.88.0. Hosts
+  that don't list it yet must add it at their `payload` version.
+- Requires `@justanarthur/payload-plugin-seo` `^4.1.1`, which declares `next` as a peer
+  instead of resolving it by accident of hoisting.
 
 ## [2.2.0] - 2026-09-16
 
