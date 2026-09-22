@@ -1,6 +1,8 @@
 import type { SanitizedCollectionConfig, SanitizedConfig } from 'payload'
 import { describe, expect, it, vi } from 'vitest'
 
+vi.mock('server-only', () => ({}))
+
 import type { SEOMetaShape } from '../src/generateMeta'
 import { createOpenGraphImageRoute } from '../src/opengraph-image/createOpenGraphImageRoute'
 import { extractSEOMetaForImage } from '../src/opengraph-image/extractSEOMetaForImage'

@@ -6,6 +6,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed
+
+- `next` is now a peer dependency (`^16.2.6`, the range `@justanarthur/payload-www` uses).
+  The `./opengraph-image` route imports `next/og` at runtime, and the plugin reaches
+  `next/cache` through `@justanarthur/payload-www/metadata`, but the manifest never
+  declared `next`, so it only resolved when the host happened to hoist it.
+
 ## [4.1.0] - 2026-09-16
 
 ### Changed

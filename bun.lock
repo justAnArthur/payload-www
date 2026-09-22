@@ -55,7 +55,7 @@
     },
     "packages/payload-www": {
       "name": "@justanarthur/payload-www",
-      "version": "2.2.3",
+      "version": "2.2.6",
       "bin": {
         "payload-www": "./dist/cli.js",
       },
@@ -82,8 +82,8 @@
       },
       "peerDependencies": {
         "@justanarthur/payload-imagehash-plugin": "^3.3.0",
-        "@justanarthur/payload-plugin-seo": "^3.0.0",
-        "@justanarthur/payload-plugin-translator": "^3.0.0",
+        "@justanarthur/payload-plugin-seo": "^4.0.0",
+        "@justanarthur/payload-plugin-translator": "^3.3.1",
         "@payloadcms/live-preview-react": "^3.85.0",
         "@payloadcms/next": "^3.85.0",
         "@payloadcms/richtext-lexical": "^3.85.0",
@@ -132,6 +132,7 @@
         "@types/react": "19.2.18",
         "@types/react-dom": "19.2.7",
         "bunup": "^0.16.32",
+        "next": "16.3.4",
         "openai": "^4.52.0",
         "payload": "3.88.0",
         "react": "19.2.8",
@@ -140,10 +141,11 @@
         "vitest": "4.0.18",
       },
       "peerDependencies": {
-        "@justanarthur/payload-www": "^1.4.2",
+        "@justanarthur/payload-www": "^2.0.0",
         "@payloadcms/next": "^3.85.0",
         "@payloadcms/translations": "^3.85.0",
         "@payloadcms/ui": "^3.85.0",
+        "next": "^16.2.6",
         "openai": "^4.52.0",
         "payload": "^3.85.0",
         "react": "^19.2.6",
@@ -152,7 +154,7 @@
     },
     "plugins/translate": {
       "name": "@justanarthur/payload-plugin-translator",
-      "version": "3.2.0",
+      "version": "3.4.3",
       "dependencies": {
         "bson-objectid": "^2.0.4",
         "eld": "^2.1.0",
