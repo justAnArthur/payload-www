@@ -113,20 +113,20 @@
     "prepublishOnly": "bun run clean && bun run build"
   },
   "dependencies": {
-    "@payloadcms/live-preview-react": "3.88.0",
     "@payloadcms/plugin-mcp": "3.88.0",
-    "@payloadcms/richtext-lexical": "3.88.0",
-    "next-intl": "^4.14.2",
     "server-only": "0.0.1",
     "tsx": "^4.19.2"
   },
   "devDependencies": {
+    "@payloadcms/live-preview-react": "3.88.0",
     "@payloadcms/next": "3.88.0",
+    "@payloadcms/richtext-lexical": "3.88.0",
     "@types/node": "22.19.9",
     "@types/react": "19.2.18",
     "@types/react-dom": "19.2.7",
     "bunup": "^0.16.32",
     "next": "16.3.4",
+    "next-intl": "^4.14.2",
     "payload": "3.88.0",
     "react": "19.2.8",
     "react-dom": "19.2.8",

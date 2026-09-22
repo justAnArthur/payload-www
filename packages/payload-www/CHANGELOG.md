@@ -43,6 +43,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   `3.88.0` pin in `dependencies` gave a host on any other Payload version a second copy
   next to its own, while Payload requires every `@payloadcms/*` package at the version of
   `payload`.
+- `@payloadcms/richtext-lexical`, `@payloadcms/live-preview-react` and `next-intl` are no
+  longer runtime dependencies either, only peers (`^3.85.0`, `^3.85.0`, `^4.0.0`). The
+  pinned copies could split from the host's. For `next-intl` that means the lib's
+  `NextIntlClientProvider` and `setRequestLocale` no longer share the app's request config.
 
 ### Changed
 
