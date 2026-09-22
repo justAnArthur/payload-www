@@ -35,6 +35,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   without `draft`, `queryAllDocs`, `queryAllLocaleSlugs`) pass `overrideAccess: false`, so
   `authenticatedOrPublished` filters them to published documents. Draft reads keep
   `overrideAccess: true`. `queryGlobal` still skips access, as it did in 1.x.
+- `next` is no longer a runtime dependency, only a peer (`^16.2.6`). It was also pinned in
+  `dependencies` at `16.3.4`, so a host on a different Next version installed a second copy
+  under the lib, and `next/cache` in the query helpers could run against a different Next
+  instance than the app.
 
 ### Changed
 
