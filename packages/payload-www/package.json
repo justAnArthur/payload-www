@@ -146,7 +146,7 @@
     "payload": "^3.85.0",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
-    "@justanarthur/payload-plugin-seo": "^4.0.0",
+    "@justanarthur/payload-plugin-seo": "^4.1.1",
     "@justanarthur/payload-plugin-translator": "^3.3.1",
     "@justanarthur/payload-imagehash-plugin": "^3.3.0"
   },

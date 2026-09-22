@@ -82,7 +82,7 @@
       },
       "peerDependencies": {
         "@justanarthur/payload-imagehash-plugin": "^3.3.0",
-        "@justanarthur/payload-plugin-seo": "^4.0.0",
+        "@justanarthur/payload-plugin-seo": "^4.1.1",
         "@justanarthur/payload-plugin-translator": "^3.3.1",
         "@payloadcms/live-preview-react": "^3.85.0",
         "@payloadcms/next": "^3.85.0",
@@ -121,7 +121,7 @@
     },
     "plugins/seo": {
       "name": "@justanarthur/payload-plugin-seo",
-      "version": "4.1.0",
+      "version": "4.1.1",
       "dependencies": {
         "bson-objectid": "^2.0.4",
         "server-only": "0.0.1",
