@@ -54,6 +54,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   translate jobs from writing one locale's translations into another locale's rows (the
   default-locale document could end up holding another language's titles and slugs after a
   bulk translation run) and refuses to translate into the default locale altogether.
+- `@payloadcms/plugin-mcp` is now a peer (`^3.85.0`) instead of a `3.88.0` dependency.
+  `createWWWConfig` and the `./mcp` subpath import it, and it peers on `payload` at its own
+  exact version, so the pinned copy clashed with any host not on Payload 3.88.0. Hosts
+  that don't list it yet must add it at their `payload` version.
 - Requires `@justanarthur/payload-plugin-seo` `^4.1.1`, which declares `next` as a peer
   instead of resolving it by accident of hoisting.
 

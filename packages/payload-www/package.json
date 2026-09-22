@@ -113,13 +113,13 @@
     "prepublishOnly": "bun run clean && bun run build"
   },
   "dependencies": {
-    "@payloadcms/plugin-mcp": "3.88.0",
     "server-only": "0.0.1",
     "tsx": "^4.19.2"
   },
   "devDependencies": {
     "@payloadcms/live-preview-react": "3.88.0",
     "@payloadcms/next": "3.88.0",
+    "@payloadcms/plugin-mcp": "3.88.0",
     "@payloadcms/richtext-lexical": "3.88.0",
     "@types/node": "22.19.9",
     "@types/react": "19.2.18",
@@ -136,6 +136,7 @@
   "peerDependencies": {
     "@payloadcms/live-preview-react": "^3.85.0",
     "@payloadcms/next": "^3.85.0",
+    "@payloadcms/plugin-mcp": "^3.85.0",
     "@payloadcms/richtext-lexical": "^3.85.0",
     "@payloadcms/translations": "^3.85.0",
     "@payloadcms/ui": "^3.85.0",
