@@ -9,6 +9,7 @@ import { createCacheHelpers } from '@pro-laico/payload-revalidate/cache'
 import { tagsFor } from '@pro-laico/payload-revalidate'
 import { cacheLife } from 'next/cache'
 import { getPayload } from 'payload'
+import { isIndexSlug } from './slug'
 
 let _helpers: CacheHelpers | null = null
 let _seedPromise: Promise<void> | null = null
@@ -68,15 +69,21 @@ export async function queryDocBySlug<S extends string>(args: QueryCollectionArgs
   cacheLife('weeks')
   const { findDoc } = await requireCacheHelpers()
   const slugField = args.slugField ?? 'slug'
-  const result = await findDoc(args.collectionSlug as CollectionSlug, {
-    where: { [slugField]: { equals: args.slug } },
+  const find = (slug: string | null) => findDoc(args.collectionSlug as CollectionSlug, {
+    where: { [slugField]: { equals: slug } },
     locale: args.locale,
     draft: args.draft ?? false,
     // the local api skips read access by default, and that access is what hides draft-only docs
     overrideAccess: args.draft ?? false,
     depth: args.depth
   } as never)
-  return (result ?? null) as unknown as DataFromCollectionSlug<S> | null
+
+  const result = await find(args.slug)
+  // a where clause reads the locale's own column, so a locale that never got a slug misses on ''.
+  // the stored '' still wins — only look for null when no document claims the empty slug.
+  const doc = result ?? (isIndexSlug(args.slug) ? await find(null) : null)
+
+  return (doc ?? null) as unknown as DataFromCollectionSlug<S> | null
 }
 
 export async function queryGlobal<G extends string>(args: QueryGlobalArgs<G>): Promise<DataFromGlobalSlug<G> | null> {
