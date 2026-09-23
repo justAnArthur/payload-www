@@ -2,7 +2,7 @@ import type { Metadata, MetadataRoute } from 'next'
 import type { ImportMap, SanitizedConfig } from 'payload'
 import type { ReactNode } from 'react'
 import * as React from 'react'
-import { paramsSlugToSlug, type SlugShape, slugToParamsSlug } from '../metadata/slug'
+import { isIndexSlug, paramsSlugToSlug, shapeHasIndexPath, type SlugShape, slugToParamsSlug } from '../metadata/slug'
 import { queryAllDocs, queryAllLocaleSlugs, queryDoc, seedPayloadCache } from '../metadata/query'
 import { setRequestLocale } from "next-intl/server"
 import { type GenerateStaticParamsProps, NextPageProps } from "./utils/checkParams"
@@ -135,9 +135,19 @@ export function createCollectionPageExports<S extends string = 'pages'>(
     const perLocaleEntries = await Promise.all(
       routing.locales.map(async (locale) => {
         const docs = await queryAllDocs({ locale, collectionSlug })
-        return docs
-          .filter(doc => typeof doc.slug === 'string' && doc.slug.length > 0)
+
+        const entries = docs
+          .filter(doc => !isIndexSlug(doc.slug))
           .map(doc => ({ locale, slug: slugToParamsSlug(doc.slug, slugShape) }))
+
+        // the index document is addressed by the locale prefix alone, so only a shape whose
+        // segment may be absent has a path for it. asking fetchDoc rather than picking from
+        // `docs` keeps the enumerated entry to one per locale and to the document a request
+        // for that path would actually be served.
+        if (shapeHasIndexPath(slugShape) && await fetchDoc(locale, ''))
+          entries.push({ locale, slug: slugToParamsSlug('', slugShape) })
+
+        return entries
       })
     )
     return perLocaleEntries.flat()

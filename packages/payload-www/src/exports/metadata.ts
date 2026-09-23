@@ -14,7 +14,7 @@ import {
   buildRootJsonLd,
   buildWebSiteLd
 } from '@justanarthur/payload-plugin-seo/root-jsonld'
-import { type SlugShape, paramsSlugToSlug, slugToParamsSlug } from '../render/metadata/slug'
+import { type SlugShape, isIndexSlug, paramsSlugToSlug, shapeHasIndexPath, slugToParamsSlug } from '../render/metadata/slug'
 import {
   queryAllDocs,
   queryAllLocaleSlugs,
@@ -40,6 +40,8 @@ const metadata = {
   queryAllLocaleSlugs,
   paramsSlugToSlug,
   slugToParamsSlug,
+  isIndexSlug,
+  shapeHasIndexPath,
   seedPayloadCache,
   tagsFor,
 }
@@ -59,6 +61,8 @@ export {
   queryGlobal,
   paramsSlugToSlug,
   slugToParamsSlug,
+  isIndexSlug,
+  shapeHasIndexPath,
   seedPayloadCache,
   tagsFor,
   type ArticleLdOptions,

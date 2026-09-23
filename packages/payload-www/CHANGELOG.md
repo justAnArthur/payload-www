@@ -8,6 +8,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 
+- Index documents prerender again. `generateStaticParams` from `createCollectionPageExports`
+  dropped every document with an empty slug, so the locale roots an optional catch-all route
+  serves (`/en`, `/sk`, …) never reached `prerender-manifest.json` and every visit to the site
+  root rendered on demand — on Vercel a hard failure, since 2.2.7 looks the document up before
+  the shell. A `catch-all` shape now also enumerates `{ locale, slug: [] }`, once per locale,
+  for the document `queryDocBySlug` would serve there. A required `[slug]` route still skips
+  empty-slug documents, since it has no path for them. `queryDocBySlug` also resolves an empty
+  slug against a `null` column, so a locale that was never given a slug still finds its index
+  document; a stored `''` still wins.
 - `queryAllDocs`, and with it `generateSitemap` and `generateStaticParams` from
   `createCollectionPageExports`, returns every document again. It passed no limit to
   `findIds`, so Payload's default `limit: 10` applied, and sitemaps and prerendered paths

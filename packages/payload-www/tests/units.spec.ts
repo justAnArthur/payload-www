@@ -14,7 +14,7 @@ import { createWWWConfig } from '../src/createWWWConfig'
 import { generateImportName } from '../src/render/generateImportName'
 import { getFromImportMap } from '../src/render/getFromImportMap'
 import { buildArticleLd, buildBreadcrumbsLd } from '../src/render/metadata/jsonld'
-import { paramsSlugToSlug, slugToParamsSlug } from '../src/render/metadata/slug'
+import { isIndexSlug, paramsSlugToSlug, shapeHasIndexPath, slugToParamsSlug } from '../src/render/metadata/slug'
 
 import { link as linkFromShim, linkGroup as linkGroupFromShim, appearanceOptions as appearanceOptionsFromShim } from '../src/exports/fields'
 import { anyone as anyoneFromShim } from '../src/exports/access'
@@ -308,6 +308,18 @@ describe('metadata/slug', () => {
   it('slugToParamsSlug returns an empty value of the route shape for empty input', () => {
     expect(slugToParamsSlug('', 'catch-all')).toEqual([])
     expect(slugToParamsSlug('', 'single')).toBe('')
+  })
+
+  it('isIndexSlug treats an empty string and an untranslated null alike', () => {
+    expect(isIndexSlug('')).toBe(true)
+    expect(isIndexSlug(null)).toBe(true)
+    expect(isIndexSlug(undefined)).toBe(true)
+    expect(isIndexSlug('about')).toBe(false)
+  })
+
+  it('shapeHasIndexPath only accepts the shape whose segment may be absent', () => {
+    expect(shapeHasIndexPath('catch-all')).toBe(true)
+    expect(shapeHasIndexPath('single')).toBe(false)
   })
 
   it('shim matches src', () => {
