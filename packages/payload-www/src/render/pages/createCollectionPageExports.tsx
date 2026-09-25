@@ -20,11 +20,7 @@ export type CreateCollectionPageExportsArgs<S extends string = 'pages'> = {
 
   slugShape?: SlugShape
 
-  /**
-   * How many relationship / upload hops to populate on the rendered document.
-   * Defaults to `2` — Payload's own default. `0` hands every media and relationship
-   * field to the render component as a bare id.
-   */
+  /** Relationship / upload hops populated on the rendered document. `0` renders them as bare ids. */
   depth?: number
 }
 

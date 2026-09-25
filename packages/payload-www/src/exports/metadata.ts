@@ -21,7 +21,6 @@ import {
   queryDocByID,
   queryDocBySlug,
   queryGlobal,
-  RENDER_DEPTH,
   seedPayloadCache,
   tagsFor,
   type SeedPayloadCacheArgs,
@@ -45,7 +44,6 @@ const metadata = {
   shapeHasIndexPath,
   seedPayloadCache,
   tagsFor,
-  RENDER_DEPTH,
 }
 
 export default metadata
@@ -67,7 +65,6 @@ export {
   shapeHasIndexPath,
   seedPayloadCache,
   tagsFor,
-  RENDER_DEPTH,
   type ArticleLdOptions,
   type BreadcrumbItem,
   type BuildOrganizationLdOptions,

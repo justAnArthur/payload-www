@@ -44,11 +44,7 @@ export type CreateRootLayoutExportsArgs = {
 
   routing: RoutingConfig
 
-  /**
-   * How many relationship / upload hops to populate on the header and footer globals.
-   * Defaults to `2` — Payload's own default. `0` hands every logo and nav reference to
-   * the render component as a bare id.
-   */
+  /** Relationship / upload hops populated on the header and footer globals. `0` renders them as bare ids. */
   depth?: number
 }
 

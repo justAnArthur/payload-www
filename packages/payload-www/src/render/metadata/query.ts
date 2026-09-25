@@ -38,11 +38,7 @@ async function requireCacheHelpers(): Promise<CacheHelpers> {
   )
 }
 
-/**
- * Population depth for a document that gets rendered. Payload's own default, and what 1.x
- * rendered with — the finders from `@pro-laico/payload-revalidate` fall back to `0` instead,
- * which hands every upload and relationship field to the renderer as a bare id.
- */
+// payload's own default: the revalidate finders fall back to 0, which renders every upload as a bare id
 export const RENDER_DEPTH = 2
 
 export type QueryCollectionArgs<S extends string> = {
@@ -119,7 +115,7 @@ export async function queryAllDocs<S extends string = string>(args: QueryListArg
   // findIds spreads into payload.find, which caps at 10 docs unless pagination is off
   const { ids } = await findIds(collection, { locale: args.locale, pagination: false, overrideAccess: false } as never)
   if (ids.length === 0) return []
-  // enumeration only — callers read slug and updatedAt, so nothing here is worth a populated hop
+  // enumeration: callers read slug and updatedAt only
   const docs = await Promise.all(
     ids.map((id) => findDocByID(collection, id, { locale: args.locale, overrideAccess: false, depth: 0 } as never))
   )

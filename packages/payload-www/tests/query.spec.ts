@@ -25,7 +25,7 @@ type FindArgs = {
 // the local api skips access unless overrideAccess is false, then authenticatedOrPublished keeps published docs
 const visible = (doc: Doc, overrideAccess = true) => overrideAccess || doc._status === 'published'
 
-// like payload's populate step: a depth of 0 leaves an upload field as the stored id
+// like payload: a depth of 0 leaves an upload field as the stored id
 const atDepth = (doc: Doc, depth = 0) => ({ ...doc, image: depth > 0 ? hero : doc.image })
 
 // like payload's find operation: without a limit, paginated reads cap at 10
