@@ -3,7 +3,7 @@ import type { ImportMap, SanitizedConfig } from 'payload'
 import type { ReactNode } from 'react'
 import * as React from 'react'
 import { isIndexSlug, paramsSlugToSlug, shapeHasIndexPath, type SlugShape, slugToParamsSlug } from '../metadata/slug'
-import { queryAllDocs, queryAllLocaleSlugs, queryDoc, seedPayloadCache } from '../metadata/query'
+import { queryAllDocs, queryAllLocaleSlugs, queryDoc, RENDER_DEPTH, seedPayloadCache } from '../metadata/query'
 import { setRequestLocale } from "next-intl/server"
 import { type GenerateStaticParamsProps, NextPageProps } from "./utils/checkParams"
 import { buildAlternates, type PagePathPrefix, resolvePagePathPrefix, RoutingConfig } from "./utils/buildLocalizedPath"
@@ -19,6 +19,9 @@ export type CreateCollectionPageExportsArgs<S extends string = 'pages'> = {
   routing: RoutingConfig
 
   slugShape?: SlugShape
+
+  /** Relationship / upload hops populated on the rendered document. `0` renders them as bare ids. */
+  depth?: number
 }
 
 export type CreateCollectionPageExportsDeps<S extends string> = {
@@ -37,7 +40,8 @@ export function createCollectionPageExports<S extends string = 'pages'>(
     importMap,
 
     routing,
-    slugShape = 'single'
+    slugShape = 'single',
+    depth = RENDER_DEPTH
   }: CreateCollectionPageExportsArgs<S>,
   {
     getServerSideURL,
@@ -53,6 +57,7 @@ export function createCollectionPageExports<S extends string = 'pages'>(
     return queryDoc({
       slug,
       locale,
+      depth,
 
       collectionSlug
     })

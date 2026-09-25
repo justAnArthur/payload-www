@@ -1,7 +1,7 @@
 
 import type { ImportMap, SanitizedConfig } from 'payload'
 import { Activity, type HTMLAttributes, type ReactNode } from 'react'
-import { queryDoc, seedPayloadCache } from '../metadata/query'
+import { queryDoc, RENDER_DEPTH, seedPayloadCache } from '../metadata/query'
 import { NextLayoutProps } from "./utils/checkParams"
 import { setRequestLocale } from "next-intl/server"
 import { NextIntlClientProvider } from "next-intl"
@@ -43,6 +43,9 @@ export type CreateRootLayoutExportsArgs = {
   importMap: ImportMap
 
   routing: RoutingConfig
+
+  /** Relationship / upload hops populated on the header and footer globals. `0` renders them as bare ids. */
+  depth?: number
 }
 
 export type CreateRootLayoutProvidersArgs = {
@@ -64,7 +67,8 @@ export function createRootLayoutExports(
     _payloadConfig,
     importMap,
 
-    routing
+    routing,
+    depth = RENDER_DEPTH
   }: CreateRootLayoutExportsArgs,
   {
     providers,
@@ -87,8 +91,8 @@ export function createRootLayoutExports(
       header,
       footer
     ] = await Promise.all([
-      queryDoc({ globalSlug: 'header', locale }),
-      queryDoc({ globalSlug: 'footer', locale })
+      queryDoc({ globalSlug: 'header', locale, depth }),
+      queryDoc({ globalSlug: 'footer', locale, depth })
     ])
 
     const

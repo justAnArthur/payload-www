@@ -38,6 +38,9 @@ async function requireCacheHelpers(): Promise<CacheHelpers> {
   )
 }
 
+// payload's own default: the revalidate finders fall back to 0, which renders every upload as a bare id
+export const RENDER_DEPTH = 2
+
 export type QueryCollectionArgs<S extends string> = {
   collectionSlug: S
   slug: string
@@ -61,7 +64,7 @@ export type QueryListArgs<S extends string> = {
 }
 
 export type QueryDocArgs =
-  | ({ globalSlug: string; locale: string; draft?: boolean })
+  | ({ globalSlug: string; locale: string; draft?: boolean; depth?: number })
   | ({ collectionSlug: string; slug: string; slugField?: string; locale: string; draft?: boolean; depth?: number })
 
 export async function queryDocBySlug<S extends string>(args: QueryCollectionArgs<S>): Promise<DataFromCollectionSlug<S> | null> {
@@ -75,7 +78,7 @@ export async function queryDocBySlug<S extends string>(args: QueryCollectionArgs
     draft: args.draft ?? false,
     // the local api skips read access by default, and that access is what hides draft-only docs
     overrideAccess: args.draft ?? false,
-    depth: args.depth
+    depth: args.depth ?? RENDER_DEPTH
   } as never)
 
   const result = await find(args.slug)
@@ -95,7 +98,7 @@ export async function queryGlobal<G extends string>(args: QueryGlobalArgs<G>): P
     const result = await findGlobal(args.globalSlug as never, {
       locale: args.locale,
       draft: args.draft ?? false,
-      depth: args.depth
+      depth: args.depth ?? RENDER_DEPTH
     } as never)
     return (result ?? null) as unknown as DataFromGlobalSlug<G> | null
   } catch (error) {
@@ -112,8 +115,9 @@ export async function queryAllDocs<S extends string = string>(args: QueryListArg
   // findIds spreads into payload.find, which caps at 10 docs unless pagination is off
   const { ids } = await findIds(collection, { locale: args.locale, pagination: false, overrideAccess: false } as never)
   if (ids.length === 0) return []
+  // enumeration: callers read slug and updatedAt only
   const docs = await Promise.all(
-    ids.map((id) => findDocByID(collection, id, { locale: args.locale, overrideAccess: false } as never))
+    ids.map((id) => findDocByID(collection, id, { locale: args.locale, overrideAccess: false, depth: 0 } as never))
   )
   return docs.filter((d): d is NonNullable<typeof d> => d !== null) as unknown as DataFromCollectionSlug<S>[]
 }
@@ -156,7 +160,7 @@ export async function queryDocByID<S extends string = string>(args: {
     locale: args.locale,
     draft: args.draft ?? false,
     overrideAccess: args.draft ?? false,
-    depth: args.depth
+    depth: args.depth ?? RENDER_DEPTH
   } as never)) as DataFromCollectionSlug<S> | null
 }
 

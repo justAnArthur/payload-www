@@ -144,6 +144,7 @@ const { default: PostPage, generateMetadata, generateStaticParams } = createColl
 | `routing` | `RoutingConfig` | required | `{ locales, defaultLocale, localePrefix, labels? }` from `next-intl/routing`'s `defineRouting` |
 | `slug` | `string` | `'pages'` | collection slug to query |
 | `slugShape` | `'single' \| 'catch-all'` | `'single'` | drives `generateStaticParams` + slug segmentation |
+| `depth` | `number` | `2` | relationship / upload hops populated on the rendered document. `0` hands every media and relationship field to the render component as a bare id. Enumeration (`generateStaticParams`, `generateSitemap`) stays at `0` regardless. |
 
 ### `createCollectionPageExports(args, deps)` — deps
 
@@ -171,6 +172,7 @@ const { default: PostPage, generateMetadata, generateStaticParams } = createColl
 | `config` | `Promise<SanitizedConfig>` | required |
 | `importMap` | `ImportMap` | required |
 | `routing` | `RoutingConfig` | required |
+| `depth` | `number` | relationship / upload hops populated on the `header` + `footer` globals. Defaults to `2`. |
 
 | dep | type | notes |
 |---|---|---|
