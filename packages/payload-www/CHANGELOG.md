@@ -8,6 +8,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 
+- Media renders again. Every document on the render path is fetched through the
+  `@pro-laico/payload-revalidate` finders, which fall back to `depth: 0`, so `fetchDoc` in
+  `createCollectionPageExports` and the `header` / `footer` reads in `createRootLayoutExports`
+  handed render components a bare id for every upload and relationship field — a media block,
+  hero image or post image had nothing to render and the page came back with only static
+  assets. The document queries (`queryDocBySlug`, `queryDocByID`, `queryGlobal`) now default to
+  `depth: 2`, Payload's own default and what 1.x rendered with. `createCollectionPageExports`
+  and `createRootLayoutExports` take a `depth` option to override it. Enumeration stays shallow:
+  `queryAllDocs` reads at `depth: 0` and `queryAllLocaleSlugs` still selects the slug field
+  alone, so `generateStaticParams` and `generateSitemap` pay nothing for this. The finders'
+  bake-in walk is on by default, so a populated document contributes a `doc` tag per embedded
+  document and an edit to embedded media busts the page's cache entry.
 - Index documents prerender again. `generateStaticParams` from `createCollectionPageExports`
   dropped every document with an empty slug, so the locale roots an optional catch-all route
   serves (`/en`, `/sk`, …) never reached `prerender-manifest.json` and every visit to the site
