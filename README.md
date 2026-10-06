@@ -1,9 +1,19 @@
+<a href="https://github.com/justAnArthur/payload-www"><img src=".github/banner.svg" alt="Payload CMS website toolkit: Collections, blocks, JSON-LD and Next.js page renderers from one config builder, plus plugins for SEO, translation and image hashes." width="100%"></a>
+
 # payload-www
+
+[![payload-www](https://img.shields.io/npm/v/@justanarthur/payload-www?label=payload-www)](https://www.npmjs.com/package/@justanarthur/payload-www) [![plugin-seo](https://img.shields.io/npm/v/@justanarthur/payload-plugin-seo?label=plugin-seo)](https://www.npmjs.com/package/@justanarthur/payload-plugin-seo) [![plugin-translator](https://img.shields.io/npm/v/@justanarthur/payload-plugin-translator?label=plugin-translator)](https://www.npmjs.com/package/@justanarthur/payload-plugin-translator) [![imagehash-plugin](https://img.shields.io/npm/v/@justanarthur/payload-imagehash-plugin?label=imagehash-plugin)](https://www.npmjs.com/package/@justanarthur/payload-imagehash-plugin)
 
 A [Payload CMS](https://payloadcms.com) website toolkit — a reusable config builder and a set of
 Payload plugins, developed together in a [Bun](https://bun.sh) workspace monorepo.
 
-## Packages
+```bash
+bun add @justanarthur/payload-www \
+  @justanarthur/payload-plugin-seo @justanarthur/payload-plugin-translator @justanarthur/payload-imagehash-plugin
+# the other peers (payload, next, next-intl, @pro-laico/*) are listed in packages/payload-www/package.json
+```
+
+## Structure
 
 | package | path | README | description |
 |---|---|---|---|
@@ -13,8 +23,19 @@ Payload plugins, developed together in a [Bun](https://bun.sh) workspace monorep
 | `@justanarthur/payload-plugin-translator` | `plugins/translate` | [README](plugins/translate/README.md) | Automatic localization via Google, OpenAI, LibreTranslate, or custom resolvers. |
 | `demo` | `demo` | [README](demo/README.md) | Private showcase app for `@justanarthur/payload-www` (not published). |
 
-`packages/payload-www` depends on all three plugins via `file:` links, so they always build and
-test against the local source.
+`packages/payload-www` lists the three plugins as `peerDependencies`, so a host app installs them
+next to it; inside the monorepo Bun's workspace links resolve them to the local source, and the
+`demo` app pulls in all four with `workspace:*`. The SEO plugin in turn peers on
+`@justanarthur/payload-www` for its `/metadata` helpers.
+
+```mermaid
+flowchart TB
+  demo["demo/ (private app)"] -->|"workspace:* (all four)"| www[packages/payload-www]
+  www -. peer .-> seo[plugins/seo]
+  www -. peer .-> tr[plugins/translate]
+  www -. peer .-> ih[plugins/imagehash]
+  seo -. "peer: /metadata" .-> www
+```
 
 ## Integrating into a host app
 
@@ -162,3 +183,9 @@ Set these in **Settings → Secrets and variables → Actions**:
 |---|---|
 | `GH_TOKEN` | pushing tags and creating GitHub releases (needs `contents:write`) |
 | `NPM_TOKEN` | publishing to the npm registry |
+
+## License
+
+Per package, as declared in each `package.json`: `@justanarthur/payload-plugin-seo` and
+`@justanarthur/payload-plugin-translator` are MIT, `@justanarthur/payload-imagehash-plugin` is
+Unlicense. `@justanarthur/payload-www` has no `license` field yet; its README says MIT.
