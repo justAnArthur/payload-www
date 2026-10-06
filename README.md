@@ -188,4 +188,4 @@ Set these in **Settings → Secrets and variables → Actions**:
 
 Per package, as declared in each `package.json`: `@justanarthur/payload-plugin-seo` and
 `@justanarthur/payload-plugin-translator` are MIT, `@justanarthur/payload-imagehash-plugin` is
-Unlicense. `@justanarthur/payload-www` has no `license` field yet; its README says MIT.
+Unlicense. `@justanarthur/payload-www` and the rest of the repo are MIT ([LICENSE](LICENSE)).
