@@ -20,9 +20,12 @@ import {
   queryAllLocaleSlugs,
   queryDocByID,
   queryDocBySlug,
+  queryDocs,
   queryGlobal,
   seedPayloadCache,
   tagsFor,
+  type QueryDocsArgs,
+  type QueryDocsResult,
   type SeedPayloadCacheArgs,
 } from '../render/metadata/query'
 
@@ -36,6 +39,7 @@ const metadata = {
   queryDocBySlug,
   queryDocByID,
   queryGlobal,
+  queryDocs,
   queryAllDocs,
   queryAllLocaleSlugs,
   paramsSlugToSlug,
@@ -58,6 +62,7 @@ export {
   queryAllLocaleSlugs,
   queryDocByID,
   queryDocBySlug,
+  queryDocs,
   queryGlobal,
   paramsSlugToSlug,
   slugToParamsSlug,
@@ -71,6 +76,8 @@ export {
   type BuildProductLdOptions,
   type BuildRootJsonLdOptions,
   type BuildWebSiteLdOptions,
+  type QueryDocsArgs,
+  type QueryDocsResult,
   type SeedPayloadCacheArgs,
   type SlugShape,
 }

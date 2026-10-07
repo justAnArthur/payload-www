@@ -8,7 +8,7 @@ import { seoPlugin } from '@justanarthur/payload-plugin-seo'
 import { imageHashPlugin } from '@justanarthur/payload-imagehash-plugin'
 import { translator } from '@justanarthur/payload-plugin-translator'
 import { mcpPlugin, MCPPluginConfig } from '@payloadcms/plugin-mcp'
-import { revalidatePlugin } from '@pro-laico/payload-revalidate'
+import { revalidatePlugin, type RevalidatePluginOptions } from '@pro-laico/payload-revalidate'
 import { SEOPluginConfig } from "@justanarthur/payload-plugin-seo/types"
 import { BlurhashPluginOptions } from "@justanarthur/payload-imagehash-plugin/types"
 import { TranslatorConfig } from "@justanarthur/payload-plugin-translator/types"
@@ -26,13 +26,14 @@ export type WWWInputConfig = Omit<Config, 'collections' | 'globals' | 'plugins'>
     imageHash?: MergeOrOverride<BlurhashPluginOptions>,
     translator?: MergeOrOverride<TranslatorConfig>,
     mcp?: MergeOrOverride<MCPPluginConfig>,
-    revalidate?: false | (<D>(d: D) => D)
+    revalidate?: false | MergeOrOverride<RevalidatePluginOptions>
   }
 }
 
 export function createWWWConfig(): WWWConfigApi {
   function withWWWConfig(input: WWWInputConfig) {
     const { defaultPluginsConfigs, ...config } = input
+    const revalidate = defaultPluginsConfigs?.revalidate
     const blocks = config.blocks || []
 
     const collections = mergeOrOverride([
@@ -89,7 +90,7 @@ export function createWWWConfig(): WWWConfigApi {
       // afterChange / afterDelete hooks, so it must be the LAST plugin —
       // host's plugins may add virtual collections or transform globals
       // that revalidatePlugin also needs to know about.
-      revalidatePlugin()
+      revalidatePlugin(revalidate === false ? { enabled: false } : mergeOrOverride({}, revalidate))
     ]
 
     return ({

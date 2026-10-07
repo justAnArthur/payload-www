@@ -20,7 +20,7 @@ The composition root is `createWWWConfig()` — see [Quick start](#quick-start) 
 | Fields | [`/fields`](#fields) | `link`, `linkGroup` (with `disableLabel` / `appearances` / `localized` / `relationTo` / `extraFields`), `slugField`, `appearanceOptions`. |
 | Access | [`/access`](#access) | `anyone`, `authenticated`, `authenticatedOrPublished`. |
 | Caching | [`Caching`](#caching) | Cached query getters wrap `@pro-laico/payload-revalidate` finders; tag-based invalidation via `revalidatePlugin()`; `seedPayloadCache` singleton seed. |
-| Metadata | [`/metadata`](#metadata) | `buildArticleLd`, `buildBreadcrumbsLd`, `buildOrganizationLd`, `buildWebSiteLd`, `buildProductLd`, `buildRootJsonLd`; slug transforms; `queryDocBySlug`, `queryDocByID`, `queryGlobal`, `queryAllDocs`, `queryAllLocaleSlugs`; `seedPayloadCache`, `tagsFor`. |
+| Metadata | [`/metadata`](#metadata) | `buildArticleLd`, `buildBreadcrumbsLd`, `buildOrganizationLd`, `buildWebSiteLd`, `buildProductLd`, `buildRootJsonLd`; slug transforms; `queryDocBySlug`, `queryDocByID`, `queryGlobal`, `queryDocs`, `queryAllDocs`, `queryAllLocaleSlugs`; `seedPayloadCache`, `tagsFor`. |
 | Next.js page renderers | [`/render-pages`](#render-pages) | `createCollectionPageExports`, `createRootLayoutExports`; default render components `PagesPage`, `PostsPage`, `HeaderPage`, `FooterPage`, `RootJsonLd`. |
 | Sitemap | [`/sitemap`](#sitemap) | `createSitemapFromCollections` (Next.js file-convention helper). |
 | Plugin re-exports | [`/imagehash`](#plugin-re-exports), [`/translator`](#plugin-re-exports) | Drop-in for hosts that don't want to import the sibling packages directly. |
@@ -255,8 +255,8 @@ in the host's `revalidatePlugin()` registration (see [Caching](#caching) below).
 
 ### Caching
 
-The lib's cached query layer (`queryDocBySlug`, `queryGlobal`, `queryAllDocs`, `queryAllLocaleSlugs`,
-`queryDocByID`) wraps `@pro-laico/payload-revalidate`'s finders in `'use cache'` + `cacheLife('weeks')`
+The lib's cached query layer (`queryDocBySlug`, `queryGlobal`, `queryDocs`, `queryAllDocs`,
+`queryAllLocaleSlugs`, `queryDocByID`) wraps `@pro-laico/payload-revalidate`'s finders in `'use cache'` + `cacheLife('weeks')`
 scopes. Setup:
 
 1. **Install the peer deps at the workspace root** (not in the lib's `dependencies` — `file:` links
@@ -303,6 +303,34 @@ scopes. Setup:
    seedPayloadCache({ config })
    ```
 
+6. **List with `queryDocs`, never a raw `payload.find`** — a read inside `'use cache'` that
+   doesn't go through the finders carries no tags, so nothing the admin does can bust it.
+   `queryDocs` tags list membership plus every returned doc and what is populated into it:
+
+   ```ts
+   import { queryDocs } from '@justanarthur/payload-www/metadata'
+
+   const { docs, totalPages } = await queryDocs({
+     collectionSlug: 'posts',
+     locale,
+     sort: '-publishedAt',
+     limit: 10,
+     depth: 1,
+     list: 'archive'
+   })
+   ```
+
+   `list` names a scope whose sort and filter fields are declared on the plugin, so moving a
+   post's date or category reorders the archive even when that post wasn't on the page:
+
+   ```ts
+   createWWWConfig().withWWWConfig({
+     defaultPluginsConfigs: {
+       revalidate: { collections: { posts: { lists: { archive: ['publishedAt', 'categories'] } } } }
+     }
+   })
+   ```
+
 The cached profile is `cacheLife('weeks')` — Next 16's built-in long-tail profile (5 m stale,
 1 w revalidate, 30 d expire). No custom `cacheLife` config entry needed. Invalidations are
 purely tag-based: `revalidatePlugin()` fires the same tags the finders emit, so every save /
@@ -346,6 +374,7 @@ import {
   queryDocBySlug,           // cached collection fetch
   queryDocByID,             // cached collection fetch by id
   queryGlobal,              // cached global fetch
+  queryDocs,                // cached, tagged listing (where / sort / limit / page)
   queryAllDocs,             // for generateStaticParams
   queryAllLocaleSlugs,      // for hreflang alternates
   seedPayloadCache,         // one-time seed for the pro-laico cache helpers
@@ -398,7 +427,7 @@ The package's `package.json#exports` map:
 | `@justanarthur/payload-www/collections` | `createWWWCollectionGlobal`, `queryDoc` |
 | `@justanarthur/payload-www/fields` | `link`, `linkGroup`, `appearanceOptions`, `slugField`, `LinkAppearances`, `LinkOptions` |
 | `@justanarthur/payload-www/access` | `anyone`, `authenticated`, `authenticatedOrPublished` |
-| `@justanarthur/payload-www/metadata` | `buildArticleLd`, `buildBreadcrumbsLd`, `buildOrganizationLd`, `buildWebSiteLd`, `buildProductLd`, `buildRootJsonLd`, `queryDocBySlug`, `queryDocByID`, `queryGlobal`, `queryAllDocs`, `queryAllLocaleSlugs`, `seedPayloadCache`, `tagsFor`, `paramsSlugToSlug`, `slugToParamsSlug` + types |
+| `@justanarthur/payload-www/metadata` | `buildArticleLd`, `buildBreadcrumbsLd`, `buildOrganizationLd`, `buildWebSiteLd`, `buildProductLd`, `buildRootJsonLd`, `queryDocBySlug`, `queryDocByID`, `queryGlobal`, `queryDocs`, `queryAllDocs`, `queryAllLocaleSlugs`, `seedPayloadCache`, `tagsFor`, `paramsSlugToSlug`, `slugToParamsSlug` + types |
 | `@justanarthur/payload-www/utils` | `generateImportName`, `getFromImportMap` |
 | `@justanarthur/payload-www/imagehash` | `imageHashPlugin`, `BlurhashPluginOptions` (re-export of `@justanarthur/payload-imagehash-plugin`) |
 | `@justanarthur/payload-www/translator` | `translator` (re-export of `@justanarthur/payload-plugin-translator`) |

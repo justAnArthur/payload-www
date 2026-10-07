@@ -56,7 +56,7 @@ const fakePayload = {
 
 vi.mock('payload', () => ({ getPayload: async () => fakePayload }))
 
-const { queryAllDocs, queryDocBySlug, seedPayloadCache } = await import('../src/render/metadata/query')
+const { queryAllDocs, queryDocBySlug, queryDocs, seedPayloadCache } = await import('../src/render/metadata/query')
 
 beforeAll(() => {
   seedPayloadCache({ config: Promise.resolve({} as never) })
@@ -81,6 +81,41 @@ describe('queryAllDocs', () => {
 
     expect(slugs).not.toContain('draft-only')
     expect(slugs).toContain('post-1')
+  })
+})
+
+describe('queryDocs', () => {
+  it('reads one page of published docs', async () => {
+    const { docs, totalDocs } = await queryDocs({ collectionSlug: 'posts', locale: 'en', limit: 3 })
+
+    expect(docs.map((doc) => doc.slug)).toEqual(['post-1', 'post-2', 'post-3'])
+    expect(totalDocs).toBe(published.length)
+  })
+
+  it('tags list membership so a new or unpublished doc busts the entry', async () => {
+    await queryDocs({ collectionSlug: 'posts', locale: 'en', limit: 3 })
+
+    expect(appliedTags()).toContain('posts')
+  })
+
+  it('tags every listed doc and what is populated into it', async () => {
+    await queryDocs({ collectionSlug: 'posts', locale: 'en', limit: 2 })
+
+    expect(appliedTags()).toEqual(expect.arrayContaining(['posts:1', 'posts:2', `media:${hero.id}`]))
+  })
+
+  it('tags a declared list scope instead of the bare list', async () => {
+    await queryDocs({ collectionSlug: 'posts', locale: 'en', limit: 3, list: 'archive' })
+
+    expect(appliedTags()).toContain('posts:list:archive')
+    expect(appliedTags()).not.toContain('posts')
+  })
+
+  it('includes draft-only docs on a draft read', async () => {
+    const { docs } = await queryDocs({ collectionSlug: 'posts', locale: 'en', limit: 5, draft: true })
+
+    expect(docs.map((doc) => doc.slug)).toContain('draft-only')
+    expect(appliedTags()).toContain('posts:draft')
   })
 })
 
