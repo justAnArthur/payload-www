@@ -2,7 +2,11 @@ import type {
   CollectionSlug,
   DataFromCollectionSlug,
   DataFromGlobalSlug,
-  SanitizedConfig
+  Payload,
+  SanitizedConfig,
+  SelectType,
+  Sort,
+  Where
 } from 'payload'
 import type { CacheHelpers } from '@pro-laico/payload-revalidate/cache'
 import { createCacheHelpers } from '@pro-laico/payload-revalidate/cache'
@@ -11,7 +15,9 @@ import { cacheLife } from 'next/cache'
 import { getPayload } from 'payload'
 import { isIndexSlug } from './slug'
 
-let _helpers: CacheHelpers | null = null
+type CacheContext = CacheHelpers & { payload: Payload }
+
+let _helpers: CacheContext | null = null
 let _seedPromise: Promise<void> | null = null
 
 export type SeedPayloadCacheArgs = {
@@ -22,11 +28,11 @@ export function seedPayloadCache({ config }: SeedPayloadCacheArgs): void {
   if (_helpers || _seedPromise) return
   _seedPromise = (async () => {
     const payload = await getPayload({ config: await config })
-    _helpers = createCacheHelpers(payload)
+    _helpers = { ...createCacheHelpers(payload), payload }
   })()
 }
 
-async function requireCacheHelpers(): Promise<CacheHelpers> {
+async function requireCacheHelpers(): Promise<CacheContext> {
   if (_helpers) return _helpers
   if (_seedPromise) {
     await _seedPromise
@@ -61,6 +67,27 @@ export type QueryListArgs<S extends string> = {
   collectionSlug: S
   slugField?: string
   locale: string
+}
+
+export type QueryDocsArgs<S extends string> = {
+  collectionSlug: S
+  locale: string
+  where?: Where
+  sort?: Sort
+  limit?: number
+  page?: number
+  depth?: number
+  select?: SelectType
+  draft?: boolean
+  // a list scope declared on revalidatePlugin, so edits to the fields it sorts or filters on bust it
+  list?: string
+}
+
+export type QueryDocsResult<S extends string> = {
+  docs: DataFromCollectionSlug<S>[]
+  totalDocs: number
+  totalPages: number
+  page: number
 }
 
 export type QueryDocArgs =
@@ -120,6 +147,31 @@ export async function queryAllDocs<S extends string = string>(args: QueryListArg
     ids.map((id) => findDocByID(collection, id, { locale: args.locale, overrideAccess: false, depth: 0 } as never))
   )
   return docs.filter((d): d is NonNullable<typeof d> => d !== null) as unknown as DataFromCollectionSlug<S>[]
+}
+
+export async function queryDocs<S extends string>({
+  collectionSlug,
+  list,
+  draft = false,
+  depth = RENDER_DEPTH,
+  ...find
+}: QueryDocsArgs<S>): Promise<QueryDocsResult<S>> {
+  'use cache'
+  cacheLife('weeks')
+  const { payload, cacheIds, cacheDoc } = await requireCacheHelpers()
+  const collection = collectionSlug as CollectionSlug
+  const result = await payload.find({ ...find, collection, draft, depth, overrideAccess: draft } as never)
+
+  // the list tag busts on create, publish, unpublish and delete; doc tags on edits to a listed doc or anything populated into it
+  await cacheIds(result, collection, { list, draft })
+  for (const doc of result.docs) await cacheDoc(doc, collection, { draft })
+
+  return {
+    docs: result.docs as unknown as DataFromCollectionSlug<S>[],
+    totalDocs: result.totalDocs,
+    totalPages: result.totalPages,
+    page: result.page ?? 1
+  }
 }
 
 export async function queryDoc(args: QueryDocArgs) {

@@ -6,7 +6,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- `queryDocs` (`@justanarthur/payload-www/metadata`): a cached `where` / `sort` / `limit` / `page`
+  read for listings and archives. It tags list membership, so creating, publishing, unpublishing
+  or deleting a doc busts it, and every returned doc plus whatever is populated into it, so an
+  edit to a listed post, its category or its image busts it too. A `list` option ties the read
+  to a list scope declared on the revalidate plugin, so edits to the fields it sorts or filters
+  on bust it as well. A raw `payload.find` inside `'use cache'` carries no tags, and a new post
+  never reached the listing until the cache expired.
+
 ### Fixed
+
+- `defaultPluginsConfigs.revalidate` is applied. It was typed but ignored, so a host could not
+  declare list scopes, rules or a prefix; it now takes `RevalidatePluginOptions` (or a function
+  of them), and `false` disables the plugin.
 
 - Media renders again. Every document on the render path is fetched through the
   `@pro-laico/payload-revalidate` finders, which fall back to `depth: 0`, so `fetchDoc` in
