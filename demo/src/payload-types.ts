@@ -363,9 +363,10 @@ export interface CtaBlock {
 export interface Page {
   id: number;
   /**
-   * Lowercase, hyphens for words. Use the `_` divider for nesting, e.g. `about_us` → `/about/us`.
+   * Lowercase, hyphens for words. Nest with `/` or `_`, e.g. `about/us` → `/about/us`.
    */
   slug: string;
+  slugLock?: boolean | null;
   publishedAt?: string | null;
   title: string;
   blocks: (ContentBlock | MediaBlock | CtaBlock)[];
@@ -437,9 +438,10 @@ export interface Page {
 export interface Post {
   id: number;
   /**
-   * Lowercase, hyphens for words. Use the `_` divider for nesting, e.g. `about_us` → `/about/us`.
+   * Lowercase, hyphens for words. Nest with `/` or `_`, e.g. `about/us` → `/about/us`.
    */
   slug: string;
+  slugLock?: boolean | null;
   publishedAt?: string | null;
   title: string;
   excerpt?: string | null;
@@ -527,9 +529,10 @@ export interface Post {
 export interface Category {
   id: number;
   /**
-   * Lowercase, hyphens for words. Use the `_` divider for nesting, e.g. `about_us` → `/about/us`.
+   * Lowercase, hyphens for words. Nest with `/` or `_`, e.g. `about/us` → `/about/us`.
    */
   slug: string;
+  slugLock?: boolean | null;
   publishedAt?: string | null;
   title: string;
   updatedAt: string;
@@ -931,6 +934,7 @@ export interface PayloadMigration {
  */
 export interface PagesSelect<T extends boolean = true> {
   slug?: T;
+  slugLock?: T;
   publishedAt?: T;
   title?: T;
   blocks?:
@@ -1026,6 +1030,7 @@ export interface CtaBlockSelect<T extends boolean = true> {
  */
 export interface PostsSelect<T extends boolean = true> {
   slug?: T;
+  slugLock?: T;
   publishedAt?: T;
   title?: T;
   excerpt?: T;
@@ -1070,6 +1075,7 @@ export interface PostsSelect<T extends boolean = true> {
  */
 export interface CategoriesSelect<T extends boolean = true> {
   slug?: T;
+  slugLock?: T;
   publishedAt?: T;
   title?: T;
   updatedAt?: T;

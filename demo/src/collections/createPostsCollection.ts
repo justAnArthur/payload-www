@@ -51,6 +51,7 @@ export const createPostsCollection = () =>
     ],
     {
       slug: POSTS_SLUG,
-      renderPath: POSTS_RENDER_PATH
+      renderPath: POSTS_RENDER_PATH,
+      useAsTitle: 'title'
     }
   )

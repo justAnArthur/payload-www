@@ -1,4 +1,4 @@
-const SLUG_NESTED_DIVIDER = '_'
+export const SLUG_NESTED_DIVIDER = '_'
 
 export type SlugShape = 'single' | 'catch-all'
 

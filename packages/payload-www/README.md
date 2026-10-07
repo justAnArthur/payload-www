@@ -243,7 +243,7 @@ import {
 } from '@justanarthur/payload-www/collections'
 ```
 
-`createWWWCollectionGlobal(fields, { slug, renderPath, isGlobalConfig?, isDraft? })`:
+`createWWWCollectionGlobal(fields, { slug, renderPath, isGlobalConfig?, isDraft?, useAsTitle? })`:
 
 | arg | type | notes |
 |---|---|---|
@@ -252,6 +252,8 @@ import {
 | `renderPath` | `string` | import-map path to the render component (`'@/components/Foo/Component#Foo'`) |
 | `isGlobalConfig` | `boolean` | `true` for globals, `false` (default) for collections |
 | `isDraft` | `boolean` | `true` (default) enables Payload's drafts + autosave; `false` for system pages |
+| `useAsTitle` | `string` | the admin title, and the field the slug is generated from (see [`slugField`](#fields)) |
+| `nestedSlugs` | `boolean` | `_` in the slug nests the url; on for Pages, whose route is a catch-all |
 
 The factory wires `custom[packageName] = { path: renderPath }`, access (`create`/`update`/`delete`
 require auth, `read` is `anyone` or `authenticatedOrPublished` depending on `isDraft`), and
@@ -344,13 +346,33 @@ import { link, linkGroup, appearanceOptions, slugField } from '@justanarthur/pay
 
 // link({ extraFields: [...] })        — append host fields (description, navHover, …)
 // linkGroup({ appearances: ['default', 'outline'] })
-// slugField({ localized: false, nested: true })
+// slugField({ useAsTitle: 'title', nested: true })   — slug that follows the title until unlocked
 // appearanceOptions                    — for selects that should match link `appearances`
 ```
 
 `link({ extraFields })` is the extension point for host-specific nav-link shapes. The lib's
 `createHeaderGlobal` / `createFooterGlobal` accept `navColumnLinkFields` / `navItemLinkFields` that
 are forwarded into their `navColumn` / `navItem` blocks.
+
+`slugField({ useAsTitle, nested })` is a localized, unique slug. With `useAsTitle` it pairs the
+slug with a hidden, localized `slugLock` checkbox and renders an admin field with a Lock / Unlock
+button:
+
+- **Locked** (new docs start here): the slug follows the title as you type, read-only.
+- **Unlocked**: you type the slug yourself. Diacritics are transliterated (`Prenájom` → `prenajom`).
+- **Nested** (`nested: true`, used by Pages): `/` nests like `_`, so `about/team` saves as
+  `about_team` and serves `/about/team`. A title that spells its path with spaced slashes,
+  `Products / Rental`, generates `products_rental`; any other title replaces only the last
+  segment, so a nested page stays under its parent. `Delivery/Receiving` or `24/7` stay one
+  segment. Flat slugs (posts, categories) never nest.
+- A lock that was never stored (a new doc, a locale written for the first time) turns on only
+  when the slug is the one the title produces. The index page's `''` and seeded slugs stay
+  unlocked, and valid slugs are never rewritten, so existing URLs stay put.
+
+`formatSlug`, `formatSlugSegment`, `generateSlug(title, parent?)`, `slugFromTitle` and
+`slugParent(slug)` are the same helpers, exported for migrations. Adding `slugLock` to an existing
+collection needs a migration for the new column. Leave existing docs unlocked so their live URLs
+don't move.
 
 ## Access
 
@@ -426,7 +448,8 @@ The package's `package.json#exports` map:
 | `@justanarthur/payload-www/sitemap` | `createSitemapFromCollections` |
 | `@justanarthur/payload-www/blocks` | `RenderBlocks`, `RenderBlocksProps` |
 | `@justanarthur/payload-www/collections` | `createWWWCollectionGlobal`, `queryDoc` |
-| `@justanarthur/payload-www/fields` | `link`, `linkGroup`, `appearanceOptions`, `slugField`, `LinkAppearances`, `LinkOptions` |
+| `@justanarthur/payload-www/fields` | `link`, `linkGroup`, `appearanceOptions`, `slugField`, `formatSlug`, `formatSlugSegment`, `generateSlug`, `slugFromTitle`, `slugParent`, `SLUG_LOCK_FIELD`, `LinkAppearances`, `LinkOptions`, `SlugFieldOptions` |
+| `@justanarthur/payload-www/fields-client` | `SlugField` (the admin component `slugField` mounts) |
 | `@justanarthur/payload-www/access` | `anyone`, `authenticated`, `authenticatedOrPublished` |
 | `@justanarthur/payload-www/metadata` | `buildArticleLd`, `buildBreadcrumbsLd`, `buildOrganizationLd`, `buildWebSiteLd`, `buildProductLd`, `buildRootJsonLd`, `queryDocBySlug`, `queryDocByID`, `queryGlobal`, `queryDocs`, `queryAllDocs`, `queryAllLocaleSlugs`, `seedPayloadCache`, `tagsFor`, `paramsSlugToSlug`, `slugToParamsSlug` + types |
 | `@justanarthur/payload-www/utils` | `generateImportName`, `getFromImportMap` |
@@ -464,8 +487,8 @@ For agents migrating from older docs:
   `createStaticPageExports`, `createStaticPagesCollection` → **none of these exist** as exports in
   the current build. System pages render through a normal `createCollectionPageExports` mount (see
   [Static pages](#static-pages-404--500--system) above).
-- `Pages / Posts slug` is `localized: true` by default — slug lives in `<collection>_locales`. Pass
-  `slugField({ localized: false })` to opt out per-collection.
+- `Pages / Posts slug` is `localized: true` — slug lives in `<collection>_locales`. There is no
+  `localized` or `nested` option on `slugField`; nesting is built in.
 
 ## Building
 
