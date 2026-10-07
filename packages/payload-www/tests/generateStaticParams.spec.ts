@@ -55,13 +55,14 @@ const { queryDocBySlug, seedPayloadCache } = await import('../src/render/metadat
 
 const routing = { locales: ['en', 'uk', 'de'], defaultLocale: 'en', localePrefix: 'as-needed' }
 
-function exportsFor(slugShape: 'single' | 'catch-all') {
+function exportsFor(slugShape: 'single' | 'catch-all', prerenderLocales?: string[]) {
   return createCollectionPageExports(
     {
       _payloadConfig: Promise.resolve({} as never),
       importMap: {} as never,
       routing: routing as never,
-      slugShape
+      slugShape,
+      prerenderLocales
     },
     { getServerSideURL: () => 'https://example.com' }
   )
@@ -107,6 +108,21 @@ describe('generateStaticParams', () => {
     expect(entries.filter((entry) => entry.slug === '')).toHaveLength(0)
     expect(entries).toContainEqual({ locale: 'en', slug: 'about' })
     expect(entries).toContainEqual({ locale: 'en', slug: 'legal_terms' })
+  })
+})
+
+describe('prerenderLocales', () => {
+  it('enumerates only the listed locales', async () => {
+    const entries = await exportsFor('single', ['en']).generateStaticParams({ params: { locale: 'de' } })
+
+    expect(new Set(entries.map((entry) => entry.locale))).toEqual(new Set(['en']))
+    expect(entries).toContainEqual({ locale: 'en', slug: 'about' })
+  })
+
+  it('defaults to every locale', async () => {
+    const entries = await params('single')
+
+    expect(new Set(entries.map((entry) => entry.locale))).toEqual(new Set(routing.locales))
   })
 })
 

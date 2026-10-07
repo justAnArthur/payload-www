@@ -124,6 +124,11 @@ done. `export const instant = false` tells Next's dev-time instant validation th
 blocks on purpose. With `partialPrefetching: true`, Next streams the layout shell for slugs it did
 not prerender, so those slugs still get a soft 404.
 
+`prerenderLocales` limits which locales' documents `generateStaticParams` prerenders at build;
+the rest render on their first request and are cached from there. A large multilingual
+collection can prerender only its main locale, e.g. `prerenderLocales: ['en']` for posts, to keep
+the build short. It defaults to every locale.
+
 `slugShape` is `'single'` (default) or `'catch-all'`. Use `'catch-all'` if your route segment is
 `[[...slug]]` (Pages-style), `'single'` for `[slug]` (Posts-style — file convention).
 
