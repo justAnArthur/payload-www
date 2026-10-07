@@ -22,6 +22,9 @@ export type CreateCollectionPageExportsArgs<S extends string = 'pages'> = {
 
   /** Relationship / upload hops populated on the rendered document. `0` renders them as bare ids. */
   depth?: number
+
+  /** Locales whose documents prerender at build. The rest render on their first request and cache from there. Defaults to every locale. */
+  prerenderLocales?: string[]
 }
 
 export type CreateCollectionPageExportsDeps<S extends string> = {
@@ -41,7 +44,8 @@ export function createCollectionPageExports<S extends string = 'pages'>(
 
     routing,
     slugShape = 'single',
-    depth = RENDER_DEPTH
+    depth = RENDER_DEPTH,
+    prerenderLocales = routing.locales
   }: CreateCollectionPageExportsArgs<S>,
   {
     getServerSideURL,
@@ -132,13 +136,14 @@ export function createCollectionPageExports<S extends string = 'pages'>(
 
   async function generateStaticParams(props: GenerateStaticParamsProps) {
     await props.params
-    // Return every (locale, slug) pair across all declared locales. Next 16's
+    // Return every (locale, slug) pair across the prerendered locales. Next 16's
     // static shell pre-renders each pair; the layout's generateStaticParams
     // already supplies the per-locale fan-out, but listing the pairs here too
     // keeps the static shell self-describing if the layout ever drops the
-    // locale fan-out.
+    // locale fan-out. next calls this once per layout locale and needs a
+    // non-empty result each time, so it returns the same pairs regardless.
     const perLocaleEntries = await Promise.all(
-      routing.locales.map(async (locale) => {
+      prerenderLocales.map(async (locale) => {
         const docs = await queryAllDocs({ locale, collectionSlug })
 
         const entries = docs

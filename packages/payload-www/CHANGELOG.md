@@ -6,6 +6,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- `createCollectionPageExports` takes `prerenderLocales`: the locales whose documents
+  `generateStaticParams` prerenders at build. The rest render on their first request and cache
+  from there, tagged as usual. A large multilingual collection can prerender its main locale
+  only, so the build stays short. It defaults to every locale.
+
 ### Changed
 
 - Every collection gets a `content` list scope over all its top-level fields, declared by
