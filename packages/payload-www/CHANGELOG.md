@@ -8,6 +8,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- `slugField({ useAsTitle, nested })` locks the slug to the title. The admin field shows a
+  Lock / Unlock button. Locked, the slug follows the title as you type; unlocked, you type it.
+  The lock is a hidden, localized `slugLock` checkbox, so a host adding it needs a migration.
+  `createWWWCollectionGlobal` links the slug to its `useAsTitle` and takes `nestedSlugs`.
+- Pages slugs nest: `/` nests like `_`, a title like `Products / Rental` generates
+  `products_rental`, and any other title replaces only the last segment, so a nested page keeps
+  its parent.
+- `formatSlug`, `formatSlugSegment`, `generateSlug`, `slugFromTitle` and `slugParent` from
+  `/fields`, for migrations that backfill slugs the same way the field does.
+
+### Changed
+
+- Slugs are transliterated rather than stripped: `Prenájom` becomes `prenajom`, not `prenjom`.
+  A slug that already passes validation is never rewritten, so live URLs don't move.
+
+### Added
+
 - `createCollectionPageExports` takes `prerenderLocales`: the locales whose documents
   `generateStaticParams` prerenders at build. The rest render on their first request and cache
   from there, tagged as usual. A large multilingual collection can prerender its main locale

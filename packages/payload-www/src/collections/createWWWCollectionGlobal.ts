@@ -10,6 +10,7 @@ export type CreateWWWCollectionArgs<IsGlobalConfig extends boolean> = {
   isGlobalConfig?: IsGlobalConfig,
   isDraft?: boolean,
   useAsTitle?: string,
+  nestedSlugs?: boolean,
 }
 
 export function createWWWCollectionGlobal<IsGlobalConfig extends boolean = false, Config = IsGlobalConfig extends true ? GlobalConfig : CollectionConfig>(
@@ -19,14 +20,15 @@ export function createWWWCollectionGlobal<IsGlobalConfig extends boolean = false
     renderPath,
     isGlobalConfig = false as IsGlobalConfig,
     isDraft = true,
-    useAsTitle
+    useAsTitle,
+    nestedSlugs
   }: CreateWWWCollectionArgs<IsGlobalConfig>): Config {
   return ({
     slug: collectionSlug,
     fields: isGlobalConfig
       ? fields
       : [
-        slugField(),
+        slugField({ useAsTitle, nested: nestedSlugs }),
         {
           name: 'publishedAt',
           type: 'date',

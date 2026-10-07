@@ -1,3 +1,4 @@
+import { SlugField as SlugField_6f8505ad11bf7dbee77dabb7edbc226d } from '@justanarthur/payload-www/fields-client'
 import { GenerateButton as GenerateButton_268419788155f6a6e75e06eff266d768 } from '@justanarthur/payload-plugin-seo/client'
 import { TitleFieldComponent as TitleFieldComponent_268419788155f6a6e75e06eff266d768 } from '@justanarthur/payload-plugin-seo/client'
 import { DescriptionFieldComponent as DescriptionFieldComponent_268419788155f6a6e75e06eff266d768 } from '@justanarthur/payload-plugin-seo/client'
@@ -24,6 +25,7 @@ import { CollectionCards as CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1 } f
 
 /** @type import('payload').ImportMap */
 export const importMap = {
+  "@justanarthur/payload-www/fields-client#SlugField": SlugField_6f8505ad11bf7dbee77dabb7edbc226d,
   "@justanarthur/payload-plugin-seo/client#GenerateButton": GenerateButton_268419788155f6a6e75e06eff266d768,
   "@justanarthur/payload-plugin-seo/client#TitleFieldComponent": TitleFieldComponent_268419788155f6a6e75e06eff266d768,
   "@justanarthur/payload-plugin-seo/client#DescriptionFieldComponent": DescriptionFieldComponent_268419788155f6a6e75e06eff266d768,

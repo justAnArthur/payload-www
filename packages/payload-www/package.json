@@ -91,6 +91,12 @@
         "default": "./dist/fields.js"
       }
     },
+    "./fields-client": {
+      "import": {
+        "types": "./dist/fields-client.d.ts",
+        "default": "./dist/fields-client.js"
+      }
+    },
     "./sitemap": {
       "import": {
         "types": "./dist/sitemap.d.ts",
