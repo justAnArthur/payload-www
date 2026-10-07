@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+
+- Every collection gets a `content` list scope over all its top-level fields, declared by
+  `createWWWConfig` alongside any scopes the host passes, and `queryDocs` tags it by default.
+  Any real edit to a doc now refreshes every listing of its collection, so a moved date or
+  category reorders an archive without the host declaring sort or filter fields. Saves that
+  change nothing and draft saves leave listings alone; `list` still selects a narrower scope.
+
 ### Added
 
 - `queryDocs` (`@justanarthur/payload-www/metadata`): a cached `where` / `sort` / `limit` / `page`

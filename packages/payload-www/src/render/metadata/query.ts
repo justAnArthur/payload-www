@@ -14,6 +14,7 @@ import { tagsFor } from '@pro-laico/payload-revalidate'
 import { cacheLife } from 'next/cache'
 import { getPayload } from 'payload'
 import { isIndexSlug } from './slug'
+import { CONTENT_LIST } from '../../revalidate/contentLists'
 
 type CacheContext = CacheHelpers & { payload: Payload }
 
@@ -79,7 +80,7 @@ export type QueryDocsArgs<S extends string> = {
   depth?: number
   select?: SelectType
   draft?: boolean
-  // a list scope declared on revalidatePlugin, so edits to the fields it sorts or filters on bust it
+  // a narrower list scope declared on revalidatePlugin; defaults to the content scope every collection gets
   list?: string
 }
 
@@ -151,7 +152,7 @@ export async function queryAllDocs<S extends string = string>(args: QueryListArg
 
 export async function queryDocs<S extends string>({
   collectionSlug,
-  list,
+  list = CONTENT_LIST,
   draft = false,
   depth = RENDER_DEPTH,
   ...find
@@ -162,7 +163,7 @@ export async function queryDocs<S extends string>({
   const collection = collectionSlug as CollectionSlug
   const result = await payload.find({ ...find, collection, draft, depth, overrideAccess: draft } as never)
 
-  // the list tag busts on create, publish, unpublish and delete; doc tags on edits to a listed doc or anything populated into it
+  // the list tag busts on membership changes and any edit; doc tags on edits to anything populated into a listed doc
   await cacheIds(result, collection, { list, draft })
   for (const doc of result.docs) await cacheDoc(doc, collection, { draft })
 
