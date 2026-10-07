@@ -305,7 +305,8 @@ scopes. Setup:
 
 6. **List with `queryDocs`, never a raw `payload.find`** — a read inside `'use cache'` that
    doesn't go through the finders carries no tags, so nothing the admin does can bust it.
-   `queryDocs` tags list membership plus every returned doc and what is populated into it:
+   `queryDocs` tags a per-collection `content` list plus every returned doc and what is
+   populated into it:
 
    ```ts
    import { queryDocs } from '@justanarthur/payload-www/metadata'
@@ -315,21 +316,16 @@ scopes. Setup:
      locale,
      sort: '-publishedAt',
      limit: 10,
-     depth: 1,
-     list: 'archive'
+     depth: 1
    })
    ```
 
-   `list` names a scope whose sort and filter fields are declared on the plugin, so moving a
-   post's date or category reorders the archive even when that post wasn't on the page:
-
-   ```ts
-   createWWWConfig().withWWWConfig({
-     defaultPluginsConfigs: {
-       revalidate: { collections: { posts: { lists: { archive: ['publishedAt', 'categories'] } } } }
-     }
-   })
-   ```
+   `createWWWConfig` declares that `content` scope on every collection over all its top-level
+   fields, so creating, publishing, unpublishing, deleting or really changing any doc refreshes
+   every listing of its collection — a moved date or category reorders an archive even when that
+   post wasn't on the page. Saves that change nothing and draft saves leave it alone. For a
+   narrower listing, declare a scope through `defaultPluginsConfigs.revalidate` and pass it as
+   `list`.
 
 The cached profile is `cacheLife('weeks')` — Next 16's built-in long-tail profile (5 m stale,
 1 w revalidate, 30 d expire). No custom `cacheLife` config entry needed. Invalidations are

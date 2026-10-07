@@ -8,10 +8,11 @@ import { seoPlugin } from '@justanarthur/payload-plugin-seo'
 import { imageHashPlugin } from '@justanarthur/payload-imagehash-plugin'
 import { translator } from '@justanarthur/payload-plugin-translator'
 import { mcpPlugin, MCPPluginConfig } from '@payloadcms/plugin-mcp'
-import { revalidatePlugin, type RevalidatePluginOptions } from '@pro-laico/payload-revalidate'
+import type { RevalidatePluginOptions } from '@pro-laico/payload-revalidate'
 import { SEOPluginConfig } from "@justanarthur/payload-plugin-seo/types"
 import { BlurhashPluginOptions } from "@justanarthur/payload-imagehash-plugin/types"
 import { TranslatorConfig } from "@justanarthur/payload-plugin-translator/types"
+import { revalidateWithContentLists } from './revalidate/contentLists'
 
 export type WWWConfigApi = {
   withWWWConfig: (config: WWWInputConfig) => Config
@@ -90,7 +91,7 @@ export function createWWWConfig(): WWWConfigApi {
       // afterChange / afterDelete hooks, so it must be the LAST plugin —
       // host's plugins may add virtual collections or transform globals
       // that revalidatePlugin also needs to know about.
-      revalidatePlugin(revalidate === false ? { enabled: false } : mergeOrOverride({}, revalidate))
+      revalidateWithContentLists(revalidate === false ? { enabled: false } : mergeOrOverride({}, revalidate))
     ]
 
     return ({
