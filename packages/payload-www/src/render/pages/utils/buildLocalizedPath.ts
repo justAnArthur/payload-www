@@ -28,7 +28,7 @@ export function buildLocalizedPath(
     routing.localePrefix === 'never'
       ? ''
       : routing.localePrefix === 'always'
-        ? locale
+        ? '/' + locale
         : routing.localePrefix === 'as-needed'
           ? locale === routing.defaultLocale
             ? ''

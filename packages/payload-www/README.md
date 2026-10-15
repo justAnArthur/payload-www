@@ -150,6 +150,8 @@ const { default: PostPage, generateMetadata, generateStaticParams } = createColl
 | `slug` | `string` | `'pages'` | collection slug to query |
 | `slugShape` | `'single' \| 'catch-all'` | `'single'` | drives `generateStaticParams` + slug segmentation |
 | `depth` | `number` | `2` | relationship / upload hops populated on the rendered document. `0` hands every media and relationship field to the render component as a bare id. Enumeration (`generateStaticParams`, `generateSitemap`) stays at `0` regardless. |
+| `prerenderLocales` | `string[]` | every served locale | locales whose documents `generateStaticParams` prerenders; intersected with the served locales |
+| `resolveLocales` | `ResolveLocales` | — | narrows `routing` to the locales this deployment serves, read at runtime. See [Runtime locales](#runtime-locales-per-deployment). |
 
 ### `createCollectionPageExports(args, deps)` — deps
 
@@ -178,6 +180,7 @@ const { default: PostPage, generateMetadata, generateStaticParams } = createColl
 | `importMap` | `ImportMap` | required |
 | `routing` | `RoutingConfig` | required |
 | `depth` | `number` | relationship / upload hops populated on the `header` + `footer` globals. Defaults to `2`. |
+| `resolveLocales` | `ResolveLocales` | same as on `createCollectionPageExports`; pass the same resolver to both |
 
 | dep | type | notes |
 |---|---|---|
@@ -188,6 +191,80 @@ const { default: PostPage, generateMetadata, generateStaticParams } = createColl
 The layout reads `header` + `footer` globals in parallel and wraps the children in
 `<NextIntlClientProvider>`. Locale is pulled from the `[locale]` route segment and validated against
 `routing.locales` — unknown locales trigger `notFound()`.
+
+Render modules (the page's collection component, the header and footer globals) receive `locale`
+and the `routing` the request is served with as props, next to `data`, `config` and `importMap`.
+
+## Runtime locales (per deployment)
+
+One codebase deployed per client, with one database each, has to give Payload the same
+`localization` everywhere: the superset of every locale any client serves. Each deployment then
+serves a subset with its own default, stored in its database. `resolveLocales` narrows the static
+`routing` to that subset at runtime:
+
+```ts
+type RuntimeLocales = { locales?: readonly string[] | null; defaultLocale?: string | null }
+type ResolveLocales = (routing: RoutingConfig) => Promise<RuntimeLocales | null | undefined>
+```
+
+```ts
+// i18n/locales.ts
+import { localesFromGlobal } from '@justanarthur/payload-www/render-pages'
+
+// reads `enabledLocales` + `defaultLocale` (unlocalized fields) off the `site` global
+export const resolveLocales = localesFromGlobal({ globalSlug: 'site' })
+```
+
+```ts
+// app/(frontend)/[locale]/layout.tsx
+createRootLayoutExports({ config, importMap, routing, resolveLocales }, { getServerSideURL })
+
+// app/(frontend)/[locale]/[[...slug]]/page.tsx
+createCollectionPageExports({ config, importMap, routing, resolveLocales, slugShape: 'catch-all' }, { getServerSideURL })
+```
+
+`routing` stays the superset; `resolveLocales` narrows it on every render. With it:
+
+- a locale outside the served set 404s in the layout and the page, and gets no metadata;
+- `generateStaticParams` (layout and page) lists served locales only; `prerenderLocales` is
+  intersected with them;
+- hreflang alternates, canonical URLs and `generateSitemap` cover served locales only, and the
+  served default gets no prefix under `localePrefix: 'as-needed'` and is the `x-default`;
+- the sitemap enumerates documents in the served default locale.
+
+The result is sanitized by `narrowRouting(routing, runtime)`: locales `routing` doesn't know are
+dropped, an unset or disabled default falls back to `routing.defaultLocale` when served, else to
+the first served locale, and an empty result keeps the full `routing`, so a fresh database with no
+settings saved still serves every locale. Without `resolveLocales` nothing changes.
+
+The resolver runs on every render, so it must be cached. `localesFromGlobal({ globalSlug,
+localesField?, defaultLocaleField? })` reads through `queryGlobal`, so it is `'use cache'`d and
+tagged like any global, and `revalidatePlugin()` refreshes it when the global is saved. A
+hand-written resolver should be a `'use cache'` function with a tag its source busts.
+`resolveRouting(routing, resolveLocales)` returns the narrowed routing for host code that needs
+it too (a locale switcher, `getRequestConfig`).
+
+The lib doesn't own the host's middleware: next-intl's `createMiddleware(routing)` still decides
+which locale an unprefixed URL is served in and which prefixes it redirects away. A host whose
+default differs per deployment builds the middleware from the narrowed routing (e.g.
+`createMiddleware(narrowRouting(routing, await readLocales()))`), with a cache of its own, since
+`'use cache'` doesn't apply there.
+
+## Links
+
+```ts
+import { linkHref } from '@justanarthur/payload-www/render-pages'
+
+linkHref(link, { locale, routing, pagePathPrefixes: { posts: 'posts' } })
+```
+
+`linkHref` turns a `link()` field value into an href. An internal link resolves to the referenced
+document's path in `locale`, prefixed per `routing` (no prefix for the default locale under
+`as-needed`) and nested per its slug; `pagePathPrefixes` mounts a collection under its URL
+segment. Custom URLs come back as typed. Render modules get `locale` and `routing` as props, so a
+host header passes them straight through. The default `HeaderPage` / `FooterPage` use it.
+`buildLocalizedPath(locale, pagePathPrefix, slug, { routing })` is the same path builder for
+anything that isn't a `link()` value.
 
 ## Sitemap
 
@@ -443,7 +520,7 @@ The package's `package.json#exports` map:
 | Subpath | What's there |
 |---|---|
 | `@justanarthur/payload-www/config` | `createWWWConfig`, `WWWConfigApi`, `WWWInputConfig` |
-| `@justanarthur/payload-www/render-pages` | `createCollectionPageExports`, `createRootLayoutExports`, `PagesPage`, `PostsPage`, `HeaderPage`, `FooterPage`, `RootJsonLd` + types |
+| `@justanarthur/payload-www/render-pages` | `createCollectionPageExports`, `createRootLayoutExports`, `PagesPage`, `PostsPage`, `HeaderPage`, `FooterPage`, `RootJsonLd`, `localesFromGlobal`, `resolveRouting`, `narrowRouting`, `linkHref`, `buildLocalizedPath` + types (`ResolveLocales`, `RuntimeLocales`, `RoutingConfig`, …) |
 | `@justanarthur/payload-www/pages` | subset of `/render-pages` (no `createRootLayoutExports`, no `PostsPage`, no `RootJsonLd`) |
 | `@justanarthur/payload-www/sitemap` | `createSitemapFromCollections` |
 | `@justanarthur/payload-www/blocks` | `RenderBlocks`, `RenderBlocksProps` |

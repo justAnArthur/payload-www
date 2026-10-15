@@ -9,6 +9,7 @@ import { type GenerateStaticParamsProps, NextPageProps } from "./utils/checkPara
 import { buildAlternates, type PagePathPrefix, resolvePagePathPrefix, RoutingConfig } from "./utils/buildLocalizedPath"
 import { createSiteDefaults, generateMeta } from "@justanarthur/payload-plugin-seo/next-metadata"
 import { renderWWWDataModule } from "../renderWWWModule"
+import { type ResolveLocales, resolveRouting } from "./utils/resolveRouting"
 
 export type CreateCollectionPageExportsArgs<S extends string = 'pages'> = {
   slug?: S
@@ -25,6 +26,14 @@ export type CreateCollectionPageExportsArgs<S extends string = 'pages'> = {
 
   /** Locales whose documents prerender at build. The rest render on their first request and cache from there. Defaults to every locale. */
   prerenderLocales?: string[]
+
+  /**
+   * Narrows `routing` to the locales this deployment serves, read at runtime (e.g. from a settings
+   * global). Locales outside the result 404 and drop out of static params, alternates and the
+   * sitemap; its default locale gets no prefix under `localePrefix: 'as-needed'`. Omit to serve
+   * every locale of `routing`.
+   */
+  resolveLocales?: ResolveLocales
 }
 
 export type CreateCollectionPageExportsDeps<S extends string> = {
@@ -45,7 +54,8 @@ export function createCollectionPageExports<S extends string = 'pages'>(
     routing,
     slugShape = 'single',
     depth = RENDER_DEPTH,
-    prerenderLocales = routing.locales
+    prerenderLocales,
+    resolveLocales
   }: CreateCollectionPageExportsArgs<S>,
   {
     getServerSideURL,
@@ -56,6 +66,8 @@ export function createCollectionPageExports<S extends string = 'pages'>(
   seedPayloadCache({ config: _payloadConfig })
 
   const siteUrl = getServerSideURL()
+
+  const getRouting = () => resolveRouting(routing, resolveLocales)
 
   async function fetchDoc(locale: string, slug: string) {
     return queryDoc({
@@ -72,6 +84,7 @@ export function createCollectionPageExports<S extends string = 'pages'>(
     const params = await props.params
 
     const locale = params.locale as string
+    const routing = await getRouting()
     if (!routing.locales.includes(locale)) {
       const { notFound } = await import('next/navigation')
       return notFound()
@@ -87,7 +100,7 @@ export function createCollectionPageExports<S extends string = 'pages'>(
     }
 
     const rendered = renderWWWDataModule(
-      doc, { collectionSlug, config: _payloadConfig, importMap }, { ...props, locale }
+      doc, { collectionSlug, config: _payloadConfig, importMap }, { ...props, locale, routing }
     )
 
     return <React.Suspense fallback={fallback ?? null}>
@@ -99,6 +112,7 @@ export function createCollectionPageExports<S extends string = 'pages'>(
     const params = await props.params
 
     const locale = params.locale as string
+    const routing = await getRouting()
     if (!routing.locales.includes(locale)) {
       return {}
     }
@@ -136,6 +150,7 @@ export function createCollectionPageExports<S extends string = 'pages'>(
 
   async function generateStaticParams(props: GenerateStaticParamsProps) {
     await props.params
+    const { locales } = await getRouting()
     // Return every (locale, slug) pair across the prerendered locales. Next 16's
     // static shell pre-renders each pair; the layout's generateStaticParams
     // already supplies the per-locale fan-out, but listing the pairs here too
@@ -143,7 +158,7 @@ export function createCollectionPageExports<S extends string = 'pages'>(
     // locale fan-out. next calls this once per layout locale and needs a
     // non-empty result each time, so it returns the same pairs regardless.
     const perLocaleEntries = await Promise.all(
-      prerenderLocales.map(async (locale) => {
+      (prerenderLocales?.filter(locale => locales.includes(locale)) ?? locales).map(async (locale) => {
         const docs = await queryAllDocs({ locale, collectionSlug })
 
         const entries = docs
@@ -164,11 +179,12 @@ export function createCollectionPageExports<S extends string = 'pages'>(
   }
 
   async function generateSitemap(): Promise<MetadataRoute.Sitemap> {
+    const routing = await getRouting()
     const locale = routing.defaultLocale
 
     const docs = await queryAllDocs({
       collectionSlug,
-      locale: routing.defaultLocale
+      locale
     })
 
     return await Promise.all(docs.map(async doc => {
