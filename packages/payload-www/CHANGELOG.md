@@ -8,6 +8,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- `resolveLocales` on `createCollectionPageExports` and `createRootLayoutExports`: narrows the
+  static `routing` (the superset in Payload's `localization`) to the locales one deployment serves,
+  read at runtime. Other locales 404 and drop out of static params, hreflang alternates,
+  canonicals and the sitemap; the served default gets no prefix under `as-needed`. Without it
+  nothing changes.
+- `localesFromGlobal({ globalSlug })`, a cached, tagged resolver reading `enabledLocales` and
+  `defaultLocale` off a settings global; `resolveRouting` and `narrowRouting` for host code.
+- `linkHref(link, { locale, routing })` resolves a `link()` value to a locale-prefixed href, and
+  `buildLocalizedPath` is exported. Render modules get `locale` and `routing` as props.
+
+### Fixed
+
+- `localePrefix: 'always'` paths start with `/` (`/en/about`, was `en/about`).
+- The default `HeaderPage` / `FooterPage` link to the referenced doc of a multi-collection link,
+  in the current locale and with nested slugs as paths, instead of `#` or the stored slug.
+
+### Added
+
 - `slugField({ useAsTitle, nested })` locks the slug to the title. The admin field shows a
   Lock / Unlock button. Locked, the slug follows the title as you type; unlocked, you type it.
   The lock is a hidden, localized `slugLock` checkbox, so a host adding it needs a migration.

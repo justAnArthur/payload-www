@@ -9,6 +9,7 @@ import { RoutingConfig } from "./utils/buildLocalizedPath"
 import { renderWWWDataModule } from "../renderWWWModule"
 import { RootJsonLd } from "@justanarthur/payload-plugin-seo/root-jsonld"
 import * as rootParams from 'next/root-params'
+import { type ResolveLocales, resolveRouting } from "./utils/resolveRouting"
 
 /**
  * `next/root-params` exposes one getter per dynamic segment above the root
@@ -46,6 +47,9 @@ export type CreateRootLayoutExportsArgs = {
 
   /** Relationship / upload hops populated on the header and footer globals. `0` renders them as bare ids. */
   depth?: number
+
+  /** Narrows `routing` to the locales this deployment serves; see `createCollectionPageExports`. */
+  resolveLocales?: ResolveLocales
 }
 
 export type CreateRootLayoutProvidersArgs = {
@@ -67,8 +71,9 @@ export function createRootLayoutExports(
     _payloadConfig,
     importMap,
 
-    routing,
-    depth = RENDER_DEPTH
+    routing: staticRouting,
+    depth = RENDER_DEPTH,
+    resolveLocales
   }: CreateRootLayoutExportsArgs,
   {
     providers,
@@ -81,6 +86,7 @@ export function createRootLayoutExports(
 
   async function RootLayout(props: NextLayoutProps) {
     const locale = await resolveLocale(props)
+    const routing = await resolveRouting(staticRouting, resolveLocales)
     if (!routing.locales.includes(locale)) {
       const { notFound } = await import('next/navigation')
       return notFound()
@@ -98,11 +104,11 @@ export function createRootLayoutExports(
     const
       renderedHeader = renderWWWDataModule(
         header, { collectionSlug: 'header', configPath: 'globals', config: _payloadConfig, importMap },
-        { ...props, locale }
+        { ...props, locale, routing }
       ),
       renderedFooter = renderWWWDataModule(
         footer, { collectionSlug: 'footer', configPath: 'globals', config: _payloadConfig, importMap },
-        { ...props, locale }
+        { ...props, locale, routing }
       )
 
     const mergedHtmlAttrs: HTMLAttributes<HTMLHtmlElement> = ({
@@ -139,6 +145,7 @@ export function createRootLayoutExports(
 
   return {
     default: RootLayout,
-    generateStaticParams: () => routing.locales.map((locale) => ({ locale }))
+    generateStaticParams: async () =>
+      (await resolveRouting(staticRouting, resolveLocales)).locales.map((locale) => ({ locale }))
   }
 }

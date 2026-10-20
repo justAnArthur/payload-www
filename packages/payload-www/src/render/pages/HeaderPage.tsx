@@ -1,7 +1,8 @@
 import type { ReactElement } from 'react'
 import { RenderedWWWModule } from "../renderWWWModule"
+import { linkHref } from "./utils/linkHref"
 
-export function HeaderPage({ data }: RenderedWWWModule): ReactElement {
+export function HeaderPage({ data, locale, routing }: RenderedWWWModule): ReactElement {
   const nav = (data.nav ?? []) as Array<{
     blockType?: string;
     title?: string;
@@ -11,19 +12,8 @@ export function HeaderPage({ data }: RenderedWWWModule): ReactElement {
   const items = nav.filter((b) => b.blockType === 'navItem')
   const columns = nav.filter((b) => b.blockType === 'navColumn')
 
-  const renderLink = (link?: Record<string, any>, fallbackHref: string = '#') => {
-    if (!link) return <a href={fallbackHref}>{(link as any)?.label ?? ''}</a>
-    if (link.type === 'custom' && typeof link.url === 'string') {
-      return <a href={link.url}>{link.label}</a>
-    }
-    if (link.type === 'reference' && link.reference) {
-      const ref = link.reference
-      if (typeof ref === 'object' && ref.slug) {
-        return <a href={`/${ref.slug}`}>{link.label}</a>
-      }
-    }
-    return <a href={fallbackHref}>{link.label ?? ''}</a>
-  }
+  const renderLink = (link?: Record<string, any>, fallbackHref: string = '#') =>
+    <a href={linkHref(link, { locale, routing }) ?? fallbackHref}>{link?.label ?? ''}</a>
 
   return (
     <nav>
