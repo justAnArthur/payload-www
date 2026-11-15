@@ -17,6 +17,8 @@ const nextConfig: NextConfig = {
   agentRules: true,
   reactCompiler: { compilationMode: 'annotation' },
   experimental: {
+    // persistent dev cache writes GBs to .next/dev/cache; keep off
+    turbopackFileSystemCacheForDev: false,
     turbopackRustReactCompiler: true,
     useTypeScriptCli: true
   },
