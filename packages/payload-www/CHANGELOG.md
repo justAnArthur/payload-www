@@ -8,6 +8,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- `createLlmsTxtFromCollections` and `createLlmsFullTxtFromCollections` in `./sitemap`: route
+  handlers for [`/llms.txt`](https://llmstxt.org) and `/llms-full.txt`, built from the same
+  `generateSitemap` functions as the sitemap index. Section titles, exclusions, locale and an
+  extra markdown section are options; the opt-in `llms` global from
+  `@justanarthur/payload-plugin-seo/globals` overrides them. `llms-full.txt` inlines each page's
+  content as markdown (lexical rich text via `convertLexicalToMarkdown`, blocks walked by schema,
+  `serializeBlock` to override one block type).
+- `generateSitemap` carries `collectionSlug`, `payloadConfig`, `getRouting` and
+  `listDocs(locale?)`, the per-document listing the sitemap and llms.txt share.
+
 - `resolveLocales` on `createCollectionPageExports` and `createRootLayoutExports`: narrows the
   static `routing` (the superset in Payload's `localization`) to the locales one deployment serves,
   read at runtime. Other locales 404 and drop out of static params, hreflang alternates,
