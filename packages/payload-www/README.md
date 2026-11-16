@@ -22,7 +22,7 @@ The composition root is `createWWWConfig()` — see [Quick start](#quick-start) 
 | Caching | [`Caching`](#caching) | Cached query getters wrap `@pro-laico/payload-revalidate` finders; tag-based invalidation via `revalidatePlugin()`; `seedPayloadCache` singleton seed. |
 | Metadata | [`/metadata`](#metadata) | `buildArticleLd`, `buildBreadcrumbsLd`, `buildOrganizationLd`, `buildWebSiteLd`, `buildProductLd`, `buildRootJsonLd`; slug transforms; `queryDocBySlug`, `queryDocByID`, `queryGlobal`, `queryDocs`, `queryAllDocs`, `queryAllLocaleSlugs`; `seedPayloadCache`, `tagsFor`. |
 | Next.js page renderers | [`/render-pages`](#render-pages) | `createCollectionPageExports`, `createRootLayoutExports`; default render components `PagesPage`, `PostsPage`, `HeaderPage`, `FooterPage`, `RootJsonLd`. |
-| Sitemap | [`/sitemap`](#sitemap) | `createSitemapFromCollections` (Next.js file-convention helper). |
+| Sitemap + llms.txt | [`/sitemap`](#sitemap), [`llms.txt`](#llmstxt) | `createSitemapFromCollections` (Next.js file-convention helper); `createLlmsTxtFromCollections`, `createLlmsFullTxtFromCollections` (route handlers for `/llms.txt` and `/llms-full.txt`). |
 | Plugin re-exports | [`/imagehash`](#plugin-re-exports), [`/translator`](#plugin-re-exports) | Drop-in for hosts that don't want to import the sibling packages directly. |
 
 ## Quick start
@@ -293,6 +293,74 @@ The lib reads through `@pro-laico/payload-revalidate`'s cached finders, so regis
 its tags automatically — no lib-side hooks to wire. Edits refresh the sitemap without
 manual rebuilds.
 
+## llms.txt
+
+`createLlmsTxtFromCollections` and `createLlmsFullTxtFromCollections` build
+[llms.txt](https://llmstxt.org) route handlers from the same `generateSitemap` functions the
+sitemap index takes — every published document, its canonical URL and its SEO meta.
+
+```ts
+// app/(frontend)/(meta)/llms.txt/route.ts
+import { createLlmsTxtFromCollections } from '@justanarthur/payload-www/sitemap'
+import { generateSitemap as pages } from '../../(pages)/[locale]/(pages)/[[...slug]]/page'
+import { generateSitemap as posts } from '../../(pages)/[locale]/posts/[slug]/page'
+
+export const GET = createLlmsTxtFromCollections([pages, posts], {
+  name: 'Acme',
+  summary: 'Acme is cloud software for …',
+  sections: { pages: 'Company', posts: 'Blog' },
+  // cut by URL across collections, listed first: /products/* leaves the Pages section
+  pathSections: [{ path: '/products', title: 'Products' }, { path: '/industries', title: 'Who it is for' }],
+  exclude: ['/legal/cookies'],
+  extra: '## Optional\n\n- [Status page](https://status.acme.com)'
+})
+
+// app/(frontend)/(meta)/llms-full.txt/route.ts
+import { createLlmsFullTxtFromCollections } from '@justanarthur/payload-www/sitemap'
+
+export const GET = createLlmsFullTxtFromCollections([pages, posts], {
+  name: 'Acme',
+  // optional: your own markdown for a block type; return undefined for the generic output, '' to drop it
+  serializeBlock: (block) => block.blockType === 'pricingTable' ? '' : undefined
+})
+```
+
+`/llms.txt` prints `# name`, `> summary`, the served locales, then one `## section` per
+collection with `- [title](url): description` per document. Titles and descriptions come from
+the SEO plugin's `meta` group, falling back to the collection's `useAsTitle` field. `/llms-full.txt`
+adds each page's content as markdown: the walk follows the collection's field schema (tabs,
+groups, arrays, blocks and block references), emits text, textarea and rich text, and skips
+relationships, uploads, selects, link targets, `slug`, `meta`, the editor-only `id`/`blockName`,
+disabled fields and fields whose `admin.condition` hides them for that document. Rich text goes through
+`@payloadcms/richtext-lexical`'s `convertLexicalToMarkdown` with the field's own editor config.
+Blocks inside rich text (`BlocksFeature`) are rendered from their fields or `serializeBlock`, and a
+rich text tree with a node type its editor doesn't register falls back to plain text rather than
+being cut off. Each page's headings are shifted so its top level sits at `####`, under the `###`
+page link; fenced code is left as is.
+
+| option | default | effect |
+|---|---|---|
+| `name` | `metadata` global's site name, then the host name | `# heading` |
+| `summary` | `metadata` global's site description | `> summary` line |
+| `details` | — | markdown between the summary and the sections |
+| `locale` | served default locale | locale of the listed documents and URLs |
+| `showLocales` | `true` | print the served locales |
+| `sections` | collection's plural label | heading per collection slug; `false` drops the collection |
+| `pathSections` | — | `[{ path, title }]`: sections by URL path (without locale prefix), across collections, listed first in this order; matching documents leave their collection's section |
+| `exclude` | — | documents to leave out, by id, slug, path or absolute URL |
+| `extra` | — | markdown appended at the end |
+| `globalSlug` | `'llms'` | editable settings global; read only when the config registers it, `false` skips it |
+| `serializeBlock` (full only) | — | per-block markdown override |
+| `richTextToMarkdown` (full only) | lexical converter | rich text conversion override |
+
+Editors can override the code options with the opt-in `llms` global from
+`@justanarthur/payload-plugin-seo/globals` (`createLlmsGlobal`); its non-empty fields win.
+Registering it is a schema change, so it needs a migration.
+
+Caching works as for the sitemap: every read goes through the cached, tagged finders, so a save
+refreshes both files. A proxy or middleware that rejects paths with a file extension has to let
+`/llms.txt` and `/llms-full.txt` through.
+
 ## Static pages (404 / 500 / system)
 
 There's no dedicated `createStaticPageExports` (yet). System pages render via a normal
@@ -522,7 +590,7 @@ The package's `package.json#exports` map:
 | `@justanarthur/payload-www/config` | `createWWWConfig`, `WWWConfigApi`, `WWWInputConfig` |
 | `@justanarthur/payload-www/render-pages` | `createCollectionPageExports`, `createRootLayoutExports`, `PagesPage`, `PostsPage`, `HeaderPage`, `FooterPage`, `RootJsonLd`, `localesFromGlobal`, `resolveRouting`, `narrowRouting`, `linkHref`, `buildLocalizedPath` + types (`ResolveLocales`, `RuntimeLocales`, `RoutingConfig`, …) |
 | `@justanarthur/payload-www/pages` | subset of `/render-pages` (no `createRootLayoutExports`, no `PostsPage`, no `RootJsonLd`) |
-| `@justanarthur/payload-www/sitemap` | `createSitemapFromCollections` |
+| `@justanarthur/payload-www/sitemap` | `createSitemapFromCollections`, `createLlmsTxtFromCollections`, `createLlmsFullTxtFromCollections`, `buildLlmsDocument`, `renderLlmsTxt`, `renderLlmsFullTxt`, `fieldsToMarkdown`, `lexicalToPlainText` |
 | `@justanarthur/payload-www/blocks` | `RenderBlocks`, `RenderBlocksProps` |
 | `@justanarthur/payload-www/collections` | `createWWWCollectionGlobal`, `queryDoc` |
 | `@justanarthur/payload-www/fields` | `link`, `linkGroup`, `appearanceOptions`, `slugField`, `formatSlug`, `formatSlugSegment`, `generateSlug`, `slugFromTitle`, `slugParent`, `SLUG_LOCK_FIELD`, `LinkAppearances`, `LinkOptions`, `SlugFieldOptions` |

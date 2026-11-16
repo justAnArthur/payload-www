@@ -44,6 +44,14 @@ export type CreateCollectionPageExportsDeps<S extends string> = {
   fallback?: ReactNode
 }
 
+export type CollectionDocEntry = {
+  doc: Record<string, any>
+  /** Absolute canonical URL in the listed locale. */
+  url: string
+  alternates: { languages: Record<string, string>; canonical: string }
+  lastModified: string | Date
+}
+
 export function createCollectionPageExports<S extends string = 'pages'>(
   {
     slug: collectionSlug = 'pages' as S,
@@ -178,34 +186,54 @@ export function createCollectionPageExports<S extends string = 'pages'>(
     return perLocaleEntries.flat()
   }
 
-  async function generateSitemap(): Promise<MetadataRoute.Sitemap> {
+  /**
+   * Every published document of the collection with its canonical URL in `locale` (the served
+   * default when omitted). Outside the default locale, documents without a slug of their own in
+   * that locale are left out, since they have no page there. Shared by the sitemap and llms.txt.
+   */
+  async function listDocs(locale?: string): Promise<CollectionDocEntry[]> {
     const routing = await getRouting()
-    const locale = routing.defaultLocale
+    const docLocale = locale ?? routing.defaultLocale
+    if (!routing.locales.includes(docLocale)) return []
 
     const docs = await queryAllDocs({
       collectionSlug,
-      locale
+      locale: docLocale
     })
 
-    return await Promise.all(docs.map(async doc => {
+    const entries = await Promise.all(docs.map(async doc => {
       const localesSlug = (await queryAllLocaleSlugs({
         id: doc.id,
         collectionSlug
       })) ?? {}
 
-      const alternates = buildAlternates(locale, localesSlug, pagePathPrefix, { routing, siteUrl })
+      const alternates = buildAlternates(docLocale, localesSlug, pagePathPrefix, { routing, siteUrl })
+      if (docLocale !== routing.defaultLocale && !(docLocale in alternates.languages)) return null
 
       return ({
+        doc: doc as Record<string, any>,
         url: alternates.canonical,
         alternates,
         lastModified: doc.updatedAt || new Date()
       })
     }))
+
+    return entries.filter(entry => entry !== null)
+  }
+
+  async function generateSitemap(): Promise<MetadataRoute.Sitemap> {
+    return (await listDocs()).map(({ url, alternates, lastModified }) => ({ url, alternates, lastModified }))
   }
 
   generateSitemap.getServerSideURL = getServerSideURL
   // the sitemap index addresses a route, not a localized page, so it stays on one segment
   generateSitemap.pagePathPrefix = resolvePagePathPrefix(pagePathPrefix, routing.defaultLocale, routing)
+  // what createLlmsTxtFromCollections reads; riding on generateSitemap lets a host hand the same
+  // functions to the sitemap index and to llms.txt without new page exports
+  generateSitemap.collectionSlug = collectionSlug as string
+  generateSitemap.payloadConfig = _payloadConfig
+  generateSitemap.getRouting = getRouting
+  generateSitemap.listDocs = listDocs
 
   return ({
     default: default_,

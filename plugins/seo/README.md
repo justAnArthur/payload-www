@@ -148,12 +148,41 @@ Advanced — for hosts that want individual pieces without the plugin runtime:
 | `@justanarthur/payload-plugin-seo/types` | shared TS types (`SEOPluginConfig`, `SEOMeta`, etc.) |
 | `@justanarthur/payload-plugin-seo/fields` | `metaField` factory, used when you want the field without registering the plugin |
 | `@justanarthur/payload-plugin-seo/fields-components` | the client-side admin UI components |
-| `@justanarthur/payload-plugin-seo/globals` | `createMetadataGlobal` (the SEO `metadata` global the lib's `createWWWConfig` registers) |
+| `@justanarthur/payload-plugin-seo/globals` | `createMetadataGlobal` (the SEO `metadata` global the lib's `createWWWConfig` registers), `createLlmsGlobal` (opt-in editorial settings for `/llms.txt`, see below) |
 | `@justanarthur/payload-plugin-seo/site-defaults` | `createSiteDefaults` — read the SEO global for the current request |
 | `@justanarthur/payload-plugin-seo/next-metadata` | `generateMeta` (used by `@justanarthur/payload-www/render-pages`) |
 | `@justanarthur/payload-plugin-seo/root-jsonld` | `Organization` / `WebSite` JSON-LD helpers |
 | `@justanarthur/payload-plugin-seo/opengraph-image` | `generateOpenGraphImage` (Next.js `ImageResponse` helper) |
 | `@justanarthur/payload-plugin-seo/client` | client-side bits (already lazy-loaded by `@justanarthur/payload-www`) |
+
+## llms.txt settings global
+
+`createLlmsGlobal(options?)` adds an `llms` global that editors use to tune the `/llms.txt` and
+`/llms-full.txt` routes built by `@justanarthur/payload-www/sitemap`'s
+`createLlmsTxtFromCollections` / `createLlmsFullTxtFromCollections`. It is opt-in: nothing
+registers it, so hosts that don't add it see no schema change. Adding it is a schema change —
+generate and run a migration.
+
+```ts
+import { createLlmsGlobal } from '@justanarthur/payload-plugin-seo/globals'
+
+globals: (defaults) => [...defaults, createLlmsGlobal({ collections: ['pages', 'posts'] })]
+```
+
+| field | effect |
+|---|---|
+| `siteName`, `summary`, `details` (localized) | the `# heading`, the `> summary` line and the markdown under it |
+| `showLocales` | print the served locales under the summary |
+| `collections[]` (`collection`, `title`, `exclude`) | rename or hide one collection's section |
+| `pathSections[]` (`path`, `title`) | sections by URL path, listed first; replaces the code list when set |
+| `exclude[]` | pages to leave out, by id, slug, path or URL |
+| `extra` (localized) | markdown appended at the end |
+
+Every field is optional; an empty field falls back to the options the route was created with.
+By default only users of the admin collection (`config.admin.user`) can read or update it; pass
+`access` to change that. The routes read it through the local API, which skips access.
+`options.collections` turns the per-section collection field into a select; `slug` and
+`interfaceName` (default `LlmsSettings`) rename it.
 
 ## Licence
 
