@@ -39,11 +39,16 @@ function footer(doc: LlmsDocument): string[] {
   return doc.extra?.trim() ? [doc.extra.trim()] : []
 }
 
-// page content sits under a `###` link heading, so its own headings start at `####`
-const demoteHeadings = (markdown: string) =>
-  markdown.replace(/^(#{1,6}) /gm, (_, hashes: string) => '#'.repeat(Math.min(hashes.length + 3, 6)) + ' ')
+// page content sits under a `###` link heading, so its top heading level becomes `####` and the
+// rest keep their distance to it (capped at `######`)
+function demoteHeadings(markdown: string) {
+  const levels = [...markdown.matchAll(/^(#{1,6}) /gm)].map(match => match[1].length)
+  if (levels.length === 0) return markdown
+  const shift = 4 - Math.min(...levels)
+  return markdown.replace(/^(#{1,6}) /gm, (_, hashes: string) => '#'.repeat(Math.min(hashes.length + shift, 6)) + ' ')
+}
 
-const nonEmpty =(sections: LlmsSection[]) => sections.filter(section => section.links.length > 0)
+const nonEmpty = (sections: LlmsSection[]) => sections.filter(section => section.links.length > 0)
 
 /** Renders the https://llmstxt.org index: a title, a summary and one link list per section. */
 export function renderLlmsTxt(doc: LlmsDocument): string {

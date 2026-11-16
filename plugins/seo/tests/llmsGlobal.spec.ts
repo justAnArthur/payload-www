@@ -9,7 +9,8 @@ describe('createLlmsGlobal', () => {
   it('registers under the llms slug with every field optional', () => {
     const global = createLlmsGlobal()
     expect(global.slug).toBe(LLMS_GLOBAL_DEFAULT_SLUG)
-    expect(global.fields.map(f => 'name' in f && f.name)).toEqual(['siteName', 'summary', 'details', 'showLocales', 'collections', 'exclude', 'extra'])
+    expect(global.fields.map(f => 'name' in f && f.name)).toEqual(['siteName', 'summary', 'details', 'showLocales', 'collections', 'pathSections', 'exclude', 'extra'])
+    // only fields inside array rows are required; the top level stays optional
     expect(global.fields.some(f => 'required' in f && f.required)).toBe(false)
   })
 

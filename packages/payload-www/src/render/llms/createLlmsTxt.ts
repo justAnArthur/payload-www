@@ -34,6 +34,13 @@ export type LlmsTxtOptions = {
   showLocales?: boolean
   /** Section heading per collection slug, or `false` to leave the collection out. Defaults to the collection's plural label. */
   sections?: Record<string, string | false>
+  /**
+   * Sections cut by URL path instead of collection, listed before the collection sections in
+   * this order: `[{ path: '/products', title: 'Products' }]` takes every document under
+   * `/products` (in any collection) out of its collection's section. Paths are matched without
+   * the locale prefix.
+   */
+  pathSections?: LlmsPathSection[]
   /** Documents to leave out, by id, slug, URL path (`/pricing`) or absolute URL. */
   exclude?: (string | number)[]
   /** Markdown appended after the generated sections, e.g. an `## Optional` list. */
@@ -45,6 +52,8 @@ export type LlmsTxtOptions = {
    */
   globalSlug?: string | false
 }
+
+export type LlmsPathSection = { path: string; title: string }
 
 export type LlmsFullTxtOptions = LlmsTxtOptions & {
   /** Overrides the markdown of one layout block; return `undefined` for the generic output. */
@@ -60,6 +69,7 @@ export type LlmsGlobalData = {
   details?: string | null
   showLocales?: boolean | null
   collections?: { collection?: string | null; title?: string | null; exclude?: boolean | null }[] | null
+  pathSections?: { path?: string | null; title?: string | null }[] | null
   exclude?: { value?: string | null }[] | null
   extra?: string | null
 }
@@ -116,6 +126,17 @@ export async function buildLlmsDocument(
 
   const toMarkdown = full ? await richTextConverter(options.richTextToMarkdown) : undefined
 
+  // the global's list replaces the code list as a whole, so editors can reorder and drop sections
+  const fromGlobal = (settings?.pathSections ?? [])
+    .filter((row): row is LlmsPathSection => !!filled(row.path) && !!filled(row.title))
+  const pathSections = (fromGlobal.length ? fromGlobal : options.pathSections ?? [])
+    .map(section => ({ title: section.title, prefix: normalizePath('/' + section.path.trim().replace(/^\/+/, '')), links: [] as LlmsLink[] }))
+  const localePrefix = new RegExp(`^/(?:${routing.locales.map(escapeRegExp).join('|')})(?=/|$)`)
+  const pathSectionOf = (url: string) => {
+    const path = new URL(url).pathname.replace(localePrefix, '') || '/'
+    return pathSections.find(({ prefix }) => prefix === '/' ? path === '/' : path === prefix || path.startsWith(prefix + '/'))
+  }
+
   const sections = await Promise.all(sources.map(async source => {
     const row = sectionRows.get(source.collectionSlug)
     const fromOptions = options.sections?.[source.collectionSlug]
@@ -151,8 +172,14 @@ export async function buildLlmsDocument(
       }
     })
 
-    return { title, links }
+    return { title, links: links.filter(link => {
+      const pathSection = pathSectionOf(link.url)
+      pathSection?.links.push(link)
+      return !pathSection
+    }) }
   }))
+
+  for (const section of pathSections) section.links.sort((a, b) => a.url.localeCompare(b.url))
 
   return {
     name: filled(settings?.siteName) ?? filled(options.name) ?? filled(metadata?.shared?.name)
@@ -160,10 +187,15 @@ export async function buildLlmsDocument(
     summary: filled(settings?.summary) ?? filled(options.summary) ?? filled(metadata?.shared?.description),
     details: filled(settings?.details) ?? options.details,
     locales: (settings?.showLocales ?? options.showLocales ?? true) ? routing.locales : undefined,
-    sections: sections.filter(section => section !== null),
+    sections: [
+      ...pathSections.map(({ title, links }) => ({ title, links })),
+      ...sections.filter(section => section !== null)
+    ],
     extra: filled(settings?.extra) ?? options.extra
   }
 }
+
+const escapeRegExp = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 
 function normalizePath(value: string) {
   return value.length > 1 ? value.replace(/\/+$/, '') : value

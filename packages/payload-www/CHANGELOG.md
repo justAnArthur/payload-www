@@ -10,7 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 - `createLlmsTxtFromCollections` and `createLlmsFullTxtFromCollections` in `./sitemap`: route
   handlers for [`/llms.txt`](https://llmstxt.org) and `/llms-full.txt`, built from the same
-  `generateSitemap` functions as the sitemap index. Section titles, exclusions, locale and an
+  `generateSitemap` functions as the sitemap index. Section titles, sections by URL path
+  (`pathSections`), exclusions, locale and an
   extra markdown section are options; the opt-in `llms` global from
   `@justanarthur/payload-plugin-seo/globals` overrides them. `llms-full.txt` inlines each page's
   content as markdown (lexical rich text via `convertLexicalToMarkdown`, blocks walked by schema,

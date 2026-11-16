@@ -77,6 +77,18 @@ export const createLlmsGlobal = (
         ]
       },
       {
+        name: 'pathSections',
+        type: 'array',
+        label: 'Sections by path',
+        admin: {
+          description: 'Group pages by URL path instead of collection, e.g. /products → "Products". Listed first, in this order; replaces the list set in code.'
+        },
+        fields: [
+          { name: 'path', type: 'text', required: true, admin: { description: 'Path without the locale prefix, e.g. /products.' } },
+          { name: 'title', type: 'text', required: true, localized: true, label: 'Section title' }
+        ]
+      },
+      {
         name: 'exclude',
         type: 'array',
         label: 'Excluded pages',

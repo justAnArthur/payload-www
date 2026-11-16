@@ -112,6 +112,14 @@ describe('renderLlmsTxt', () => {
     })
     expect(out).toBe('# Example\n\n## Posts\n\n### [Hello](https://x/hello)\n\n> Intro\n\n#### Big\n\nText\n')
   })
+
+  it('maps the top heading of the content to #### and keeps the others relative to it', () => {
+    const out = renderLlmsFullTxt({
+      name: 'X',
+      sections: [{ title: 'S', links: [{ title: 'P', url: 'https://x', content: '## Top\n\n### Sub\n\n#### Deep\n\n##### Deeper' }] }]
+    })
+    expect(out).toContain('#### Top\n\n##### Sub\n\n###### Deep\n\n###### Deeper')
+  })
 })
 
 describe('fieldsToMarkdown', () => {
@@ -160,6 +168,28 @@ describe('buildLlmsDocument', () => {
     expect(doc.locales).toBeUndefined()
     expect(doc.sections).toEqual([{ title: 'Product', links: [expect.objectContaining({ url: 'https://www.example.com/sk' })] }])
     expect(queryGlobal).toHaveBeenCalledWith(expect.objectContaining({ globalSlug: 'llms', locale: 'sk' }))
+  })
+
+  it('cuts sections by path across collections, before the collection sections', async () => {
+    const doc = await buildLlmsDocument([source('pages', pages), source('posts', posts, '/posts')], {
+      locale: 'sk',
+      showLocales: false,
+      pathSections: [{ path: 'posts/', title: 'Blog' }, { path: '/about', title: 'Company' }, { path: '/', title: 'Home' }]
+    })
+    expect(doc.sections.map(s => [s.title, s.links.map(l => l.url.replace(siteUrl, ''))])).toEqual([
+      ['Blog', ['/sk/posts/hello']],
+      ['Company', ['/sk/about']],
+      ['Home', ['/sk']],
+      ['Pages', ['/sk/pricing']],
+      ['Články', []]
+    ])
+  })
+
+  it('lets the global path sections replace the code ones', async () => {
+    globals.llms = { pathSections: [{ path: '/pricing', title: 'Plans' }, { path: '', title: 'ignored' }] }
+    const doc = await buildLlmsDocument(sources, { pathSections: [{ path: '/about', title: 'Company' }] })
+    expect(doc.sections.map(s => s.title)).toEqual(['Plans', 'Pages', 'Posts'])
+    expect(doc.sections[1].links.map(l => l.url)).toContain('https://www.example.com/about')
   })
 
   it('lets the llms global override code options', async () => {

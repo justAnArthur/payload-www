@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ### Added
 
 - `createLlmsGlobal()` in `./globals`: an opt-in `llms` global (site name, summary, details,
-  per-collection section titles and exclusion, excluded pages, extra markdown) read by
+  per-collection section titles and exclusion, sections by URL path, excluded pages, extra markdown) read by
   `@justanarthur/payload-www`'s `/llms.txt` routes. Not registered by default; adding it is a
   schema change that needs a migration.
 

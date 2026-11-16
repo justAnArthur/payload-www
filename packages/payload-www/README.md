@@ -308,7 +308,9 @@ import { generateSitemap as posts } from '../../(pages)/[locale]/posts/[slug]/pa
 export const GET = createLlmsTxtFromCollections([pages, posts], {
   name: 'Acme',
   summary: 'Acme is cloud software for …',
-  sections: { pages: 'Product', posts: 'Blog' },
+  sections: { pages: 'Company', posts: 'Blog' },
+  // cut by URL across collections, listed first: /products/* leaves the Pages section
+  pathSections: [{ path: '/products', title: 'Products' }, { path: '/industries', title: 'Who it is for' }],
   exclude: ['/legal/cookies'],
   extra: '## Optional\n\n- [Status page](https://status.acme.com)'
 })
@@ -330,6 +332,7 @@ adds each page's content as markdown: the walk follows the collection's field sc
 groups, arrays, blocks and block references), emits text, textarea and rich text, and skips
 relationships, uploads, selects, link targets, `slug` and `meta`. Rich text goes through
 `@payloadcms/richtext-lexical`'s `convertLexicalToMarkdown` with the field's own editor config.
+Each page's headings are shifted so its top level sits at `####`, under the `###` page link.
 
 | option | default | effect |
 |---|---|---|
@@ -339,6 +342,7 @@ relationships, uploads, selects, link targets, `slug` and `meta`. Rich text goes
 | `locale` | served default locale | locale of the listed documents and URLs |
 | `showLocales` | `true` | print the served locales |
 | `sections` | collection's plural label | heading per collection slug; `false` drops the collection |
+| `pathSections` | — | `[{ path, title }]`: sections by URL path (without locale prefix), across collections, listed first in this order; matching documents leave their collection's section |
 | `exclude` | — | documents to leave out, by id, slug, path or absolute URL |
 | `extra` | — | markdown appended at the end |
 | `globalSlug` | `'llms'` | editable settings global; read only when the config registers it, `false` skips it |

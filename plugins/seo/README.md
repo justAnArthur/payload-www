@@ -174,6 +174,7 @@ globals: (defaults) => [...defaults, createLlmsGlobal({ collections: ['pages', '
 | `siteName`, `summary`, `details` (localized) | the `# heading`, the `> summary` line and the markdown under it |
 | `showLocales` | print the served locales under the summary |
 | `collections[]` (`collection`, `title`, `exclude`) | rename or hide one collection's section |
+| `pathSections[]` (`path`, `title`) | sections by URL path, listed first; replaces the code list when set |
 | `exclude[]` | pages to leave out, by id, slug, path or URL |
 | `extra` (localized) | markdown appended at the end |
 
