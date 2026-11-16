@@ -179,6 +179,8 @@ globals: (defaults) => [...defaults, createLlmsGlobal({ collections: ['pages', '
 | `extra` (localized) | markdown appended at the end |
 
 Every field is optional; an empty field falls back to the options the route was created with.
+By default only users of the admin collection (`config.admin.user`) can read or update it; pass
+`access` to change that. The routes read it through the local API, which skips access.
 `options.collections` turns the per-section collection field into a select; `slug` and
 `interfaceName` (default `LlmsSettings`) rename it.
 

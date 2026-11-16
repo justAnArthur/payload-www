@@ -20,4 +20,18 @@ describe('createLlmsGlobal', () => {
       type: 'select', options: [{ value: 'pages' }, { value: 'posts' }]
     })
   })
+
+  it('lets only users of the admin collection read and update it by default', () => {
+    const { access } = createLlmsGlobal()
+    const req = (collection?: string) =>
+      ({ user: collection ? { collection } : null, payload: { config: { admin: { user: 'users' } } } }) as never
+    expect(access?.update?.({ req: req('users') } as never)).toBe(true)
+    expect(access?.update?.({ req: req('customers') } as never)).toBe(false)
+    expect(access?.read?.({ req: req() } as never)).toBe(false)
+  })
+
+  it('takes access overrides', () => {
+    const update = () => true
+    expect(createLlmsGlobal({ access: { update } }).access?.update).toBe(update)
+  })
 })

@@ -20,8 +20,9 @@ export type FieldsToMarkdownArgs = {
   blocks?: (Block | FlattenedBlock)[]
 }
 
-// slug and the SEO group carry no page content; the SEO description is already the summary line
-const SKIPPED_NAMES = new Set(['slug', 'meta'])
+// slug and the SEO group carry no page content (the SEO description is already the summary
+// line); id and blockName are the editor-only fields payload adds to every block
+const SKIPPED_NAMES = new Set(['slug', 'meta', 'id', 'blockName'])
 // link targets, anchors, css hooks — values a reader would see as noise, not copy
 const NON_PROSE = /^(?:https?:\/\/|\/|#|mailto:|tel:)\S*$/
 
@@ -32,17 +33,32 @@ const NON_PROSE = /^(?:https?:\/\/|\/|#|mailto:|tel:)\S*$/
  * dates and other non-prose fields are left out.
  */
 export function fieldsToMarkdown(args: FieldsToMarkdownArgs): string {
-  return walkFields(args.fields, args.data, args).filter(Boolean).join('\n\n')
+  return walkFields(args.fields, args.data, args, { root: args.data }).filter(Boolean).join('\n\n')
 }
 
-function walkFields(fields: Field[], data: unknown, args: FieldsToMarkdownArgs): string[] {
+type WalkContext = { root: unknown; blockData?: unknown }
+
+// a field the editor hides for this data (admin.condition) may still hold a stale value
+function hiddenByCondition(field: Field, data: Record<string, unknown>, ctx: WalkContext) {
+  const condition = (field.admin as { condition?: Function } | undefined)?.condition
+  if (typeof condition !== 'function') return false
+  try {
+    return !condition(ctx.root, data, { blockData: ctx.blockData, operation: 'update', path: [], user: null })
+  } catch {
+    return false
+  }
+}
+
+function walkFields(fields: Field[], data: unknown, args: FieldsToMarkdownArgs, ctx: WalkContext): string[] {
   if (!data || typeof data !== 'object') return []
   const record = data as Record<string, unknown>
 
   return fields.flatMap((field): string[] => {
     if ('hidden' in field && field.hidden) return []
-    if (field.admin && 'hidden' in field.admin && field.admin.hidden) return []
+    const admin = field.admin as { hidden?: boolean; disabled?: boolean } | undefined
+    if (admin?.hidden || admin?.disabled) return []
     if ('name' in field && SKIPPED_NAMES.has(field.name)) return []
+    if (hiddenByCondition(field, record, ctx)) return []
 
     switch (field.type) {
       case 'text':
@@ -61,19 +77,19 @@ function walkFields(fields: Field[], data: unknown, args: FieldsToMarkdownArgs):
       }
       case 'group':
         return 'name' in field && field.name
-          ? walkFields(field.fields, record[field.name], args)
-          : walkFields(field.fields, record, args)
+          ? walkFields(field.fields, record[field.name], args, ctx)
+          : walkFields(field.fields, record, args, ctx)
       case 'row':
       case 'collapsible':
-        return walkFields(field.fields, record, args)
+        return walkFields(field.fields, record, args, ctx)
       case 'tabs':
         return field.tabs.flatMap(tab =>
           'name' in tab && tab.name
-            ? walkFields(tab.fields, record[tab.name], args)
-            : walkFields(tab.fields, record, args))
+            ? walkFields(tab.fields, record[tab.name], args, ctx)
+            : walkFields(tab.fields, record, args, ctx))
       case 'array': {
         const rows = record[field.name]
-        return Array.isArray(rows) ? rows.flatMap(row => walkFields(field.fields, row, args)) : []
+        return Array.isArray(rows) ? rows.flatMap(row => walkFields(field.fields, row, args, ctx)) : []
       }
       case 'blocks': {
         const rows = record[field.name]
@@ -85,7 +101,7 @@ function walkFields(fields: Field[], data: unknown, args: FieldsToMarkdownArgs):
           const custom = args.serializeBlock?.(row as LlmsBlockData)
           if (custom !== undefined) return [custom.trim()]
           const block = configs.find(b => b?.slug === row.blockType)
-          return block ? [walkFields(block.fields, row, args).filter(Boolean).join('\n\n')] : []
+          return block ? [walkFields(block.fields, row, args, { ...ctx, blockData: row }).filter(Boolean).join('\n\n')] : []
         })
       }
       default:
@@ -96,10 +112,12 @@ function walkFields(fields: Field[], data: unknown, args: FieldsToMarkdownArgs):
 
 type LexicalNode = { type?: string; text?: string; children?: LexicalNode[] }
 
-/** Last-resort rich text reader: the text of every node, one paragraph per top-level node. */
+/** Last-resort rich text reader: the text of every node, one paragraph per top-level node. Blocks are left out. */
 export function lexicalToPlainText(data: unknown): string {
   const root = (data as { root?: LexicalNode } | null)?.root
   const text = (node: LexicalNode): string =>
-    (node.text ?? '') + (node.children ?? []).map(text).join(node.type === 'list' ? '\n' : '')
+    node.type === 'block' || node.type === 'inlineBlock'
+      ? ''
+      : (node.text ?? '') + (node.children ?? []).map(text).join(node.type === 'list' ? '\n' : '')
   return (root?.children ?? []).map(text).map(s => s.trim()).filter(Boolean).join('\n\n')
 }

@@ -40,12 +40,24 @@ function footer(doc: LlmsDocument): string[] {
 }
 
 // page content sits under a `###` link heading, so its top heading level becomes `####` and the
-// rest keep their distance to it (capped at `######`)
+// rest keep their distance to it (capped at `######`). Lines inside fenced code are left alone.
 function demoteHeadings(markdown: string) {
-  const levels = [...markdown.matchAll(/^(#{1,6}) /gm)].map(match => match[1].length)
+  const lines = markdown.split('\n')
+  let fence: string | null = null
+  const headings = lines.map(line => {
+    const marker = /^\s*(`{3,}|~{3,})/.exec(line)?.[1]
+    if (marker && (!fence || (marker[0] === fence[0] && marker.length >= fence.length))) {
+      fence = fence ? null : marker
+      return 0
+    }
+    return fence ? 0 : /^(#{1,6}) /.exec(line)?.[1].length ?? 0
+  })
+  const levels = headings.filter(Boolean)
   if (levels.length === 0) return markdown
   const shift = 4 - Math.min(...levels)
-  return markdown.replace(/^(#{1,6}) /gm, (_, hashes: string) => '#'.repeat(Math.min(hashes.length + shift, 6)) + ' ')
+  return lines.map((line, i) =>
+    headings[i] ? '#'.repeat(Math.min(headings[i] + shift, 6)) + line.slice(headings[i]) : line
+  ).join('\n')
 }
 
 const nonEmpty = (sections: LlmsSection[]) => sections.filter(section => section.links.length > 0)

@@ -1,9 +1,9 @@
 import type { CollectionConfig, Field, SanitizedConfig } from 'payload'
 import { queryGlobal } from '../metadata/query'
 import type { CollectionDocEntry } from '../pages/createCollectionPageExports'
+import { createLexicalToMarkdown } from './lexicalToMarkdown'
 import {
   fieldsToMarkdown,
-  lexicalToPlainText,
   type RichTextToMarkdown,
   type SerializeBlock
 } from './fieldsToMarkdown'
@@ -124,7 +124,7 @@ export async function buildLlmsDocument(
     ...(settings?.exclude ?? []).map(row => row.value?.trim()).filter((v): v is string => !!v)
   ].map(normalizePath))
 
-  const toMarkdown = full ? await richTextConverter(options.richTextToMarkdown) : undefined
+  const toMarkdown = full ? await richTextConverter(options, config.blocks) : undefined
 
   // the global's list replaces the code list as a whole, so editors can reorder and drop sections
   const fromGlobal = (settings?.pathSections ?? [])
@@ -219,15 +219,9 @@ function collectionLabel(collection: CollectionConfig | undefined, slug: string,
   return slug.charAt(0).toUpperCase() + slug.slice(1).replace(/[-_]/g, ' ')
 }
 
-async function richTextConverter(override?: RichTextToMarkdown): Promise<RichTextToMarkdown> {
-  if (override) return override
-  // loaded only for llms-full.txt; a non-lexical editor or an unknown node falls back to plain text
-  const { convertLexicalToMarkdown, editorConfigFactory } = await import('@payloadcms/richtext-lexical')
-  return ({ field, data }) => {
-    try {
-      return convertLexicalToMarkdown({ data: data as never, editorConfig: editorConfigFactory.fromField({ field }) })
-    } catch {
-      return lexicalToPlainText(data)
-    }
-  }
+async function richTextConverter(options: LlmsFullTxtOptions, blocks: SanitizedConfig['blocks']): Promise<RichTextToMarkdown> {
+  if (options.richTextToMarkdown) return options.richTextToMarkdown
+  // loaded only for llms-full.txt
+  const lexical = await import('@payloadcms/richtext-lexical')
+  return createLexicalToMarkdown({ lexical, serializeBlock: options.serializeBlock, blocks })
 }

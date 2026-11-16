@@ -1,4 +1,4 @@
-import type { Field, GlobalConfig } from 'payload'
+import type { Access, Field, GlobalConfig } from 'payload'
 
 
 export type CreateLlmsGlobalOptions = {
@@ -12,7 +12,18 @@ export type CreateLlmsGlobalOptions = {
    * without one a free text field.
    */
   readonly collections?: string[]
+
+  /**
+   * Overrides the global's access. Defaults to letting only users of the admin collection
+   * (`config.admin.user`) read and update it; the llms.txt routes read it through the local API,
+   * which skips access.
+   */
+  readonly access?: GlobalConfig['access']
 }
+
+// any auth collection can log in to the API, but only the admin panel's users edit site settings
+export const isAdminUser: Access = ({ req }) =>
+  !!req.user && req.user.collection === req.payload.config.admin.user
 
 
 export const LLMS_GLOBAL_DEFAULT_SLUG = 'llms'
@@ -24,7 +35,7 @@ export const LLMS_GLOBAL_DEFAULT_SLUG = 'llms'
 export const createLlmsGlobal = (
   options: CreateLlmsGlobalOptions = {}
 ): GlobalConfig => {
-  const { slug = LLMS_GLOBAL_DEFAULT_SLUG, interfaceName, collections } = options
+  const { slug = LLMS_GLOBAL_DEFAULT_SLUG, interfaceName, collections, access } = options
 
   const collectionField: Field = collections?.length
     ? { name: 'collection', type: 'select', required: true, options: collections.map(value => ({ label: value, value })) }
@@ -33,6 +44,7 @@ export const createLlmsGlobal = (
   return {
     slug,
     label: 'llms.txt',
+    access: { read: isAdminUser, update: isAdminUser, ...access },
     admin: {
       description:
         'What AI assistants read at /llms.txt and /llms-full.txt (https://llmstxt.org). Empty fields fall back to the defaults set in code.'

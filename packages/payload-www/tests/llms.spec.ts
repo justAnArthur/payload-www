@@ -113,6 +113,13 @@ describe('renderLlmsTxt', () => {
     expect(out).toBe('# Example\n\n## Posts\n\n### [Hello](https://x/hello)\n\n> Intro\n\n#### Big\n\nText\n')
   })
 
+  // regression: `#` lines inside fenced code are code, not headings
+  it('leaves fenced code alone when shifting headings', () => {
+    const content = '## Setup\n\n```bash\n# install\nnpm i\n```\n\n~~~\n# also code\n```\n# still code\n~~~\n\n### Next'
+    const out = renderLlmsFullTxt({ name: 'X', sections: [{ title: 'S', links: [{ title: 'P', url: 'https://x', content }] }] })
+    expect(out).toContain('#### Setup\n\n```bash\n# install\nnpm i\n```\n\n~~~\n# also code\n```\n# still code\n~~~\n\n##### Next')
+  })
+
   it('maps the top heading of the content to #### and keeps the others relative to it', () => {
     const out = renderLlmsFullTxt({
       name: 'X',
@@ -128,6 +135,18 @@ describe('fieldsToMarkdown', () => {
   it('walks tabs, blocks, block references, groups and arrays, skipping links and non-text fields', () => {
     const out = fieldsToMarkdown({ fields: pagesFields, data: pages[0], blocks: config.blocks, richTextToMarkdown })
     expect(out).toBe('Home\n\nRent smarter\n\nAll bookings in one place.\n\nBook a demo\n\ncountries')
+  })
+
+  it('skips fields whose admin.condition hides them for this data', () => {
+    const fields = [
+      { name: 'variant', type: 'select' },
+      { name: 'caption', type: 'text', admin: { condition: (_: unknown, sibling: { variant?: string }) => sibling.variant === 'image' } },
+      { name: 'body', type: 'text', admin: { condition: () => { throw new Error('bad condition') } } }
+    ] as unknown as Field[]
+    expect(fieldsToMarkdown({ fields, data: { variant: 'text', caption: 'stale', body: 'kept' }, richTextToMarkdown }))
+      .toBe('kept')
+    expect(fieldsToMarkdown({ fields, data: { variant: 'image', caption: 'shown', body: 'kept' }, richTextToMarkdown }))
+      .toBe('shown\n\nkept')
   })
 
   it('lets serializeBlock replace or drop a block, and falls back for undefined', () => {

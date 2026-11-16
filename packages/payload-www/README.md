@@ -330,9 +330,13 @@ collection with `- [title](url): description` per document. Titles and descripti
 the SEO plugin's `meta` group, falling back to the collection's `useAsTitle` field. `/llms-full.txt`
 adds each page's content as markdown: the walk follows the collection's field schema (tabs,
 groups, arrays, blocks and block references), emits text, textarea and rich text, and skips
-relationships, uploads, selects, link targets, `slug` and `meta`. Rich text goes through
+relationships, uploads, selects, link targets, `slug`, `meta`, the editor-only `id`/`blockName`,
+disabled fields and fields whose `admin.condition` hides them for that document. Rich text goes through
 `@payloadcms/richtext-lexical`'s `convertLexicalToMarkdown` with the field's own editor config.
-Each page's headings are shifted so its top level sits at `####`, under the `###` page link.
+Blocks inside rich text (`BlocksFeature`) are rendered from their fields or `serializeBlock`, and a
+rich text tree with a node type its editor doesn't register falls back to plain text rather than
+being cut off. Each page's headings are shifted so its top level sits at `####`, under the `###`
+page link; fenced code is left as is.
 
 | option | default | effect |
 |---|---|---|
