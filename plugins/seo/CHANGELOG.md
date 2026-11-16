@@ -6,6 +6,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- `createLlmsGlobal()` in `./globals`: an opt-in `llms` global (site name, summary, details,
+  per-collection section titles and exclusion, excluded pages, extra markdown) read by
+  `@justanarthur/payload-www`'s `/llms.txt` routes. Not registered by default; adding it is a
+  schema change that needs a migration.
+
 ### Fixed
 
 - `next` is now a peer dependency (`^16.2.6`, the range `@justanarthur/payload-www` uses).
