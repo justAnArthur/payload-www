@@ -160,6 +160,7 @@ const { default: PostPage, generateMetadata, generateStaticParams } = createColl
 | `getServerSideURL` | `() => string` | host's absolute-URL helper |
 | `pagePathPrefix` | `string \| Record<locale, string>` | URL segment the collection is mounted under, used for `generateSitemap` and for canonical/hreflang URLs. Pass a record to localize the segment (`{ en: 'posts', sk: 'prispevky' }`); locales absent from it fall back to the default locale. The sitemap *index* route always uses the default locale's segment. |
 | `fallback` | `ReactNode` | rendered while the found document streams. Defaults to nothing. The lookup itself never streams, so a missing document still returns a 404. |
+| `suspense` | `boolean` | default `true`: the document renders in a `<Suspense>` boundary. A boundary that resolves after the shell is flushed is written at the end of the HTML, after the layout's footer, so crawlers and assistants reading raw HTML meet the footer's headings before the page's `<h1>`. Pass `false` when the documents prerender (nothing reads request data outside a boundary of its own): the page then comes out in document order. |
 
 ### What you get back
 
@@ -330,8 +331,11 @@ collection with `- [title](url): description` per document. Titles and descripti
 the SEO plugin's `meta` group, falling back to the collection's `useAsTitle` field. `/llms-full.txt`
 adds each page's content as markdown: the walk follows the collection's field schema (tabs,
 groups, arrays, blocks and block references), emits text, textarea and rich text, and skips
-relationships, uploads, selects, link targets, `slug`, `meta`, the editor-only `id`/`blockName`,
-disabled fields and fields whose `admin.condition` hides them for that document. Rich text goes through
+relationships, uploads, selects, `slug`, `meta`, the editor-only `id`/`blockName`,
+disabled fields and fields whose `admin.condition` hides them for that document. `link()` groups
+print as `[label](url)`, internal references resolved through the listing. A field or block with
+`custom: { '@justanarthur/payload-www': { markdown: false } }` is left out (icon names, mock UI
+labels). Rich text goes through
 `@payloadcms/richtext-lexical`'s `convertLexicalToMarkdown` with the field's own editor config.
 Blocks inside rich text (`BlocksFeature`) are rendered from their fields or `serializeBlock`, and a
 rich text tree with a node type its editor doesn't register falls back to plain text rather than
@@ -360,6 +364,46 @@ Registering it is a schema change, so it needs a migration.
 Caching works as for the sitemap: every read goes through the cached, tagged finders, so a save
 refreshes both files. A proxy or middleware that rejects paths with a file extension has to let
 `/llms.txt` and `/llms-full.txt` through.
+
+### Markdown pages (`Accept: text/markdown`)
+
+`createMarkdownFromCollections(sources, options)` is a route handler that answers with one page's
+content as Markdown, for agents that ask for `text/markdown`
+([acceptmarkdown.com](https://acceptmarkdown.com)). Mount it on an optional catch-all and rewrite
+those requests to it from the proxy, so the page URL stays the same:
+
+```ts
+// app/markdown/[[...path]]/route.ts
+import { createMarkdownFromCollections } from '@justanarthur/payload-www/sitemap'
+import { generateSitemap as pages } from '@/app/(frontend)/[locale]/[[...slug]]/page'
+import { generateSitemap as posts } from '@/app/(frontend)/[locale]/posts/[slug]/page'
+
+export const GET = createMarkdownFromCollections([pages, posts], {
+  append: 'Site overview: https://acme.com/llms.txt'
+})
+
+// proxy.ts, before the i18n middleware
+if (/text\/markdown/.test(request.headers.get('accept') ?? ''))
+  return NextResponse.rewrite(new URL(`/markdown${pathname === '/' ? '' : pathname}`, request.url))
+```
+
+Each source's `findDoc(pathname)` (on `generateSitemap`) maps the path to one slug lookup, and the
+document must be served at exactly that canonical URL. The body is the same walk as
+`/llms-full.txt`, with headings kept as they are and the title added as `# title` when the page has
+no `<h1>` of its own. A found page answers `200` with `Link: <canonical>; rel="canonical"`, anything
+else a `404` with a short Markdown body (or `notFound`). Both carry
+`Content-Type: text/markdown; charset=utf-8` and `Vary: Accept`. Since the rewritten path never
+serves HTML, a CDN keying on the path can't hand Markdown to a browser. List every collection
+that has pages, or its pages get a Markdown 404.
+
+| option | default | effect |
+|---|---|---|
+| `serializeBlock` | — | per-block markdown override (`''` drops the block) |
+| `richTextToMarkdown` | lexical converter | rich text conversion override |
+| `exclude` | — | paths answered as missing, by path or absolute URL |
+| `append` | — | markdown (or `(entry) => markdown`) appended to every page |
+| `notFound` | note with `/llms.txt` and `/sitemap.xml` | 404 body, or `(pathname) => body` |
+| `cacheControl` | `public, max-age=0, s-maxage=3600, stale-while-revalidate=86400` | `Cache-Control` of both answers |
 
 ## Static pages (404 / 500 / system)
 

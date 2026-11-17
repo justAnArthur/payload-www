@@ -1,5 +1,5 @@
 import type { Block, FlattenedBlock, RichTextField } from 'payload'
-import type { RichTextToMarkdown, SerializeBlock, LlmsBlockData } from './fieldsToMarkdown'
+import type { LlmsBlockData, ResolveLink, RichTextToMarkdown, SerializeBlock } from './fieldsToMarkdown'
 import { fieldsToMarkdown, lexicalToPlainText } from './fieldsToMarkdown'
 
 type LexicalModule = Pick<typeof import('@payloadcms/richtext-lexical'), 'convertLexicalToMarkdown' | 'editorConfigFactory'>
@@ -16,6 +16,8 @@ export type LexicalToMarkdownArgs = {
   serializeBlock?: SerializeBlock
   /** The sanitized config's `blocks`, to resolve block slugs a BlocksFeature references. */
   blocks?: (Block | FlattenedBlock)[]
+  /** Passed on to the field walk of blocks inside rich text. */
+  resolveLink?: ResolveLink
 }
 
 /**
@@ -26,7 +28,7 @@ export type LexicalToMarkdownArgs = {
  * returns the content before them, so a tree with a node type the editor doesn't know falls back
  * to plain text instead.
  */
-export function createLexicalToMarkdown({ lexical, serializeBlock, blocks }: LexicalToMarkdownArgs): RichTextToMarkdown {
+export function createLexicalToMarkdown({ lexical, serializeBlock, blocks, resolveLink }: LexicalToMarkdownArgs): RichTextToMarkdown {
   const toMarkdown: RichTextToMarkdown = ({ field, data }) => {
     const state = data as SerializedState
     if (!state?.root || !Array.isArray(state.root.children)) return ''
@@ -47,7 +49,9 @@ export function createLexicalToMarkdown({ lexical, serializeBlock, blocks }: Lex
       const custom = serializeBlock?.(fields)
       if (custom !== undefined) return custom.trim()
       const config = blockConfigs.find(block => block.slug === fields.blockType)
-      return config ? fieldsToMarkdown({ fields: config.fields, data: fields, blocks, serializeBlock, richTextToMarkdown: toMarkdown }) : ''
+      const own = config?.custom?.['@justanarthur/payload-www'] as { markdown?: boolean } | undefined
+      if (own?.markdown === false) return ''
+      return config ? fieldsToMarkdown({ fields: config.fields, data: fields, blocks, serializeBlock, resolveLink, richTextToMarkdown: toMarkdown }) : ''
     }
 
     const convert = (children: SerializedNode[]) => {

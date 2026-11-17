@@ -8,6 +8,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- `createMarkdownFromCollections` in `./sitemap`: a route handler that answers with one page's
+  content as Markdown (or a Markdown 404) for agents sending `Accept: text/markdown`; the host's
+  proxy rewrites those requests to it. `renderMarkdownPage` renders the body on its own.
+- `generateSitemap.findDoc(pathname)`: the document served at a URL, by one slug lookup, and
+  `generateSitemap.pathPrefix`.
+- `suspense: false` on `createCollectionPageExports`: renders the document without its streaming
+  boundary, so a prerendered page's `<h1>` comes before the layout's footer in the HTML.
+- Markdown output (`/llms-full.txt` and Markdown pages) prints `link()` groups as `[label](url)`,
+  and leaves out fields and blocks marked `custom: { '@justanarthur/payload-www': { markdown: false } }`.
+  `createLinkResolver` is exported for hosts.
+
 - `createLlmsTxtFromCollections` and `createLlmsFullTxtFromCollections` in `./sitemap`: route
   handlers for [`/llms.txt`](https://llmstxt.org) and `/llms-full.txt`, built from the same
   `generateSitemap` functions as the sitemap index. Section titles, sections by URL path

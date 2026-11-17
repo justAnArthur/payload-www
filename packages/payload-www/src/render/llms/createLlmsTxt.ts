@@ -1,9 +1,12 @@
 import type { CollectionConfig, Field, SanitizedConfig } from 'payload'
 import { queryGlobal } from '../metadata/query'
 import type { CollectionDocEntry } from '../pages/createCollectionPageExports'
+import type { PagePathPrefix, RoutingConfig } from '../pages/utils/buildLocalizedPath'
+import { createLinkResolver } from './linkResolver'
 import { createLexicalToMarkdown } from './lexicalToMarkdown'
 import {
   fieldsToMarkdown,
+  type ResolveLink,
   type RichTextToMarkdown,
   type SerializeBlock
 } from './fieldsToMarkdown'
@@ -19,6 +22,8 @@ export type LlmsSource = {
   getRouting: () => Promise<{ locales: string[]; defaultLocale: string }>
   listDocs: (locale?: string) => Promise<CollectionDocEntry[]>
   getServerSideURL: () => string
+  /** URL segment the collection is mounted under; internal links into it need it. */
+  pathPrefix?: PagePathPrefix
 }
 
 export type LlmsTxtOptions = {
@@ -124,7 +129,6 @@ export async function buildLlmsDocument(
     ...(settings?.exclude ?? []).map(row => row.value?.trim()).filter((v): v is string => !!v)
   ].map(normalizePath))
 
-  const toMarkdown = full ? await richTextConverter(options, config.blocks) : undefined
 
   // the global's list replaces the code list as a whole, so editors can reorder and drop sections
   const fromGlobal = (settings?.pathSections ?? [])
@@ -137,7 +141,21 @@ export async function buildLlmsDocument(
     return pathSections.find(({ prefix }) => prefix === '/' ? path === '/' : path === prefix || path.startsWith(prefix + '/'))
   }
 
-  const sections = await Promise.all(sources.map(async source => {
+  const listings = await Promise.all(sources.map(async source => ({ source, entries: await source.listDocs(locale) })))
+  const resolveLink = full
+    ? createLinkResolver({
+      siteUrl: first.getServerSideURL(),
+      locale,
+      routing: routing as RoutingConfig,
+      pathPrefixes: Object.fromEntries(sources.map(source => [source.collectionSlug, source.pathPrefix])),
+      urlsById: new Map(listings.flatMap(({ source, entries }) =>
+        entries.map(entry => [`${source.collectionSlug}:${entry.doc.id}`, entry.url] as const)))
+    })
+    : undefined
+
+  const toMarkdown = full ? await richTextConverter(options, config.blocks, resolveLink) : undefined
+
+  const sections = listings.map(({ source, entries: listed }) => {
     const row = sectionRows.get(source.collectionSlug)
     const fromOptions = options.sections?.[source.collectionSlug]
     if (row?.exclude || (fromOptions === false && !row?.title)) return null
@@ -146,7 +164,7 @@ export async function buildLlmsDocument(
     const title = filled(row?.title) ?? (typeof fromOptions === 'string' ? fromOptions : undefined)
       ?? collectionLabel(collection, source.collectionSlug, locale)
 
-    const entries = (await source.listDocs(locale))
+    const entries = listed
       .filter(entry => !isExcluded(entry, excluded))
       .sort((a, b) => a.url.localeCompare(b.url))
 
@@ -166,6 +184,7 @@ export async function buildLlmsDocument(
             data: entry.doc,
             blocks: config.blocks,
             serializeBlock: options.serializeBlock,
+            resolveLink,
             richTextToMarkdown: toMarkdown
           })
           : undefined
@@ -177,7 +196,7 @@ export async function buildLlmsDocument(
       pathSection?.links.push(link)
       return !pathSection
     }) }
-  }))
+  })
 
   for (const section of pathSections) section.links.sort((a, b) => a.url.localeCompare(b.url))
 
@@ -219,9 +238,13 @@ function collectionLabel(collection: CollectionConfig | undefined, slug: string,
   return slug.charAt(0).toUpperCase() + slug.slice(1).replace(/[-_]/g, ' ')
 }
 
-async function richTextConverter(options: LlmsFullTxtOptions, blocks: SanitizedConfig['blocks']): Promise<RichTextToMarkdown> {
+export async function richTextConverter(
+  options: Pick<LlmsFullTxtOptions, 'richTextToMarkdown' | 'serializeBlock'>,
+  blocks: SanitizedConfig['blocks'],
+  resolveLink?: ResolveLink
+): Promise<RichTextToMarkdown> {
   if (options.richTextToMarkdown) return options.richTextToMarkdown
-  // loaded only for llms-full.txt
+  // loaded only when page content is serialized
   const lexical = await import('@payloadcms/richtext-lexical')
-  return createLexicalToMarkdown({ lexical, serializeBlock: options.serializeBlock, blocks })
+  return createLexicalToMarkdown({ lexical, serializeBlock: options.serializeBlock, blocks, resolveLink })
 }

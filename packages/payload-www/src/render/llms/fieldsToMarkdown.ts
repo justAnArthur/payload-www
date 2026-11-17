@@ -11,6 +11,9 @@ export type SerializeBlock = (block: LlmsBlockData) => string | undefined
 
 export type RichTextToMarkdown = (args: { field: RichTextField; data: unknown }) => string
 
+/** Absolute URL of a `link()` field value (`{ type, url, reference, label }`), or `undefined` when it points nowhere. */
+export type ResolveLink = (link: Record<string, unknown>) => string | undefined
+
 export type FieldsToMarkdownArgs = {
   fields: Field[]
   data: unknown
@@ -18,6 +21,11 @@ export type FieldsToMarkdownArgs = {
   serializeBlock?: SerializeBlock
   /** Resolves `blockReferences` slugs; pass the sanitized config's `blocks`. */
   blocks?: (Block | FlattenedBlock)[]
+  /**
+   * Turns `link()` groups into `[label](url)`. Without it, or when it returns nothing, only the
+   * label is printed.
+   */
+  resolveLink?: ResolveLink
 }
 
 // slug and the SEO group carry no page content (the SEO description is already the summary
@@ -34,6 +42,13 @@ const NON_PROSE = /^(?:https?:\/\/|\/|#|mailto:|tel:)\S*$/
  */
 export function fieldsToMarkdown(args: FieldsToMarkdownArgs): string {
   return walkFields(args.fields, args.data, args, { root: args.data }).filter(Boolean).join('\n\n')
+}
+
+// `custom: { '@justanarthur/payload-www': { markdown: false } }` on a field or block keeps it out:
+// icon names, mock UI labels and other text that is no copy
+function optedOut(config: { custom?: Record<string, unknown> } | undefined) {
+  const own = config?.custom?.['@justanarthur/payload-www'] as { markdown?: boolean } | undefined
+  return own?.markdown === false
 }
 
 type WalkContext = { root: unknown; blockData?: unknown }
@@ -58,6 +73,7 @@ function walkFields(fields: Field[], data: unknown, args: FieldsToMarkdownArgs, 
     const admin = field.admin as { hidden?: boolean; disabled?: boolean } | undefined
     if (admin?.hidden || admin?.disabled) return []
     if ('name' in field && SKIPPED_NAMES.has(field.name)) return []
+    if (optedOut(field as { custom?: Record<string, unknown> })) return []
     if (hiddenByCondition(field, record, ctx)) return []
 
     switch (field.type) {
@@ -76,6 +92,7 @@ function walkFields(fields: Field[], data: unknown, args: FieldsToMarkdownArgs, 
         return [args.richTextToMarkdown({ field, data: value }).trim()]
       }
       case 'group':
+        if (isLinkGroup(field)) return linkToMarkdown(record[(field as { name: string }).name], args.resolveLink)
         return 'name' in field && field.name
           ? walkFields(field.fields, record[field.name], args, ctx)
           : walkFields(field.fields, record, args, ctx)
@@ -101,6 +118,7 @@ function walkFields(fields: Field[], data: unknown, args: FieldsToMarkdownArgs, 
           const custom = args.serializeBlock?.(row as LlmsBlockData)
           if (custom !== undefined) return [custom.trim()]
           const block = configs.find(b => b?.slug === row.blockType)
+          if (optedOut(block)) return []
           return block ? [walkFields(block.fields, row, args, { ...ctx, blockData: row }).filter(Boolean).join('\n\n')] : []
         })
       }
@@ -108,6 +126,31 @@ function walkFields(fields: Field[], data: unknown, args: FieldsToMarkdownArgs, 
         return []
     }
   })
+}
+
+// the shape `link()` builds: a named group with a label and a custom url or an internal reference
+function isLinkGroup(field: Field): boolean {
+  if (!('name' in field) || !field.name || field.type !== 'group') return false
+  const names = new Set(flatNames(field.fields))
+  return names.has('label') && (names.has('url') || names.has('reference'))
+}
+
+function flatNames(fields: Field[]): string[] {
+  return fields.flatMap(field =>
+    'name' in field && field.name ? [field.name]
+      : field.type === 'row' || field.type === 'collapsible' ? flatNames(field.fields)
+        : [])
+}
+
+const linkText = (value: string) => value.replace(/\s+/g, ' ').trim().replace(/([[\]])/g, '\\$1')
+
+function linkToMarkdown(value: unknown, resolveLink: ResolveLink | undefined): string[] {
+  if (!value || typeof value !== 'object') return []
+  const link = value as Record<string, unknown>
+  const label = typeof link.label === 'string' ? link.label.trim() : ''
+  if (!label) return []
+  const href = resolveLink?.(link)
+  return [href ? `[${linkText(label)}](${href.replace(/[\s()]/g, encodeURIComponent)})` : label]
 }
 
 type LexicalNode = { type?: string; text?: string; children?: LexicalNode[] }
