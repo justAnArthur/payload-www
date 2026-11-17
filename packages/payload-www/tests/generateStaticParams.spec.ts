@@ -39,7 +39,8 @@ const find = vi.fn(async ({ locale, limit, where }: FindArgs) => {
 
 const findByID = async ({ id, locale }: { id: number; locale: string }) => {
   const doc = docs.find((d) => d.id === id)
-  return doc ? { id: doc.id, slug: slugIn(doc, locale) } : null
+  if (!doc) return null
+  return { id: doc.id, slug: locale === 'all' ? doc.slugs : slugIn(doc, locale) }
 }
 
 vi.mock('payload', () => ({
@@ -55,7 +56,7 @@ const { queryDocBySlug, seedPayloadCache } = await import('../src/render/metadat
 
 const routing = { locales: ['en', 'uk', 'de'], defaultLocale: 'en', localePrefix: 'as-needed' }
 
-function exportsFor(slugShape: 'single' | 'catch-all', prerenderLocales?: string[]) {
+function exportsFor(slugShape: 'single' | 'catch-all', prerenderLocales?: string[], deps: Record<string, unknown> = {}) {
   return createCollectionPageExports(
     {
       _payloadConfig: Promise.resolve({} as never),
@@ -64,7 +65,7 @@ function exportsFor(slugShape: 'single' | 'catch-all', prerenderLocales?: string
       slugShape,
       prerenderLocales
     },
-    { getServerSideURL: () => 'https://example.com' }
+    { getServerSideURL: () => 'https://example.com', ...deps }
   )
 }
 
@@ -137,5 +138,52 @@ describe('queryDocBySlug on an empty slug', () => {
 
   it('does not fall back to a null slug for a non-empty request', async () => {
     expect(await queryDocBySlug({ collectionSlug: 'pages', slug: 'missing', locale: 'de' })).toBeNull()
+  })
+})
+
+describe('findDoc', () => {
+  const findDoc = (pathname: string, deps: Record<string, unknown> = {}) =>
+    exportsFor('catch-all', undefined, deps).generateSitemap.findDoc(pathname)
+
+  it('finds the index document at the root and at a locale prefix', async () => {
+    expect(await findDoc('/')).toMatchObject({ doc: { id: 1 }, url: 'https://example.com' })
+    expect(await findDoc('/uk')).toMatchObject({ doc: { id: 1 }, url: 'https://example.com/uk' })
+  })
+
+  it('finds a document by its localized slug, nested slugs included', async () => {
+    expect(await findDoc('/uk/pro-nas')).toMatchObject({ doc: { id: 2 }, url: 'https://example.com/uk/pro-nas' })
+    expect(await findDoc('/legal/terms/')).toMatchObject({ doc: { id: 3 } })
+  })
+
+  it("misses another locale's slug, the default locale's prefix and unknown paths", async () => {
+    expect(await findDoc('/uk/about')).toBeNull()
+    expect(await findDoc('/en/about')).toBeNull()
+    expect(await findDoc('/missing')).toBeNull()
+  })
+
+  it('requires the collection prefix', async () => {
+    expect(await findDoc('/about', { pagePathPrefix: 'posts' })).toBeNull()
+    expect(await findDoc('/posts/about', { pagePathPrefix: 'posts' })).toMatchObject({ doc: { id: 2 }, url: 'https://example.com/posts/about' })
+  })
+
+  it('takes exactly one segment for a [slug] route', async () => {
+    const single = exportsFor('single').generateSitemap.findDoc
+    expect(await single('/about')).toMatchObject({ doc: { id: 2 } })
+    expect(await single('/legal/terms')).toBeNull()
+  })
+})
+
+describe('suspense', () => {
+  const render = (deps: Record<string, unknown>) =>
+    exportsFor('catch-all', undefined, deps).default({ params: Promise.resolve({ locale: 'en', slug: ['about'] }) } as never)
+
+  it('wraps the document in a Suspense boundary by default', async () => {
+    const element = await render({}) as { type: unknown }
+    expect(String(element.type)).toContain('suspense')
+  })
+
+  it('renders the document itself with suspense: false', async () => {
+    // renderWWWDataModule is mocked to return null
+    expect(await render({ suspense: false })).toBeNull()
   })
 })

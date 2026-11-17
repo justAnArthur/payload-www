@@ -40,8 +40,17 @@ export type CreateCollectionPageExportsDeps<S extends string> = {
   getServerSideURL: () => string
   pagePathPrefix?: PagePathPrefix
 
-  /** Rendered while the document streams. Defaults to nothing. */
+  /** Rendered while the document streams. Defaults to nothing. Ignored with `suspense: false`. */
   fallback?: ReactNode
+
+  /**
+   * Wraps the document in a `<Suspense>` boundary so the layout streams first. Default `true`.
+   * A boundary that resolves after the shell is flushed lands at the end of the HTML, after the
+   * layout's footer, so crawlers and assistants reading the raw HTML see the footer's headings
+   * before the page's `<h1>`. Turn it off when the documents prerender (nothing in them reads
+   * request data outside a boundary of its own): the page then renders in document order.
+   */
+  suspense?: boolean
 }
 
 export type CollectionDocEntry = {
@@ -68,7 +77,8 @@ export function createCollectionPageExports<S extends string = 'pages'>(
   {
     getServerSideURL,
     pagePathPrefix,
-    fallback
+    fallback,
+    suspense = true
   }: CreateCollectionPageExportsDeps<S>
 ) {
   seedPayloadCache({ config: _payloadConfig })
@@ -110,6 +120,8 @@ export function createCollectionPageExports<S extends string = 'pages'>(
     const rendered = renderWWWDataModule(
       doc, { collectionSlug, config: _payloadConfig, importMap }, { ...props, locale, routing }
     )
+
+    if (!suspense) return rendered
 
     return <React.Suspense fallback={fallback ?? null}>
       {rendered}
@@ -221,6 +233,43 @@ export function createCollectionPageExports<S extends string = 'pages'>(
     return entries.filter(entry => entry !== null)
   }
 
+  /**
+   * The published document served at `pathname` (`/sk/o-nas`, `/posts/hello`), at render depth,
+   * with its canonical URL; `null` when the path is no document's canonical URL in this
+   * collection. One lookup by slug, so it is cheap enough for a request handler.
+   */
+  async function findDoc(pathname: string): Promise<CollectionDocEntry | null> {
+    const routing = await getRouting()
+    let segments: string[]
+    try {
+      segments = pathname.split('/').filter(Boolean).map(decodeURIComponent)
+    } catch {
+      return null
+    }
+
+    const locale = routing.localePrefix !== 'never' && routing.locales.includes(segments[0])
+      ? segments.shift()!
+      : routing.defaultLocale
+
+    const prefix = resolvePagePathPrefix(pagePathPrefix, locale, routing)?.split('/').filter(Boolean) ?? []
+    if (prefix.some((part, i) => segments[i] !== part)) return null
+    segments.splice(0, prefix.length)
+    if (slugShape === 'single' && segments.length !== 1) return null
+
+    const doc = await fetchDoc(locale, paramsSlugToSlug(segments, slugShape))
+    if (!doc) return null
+
+    const localesSlug = (await queryAllLocaleSlugs({ id: doc.id, collectionSlug })) ?? {}
+    const alternates = buildAlternates(locale, localesSlug, pagePathPrefix, { routing, siteUrl })
+    if (locale !== routing.defaultLocale && !(locale in alternates.languages)) return null
+    // another locale's slug (/sk/about) or a non-canonical form (/en/x under as-needed) is not
+    // this document's URL: the page itself redirects those
+    const trim = (path: string) => path.replace(/\/+$/, '') || '/'
+    if (trim(new URL(alternates.canonical).pathname) !== trim(pathname)) return null
+
+    return { doc: doc as Record<string, any>, url: alternates.canonical, alternates, lastModified: doc.updatedAt || new Date() }
+  }
+
   async function generateSitemap(): Promise<MetadataRoute.Sitemap> {
     return (await listDocs()).map(({ url, alternates, lastModified }) => ({ url, alternates, lastModified }))
   }
@@ -234,6 +283,9 @@ export function createCollectionPageExports<S extends string = 'pages'>(
   generateSitemap.payloadConfig = _payloadConfig
   generateSitemap.getRouting = getRouting
   generateSitemap.listDocs = listDocs
+  // what createMarkdownFromCollections reads: the path lookup and the localized segment its links use
+  generateSitemap.findDoc = findDoc
+  generateSitemap.pathPrefix = pagePathPrefix
 
   return ({
     default: default_,
