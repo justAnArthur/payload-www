@@ -31,7 +31,7 @@ export default buildConfig({
 
 ```bash
 # .env
-OPENINARY_URL=https://media.example.com   # the Openinary API, not the dashboard
+OPENINARY_URL=https://media.example.com/api   # the API base; on a single-domain install the API is under /api
 OPENINARY_API_KEY=...                     # an API key from the Openinary dashboard
 ```
 
@@ -42,7 +42,7 @@ Files land at `<folder>/<collection prefix>/<doc prefix>/<filename>` on the serv
 | option | default | |
 |---|---|---|
 | `collections` | required | `{ media: true }`, or per collection `{ prefix, disablePayloadAccessControl, generateFileURL }` as in `@payloadcms/plugin-cloud-storage` |
-| `url` | `process.env.OPENINARY_URL` | Openinary API base URL |
+| `url` | `process.env.OPENINARY_URL` | Openinary API base URL. A single-domain install (dashboard at `/`) serves the API under `/api`: check that `<url>/health` answers JSON |
 | `apiKey` | `process.env.OPENINARY_API_KEY` | sent as `Authorization: Bearer <key>`; never reaches the browser |
 | `folder` | none | root folder for this site, so several sites can share one server |
 | `publicUrl` | `url` | base for public file URLs, e.g. a CDN in front of Openinary |
