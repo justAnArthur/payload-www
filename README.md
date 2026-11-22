@@ -21,6 +21,7 @@ bun add @justanarthur/payload-www \
 | `@justanarthur/payload-imagehash-plugin` | `plugins/imagehash` | [README](plugins/imagehash/README.md) | Automatic Blurhash / Thumbhash / LQIP encoding of uploaded images. |
 | `@justanarthur/payload-plugin-seo` | `plugins/seo` | [README](plugins/seo/README.md) | Meta title, description, image and preview fields, with auto-generation hooks and a built-in OpenAI fallback. |
 | `@justanarthur/payload-plugin-translator` | `plugins/translate` | [README](plugins/translate/README.md) | Automatic localization via Google, OpenAI, LibreTranslate, or custom resolvers. |
+| `@justanarthur/payload-storage-openinary` | `plugins/storage-openinary` | [README](plugins/storage-openinary/README.md) | Storage adapter that keeps upload collections on a self-hosted Openinary server. Standalone: hosts add it to `plugins`. |
 | `demo` | `demo` | [README](demo/README.md) | Private showcase app for `@justanarthur/payload-www` (not published). |
 
 `packages/payload-www` lists the three plugins as `peerDependencies`, so a host app installs them
@@ -135,6 +136,7 @@ A commit's scope decides which package is bumped. The mapping is declared per pa
 | `@justanarthur/payload-imagehash-plugin` | `imagehash`, `imghash`, `blurhash`, `thumbhash` |
 | `@justanarthur/payload-plugin-seo` | `seo` |
 | `@justanarthur/payload-plugin-translator` | `translate`, `translator`, `translation` |
+| `@justanarthur/payload-storage-openinary` | `storage-openinary`, `openinary` |
 
 For example, `feat(seo): ...` bumps `@justanarthur/payload-plugin-seo`. Plugins build before
 `payload-www` via their lower `properties.priority`.

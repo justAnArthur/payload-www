@@ -1,0 +1,54 @@
+{
+  "name": "@justanarthur/payload-storage-openinary",
+  "description": "Payload CMS storage adapter that keeps upload collections' files on a self-hosted Openinary server.",
+  "version": "0.0.0",
+  "type": "module",
+  "private": false,
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      }
+    },
+    "./package.json": "./package.json"
+  },
+  "license": "Unlicense",
+  "sideEffects": false,
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "bunup",
+    "clean": "rm -rf dist .tsbuildinfo",
+    "test": "bun test",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "prepublishOnly": "bun run clean && bun run build"
+  },
+  "devDependencies": {
+    "@payloadcms/plugin-cloud-storage": "3.92.0",
+    "@types/node": "^22.4.1",
+    "bunup": "^0.16.32",
+    "payload": "3.92.0",
+    "typescript": "^7.0.2"
+  },
+  "peerDependencies": {
+    "@payloadcms/plugin-cloud-storage": "^3.92.0",
+    "payload": "^3.92.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/justAnArthur/payload-www.git",
+    "directory": "plugins/storage-openinary"
+  },
+  "properties": {
+    "gitCommitScopeRelatedNames": "storage-openinary,openinary",
+    "priority": 0
+  }
+}

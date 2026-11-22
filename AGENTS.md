@@ -1,6 +1,6 @@
 # AGENTS.md — payload-www
 
-You're in a Bun-workspace monorepo that ships a reusable Payload CMS website toolkit (`@justanarthur/payload-www`) plus three companion plugins (SEO, imagehash, translator). There's also a private `demo/` showcase app.
+You're in a Bun-workspace monorepo that ships a reusable Payload CMS website toolkit (`@justanarthur/payload-www`) plus three companion plugins (SEO, imagehash, translator) and a storage adapter for self-hosted Openinary. There's also a private `demo/` showcase app.
 
 ## Where to start
 
@@ -14,6 +14,7 @@ You're in a Bun-workspace monorepo that ships a reusable Payload CMS website too
 - [plugins/seo/README.md](plugins/seo/README.md) — `seoPlugin` + the `meta` field.
 - [plugins/imagehash/README.md](plugins/imagehash/README.md) — `imageHashPlugin` + the three algorithms.
 - [plugins/translate/README.md](plugins/translate/README.md) — `translator` + the four resolvers (Google / OpenAI / Libre / copy).
+- [plugins/storage-openinary/README.md](plugins/storage-openinary/README.md) — `openinaryStorage` storage adapter (not wired into `createWWWConfig`; hosts add it to `plugins`).
 
 **Just browsing?** The top-level [README.md](README.md) has the workspace overview + release flow.
 
